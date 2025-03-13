@@ -1,102 +1,109 @@
-import Image from "next/image";
+// pages/index.tsx
+"use client";
+import React, { useState } from 'react';
+import Head from 'next/head';
+import Header from '../app/components/Header';
+import HeroSection from '../app/components/HeroSection';
+import Filters from '../app/components/Filters';
+import ProductGrid from '../app/components/ProductGrid';
+import Footer from '../app/components/Footer';
+
+// Define the Product type for better type safety
+type Product = {
+  id: number;
+  name: string;
+  price: number;
+  originalPrice?: number;
+  onSale: boolean;
+  image: string;
+};
 
 export default function Home() {
-  console.log(process.env.SERVER_URL)
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const products: Product[] = [
+    { 
+      id: 1, 
+      name: 'Suspended', 
+      price: 39.90, 
+      originalPrice: 49.90, 
+      onSale: true,
+      image: '/suspended.jpg'
+    },
+    { 
+      id: 2, 
+      name: 'Pathways', 
+      price: 39.90, 
+      originalPrice: 49.90, 
+      onSale: true,
+      image: '/pathways.jpg'
+    },
+    { 
+      id: 3, 
+      name: 'Dreamstate No.4', 
+      price: 49.90, 
+      onSale: false,
+      image: '/dreamstate-no4.jpg'
+    },
+    { 
+      id: 4, 
+      name: 'Time Went by', 
+      price: 39.90, 
+      onSale: false,
+      image: '/time-went-by.jpg'
+    },
+    { 
+      id: 5, 
+      name: 'Step by Step', 
+      price: 59.90, 
+      onSale: false,
+      image: '/step-by-step.jpg'
+    },
+    { 
+      id: 6, 
+      name: 'Mothi', 
+      price: 39.90, 
+      onSale: false,
+      image: '/mothi.jpg'
+    },
+  ];
+  
+  const [priceRange, setPriceRange] = useState<[number, number]>([39, 60]);
+  const [selectedColors, setSelectedColors] = useState<string[]>([]);
+  const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  return (
+    <div className="min-h-screen bg-gray-50 font-sans">
+      <Head>
+        <title>KIOSKO - Geometric Art Prints</title>
+        <meta name="description" content="High-quality geometric art prints for your home or office" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+
+      <Header />
+
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-8">
+        <HeroSection />
+
+        <div className="border-t border-gray-200 my-8"></div>
+
+        {/* Shop Section */}
+        <div className="flex flex-col lg:flex-row">
+          <Filters 
+            priceRange={priceRange}
+            setPriceRange={setPriceRange}
+            selectedColors={selectedColors}
+            setSelectedColors={setSelectedColors}
+            selectedSizes={selectedSizes}
+            setSelectedSizes={setSelectedSizes}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+          />
+          <ProductGrid products={products} />
         </div>
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+      <Footer />
     </div>
   );
 }
