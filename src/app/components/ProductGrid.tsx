@@ -2,20 +2,10 @@
 "use client";
 import React, { useState } from 'react';
 import Image from 'next/image';
+import { ProductGridProps } from '../types/responses';
 
 // Define the Product type for better type safety
-type Product = {
-  id: number;
-  name: string;
-  price: number;
-  originalPrice?: number;
-  onSale: boolean;
-  image: string;
-};
 
-interface ProductGridProps {
-  products: Product[];
-}
 
 const ProductGrid: React.FC<ProductGridProps> = ({ products }) => {
   const [imageError, setImageError] = useState<{[key: number]: boolean}>({});

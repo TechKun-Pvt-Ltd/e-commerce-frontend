@@ -1,16 +1,8 @@
 "use client";
 import React from 'react';
+import { FiltersProps } from '../types/responses';
 
-interface FiltersProps {
-  priceRange: [number, number];
-  setPriceRange: React.Dispatch<React.SetStateAction<[number, number]>>;
-  selectedColors: string[];
-  setSelectedColors: React.Dispatch<React.SetStateAction<string[]>>;
-  selectedSizes: string[];
-  setSelectedSizes: React.Dispatch<React.SetStateAction<string[]>>;
-  searchQuery: string;
-  setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
-}
+
 
 const Filters: React.FC<FiltersProps> = ({
   priceRange,

@@ -2,29 +2,12 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
+import { Size, ProductSize, ProductType } from "@/app/types/responses";
 
-interface Size {
-    sizeId: number;
-    name: string;
-}
-
-interface ProductSize {
-    productSizeId: number;
-    size: Size;
-    price: number;
-}
-
-interface Product {
-    productId: number;
-    name: string;
-    description: string;
-    images: string[];
-    sizes: ProductSize[];
-}
 
 const ProductDetail = () => {
     const { productId } = useParams(); // Get productId from URL
-    const [product, setProduct] = useState<Product | null>(null);
+    const [product, setProduct] = useState<ProductType | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -43,7 +26,7 @@ const ProductDetail = () => {
                 if (!response.ok) {
                     throw new Error("Product not found");
                 }
-                const data: Product = await response.json();
+                const data: ProductType = await response.json();
                 setProduct(data);
                 setSelectedImage(data.images[0]);
                 setSelectedSize(data.sizes[0]); // Set the first size as default
