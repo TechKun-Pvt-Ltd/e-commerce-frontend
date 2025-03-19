@@ -2,13 +2,14 @@
 "use client";
 import React, { useState } from 'react';
 import Head from 'next/head';
-import Header from '../app/components/Header';
+import Header from './layout/Header';
 import HeroSection from '../app/components/HeroSection';
 import Filters from '../app/components/Filters';
 import ProductGrid from '../app/components/ProductGrid';
-import Footer from '../app/components/Footer';
+import Footer from './layout/Footer';
 
 // Define the Product type for better type safety
+
 type Product = {
   id: number;
   name: string;
@@ -26,7 +27,7 @@ export default function Home() {
       price: 39.90, 
       originalPrice: 49.90, 
       onSale: true,
-      image: '/suspended.jpg'
+      image: ''
     },
     { 
       id: 2, 
@@ -34,7 +35,7 @@ export default function Home() {
       price: 39.90, 
       originalPrice: 49.90, 
       onSale: true,
-      image: '/pathways.jpg'
+      image: ''
     },
     { 
       id: 3, 
