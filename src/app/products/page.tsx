@@ -15,7 +15,7 @@ type Product = {
   image: string;
 };
 
-export default function Home() {
+export default function Products() {
   const products: Product[] = [
     {
       id: 1,
@@ -23,7 +23,7 @@ export default function Home() {
       price: 39.90,
       originalPrice: 49.90,
       onSale: true,
-      image: ''
+      image: '/product-image/canvas.jpg'
     },
     {
       id: 2,
@@ -31,21 +31,21 @@ export default function Home() {
       price: 39.90,
       originalPrice: 49.90,
       onSale: true,
-      image: ''
+      image: '/product-image/canvas2.jpg'
     },
     {
       id: 3,
       name: 'Dreamstate No.4',
       price: 49.90,
       onSale: false,
-      image: '/dreamstate-no4.jpg'
+      image: '/product-image/canvas3.jpg'
     },
     {
       id: 4,
       name: 'Time Went by',
       price: 39.90,
       onSale: false,
-      image: '/time-went-by.jpg'
+      image: '/product-image/canvas4.jpg'
     },
     {
       id: 5,
@@ -83,7 +83,7 @@ export default function Home() {
           selectedSizes={selectedSizes}
           onSizesSelected={setSelectedSizes}
         />
-        <ProductGrid products={products} onProductClick={pId => router.push('/'  + pId)} />
+        <ProductGrid products={products} onProductClick={pId => router.push('/products/' + pId)} />
       </div>
     </div>
   );

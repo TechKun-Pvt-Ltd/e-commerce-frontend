@@ -1,5 +1,5 @@
 "use client";
-import React from 'react';
+import React, { useCallback } from 'react';
 
 
 const Filters: React.FC<{
@@ -31,17 +31,17 @@ const Filters: React.FC<{
       { id: '21x30', label: '8 ¼ x 11 ¾ in (21×30 cm)', count: 1 }
     ];
 
-    const handleColorChange = (color: string) => {
-      selectedColors.includes(color)?
-        onColorsSelected(selectedColors.filter(c => c!== color)) :
+    const handleColorChange = useCallback((color: string) => {
+      selectedColors.includes(color) ?
+        onColorsSelected(selectedColors.filter(c => c !== color)) :
         onColorsSelected([...selectedColors, color]);
-    };
+    }, [selectedColors, onColorsSelected]);
 
-    const handleSizeChange = (size: string) => {
-      selectedSizes.includes(size)?
-        onSizesSelected(selectedSizes.filter(s => s!== size)) :
+    const handleSizeChange = useCallback((size: string) => {
+      selectedSizes.includes(size) ?
+        onSizesSelected(selectedSizes.filter(s => s !== size)) :
         onSizesSelected([...selectedSizes, size]);
-    };
+    }, [selectedSizes, onSizesSelected]);
 
     const minPrice = 50; // Assuming your min price is $50
     const maxPrice = 300; // Assuming your max price is $300
@@ -59,7 +59,7 @@ const Filters: React.FC<{
     };
 
     return (
-      <div className="bg-white rounded-lg p-6 sticky top-4 mb-6">
+      <div className="bg-white rounded-lg p-6 sticky top-4 mb-6 shadow-md transition-shadow duration-300 hover:shadow-lg">
         <h2 className="text-xl font-semibold mb-6 pb-3 border-b border-gray-200">Filters</h2>
 
         {/* Price Range */}
@@ -68,11 +68,11 @@ const Filters: React.FC<{
           <div className="relative h-2 mt-4 mb-6">
             <div className="absolute h-2 bg-gray-200 rounded-full w-full"></div>
             <div
-              className="absolute h-2 bg-black rounded-full"
+              className="absolute h-2 bg-black rounded-full transition-all duration-200"
               style={{ left: `${leftPosition}%`, width: `${rightPosition - leftPosition}%` }}
             ></div>
             <div
-              className="absolute w-6 h-6 bg-white border-2 border-black rounded-full cursor-pointer transform -translate-y-1/2 top-1/2"
+              className="absolute w-6 h-6 bg-white border-2 border-black rounded-full cursor-pointer transform -translate-y-1/2 top-1/2 transition-transform duration-200 hover:scale-110 hover:shadow-md"
               style={{ left: `${leftPosition}%` }}
               onMouseDown={() => {
                 const handleMouseMove = (e: MouseEvent) => {
@@ -93,7 +93,7 @@ const Filters: React.FC<{
               }}
             ></div>
             <div
-              className="absolute w-6 h-6 bg-white border-2 border-black rounded-full cursor-pointer transform -translate-y-1/2 top-1/2"
+              className="absolute w-6 h-6 bg-white border-2 border-black rounded-full cursor-pointer transform -translate-y-1/2 top-1/2 transition-transform duration-200 hover:scale-110 hover:shadow-md"
               style={{ left: `${rightPosition}%` }}
               onMouseDown={() => {
                 const handleMouseMove = (e: MouseEvent) => {
@@ -116,15 +116,15 @@ const Filters: React.FC<{
           </div>
 
           <div className="flex items-center justify-between mt-4">
-            <div className="w-24">
+            <div className="w-24 transition-all duration-200 hover:transform hover:scale-105">
               <label className="block text-xs text-gray-500 mb-1">Min Price</label>
-              <div className="bg-gray-50 border border-gray-300 px-3 py-2 rounded-md font-medium">
+              <div className="bg-gray-50 border border-gray-300 px-3 py-2 rounded-md font-medium shadow-sm hover:shadow transition-shadow duration-200">
                 ${priceRange[0]}
               </div>
             </div>
-            <div className="w-24">
+            <div className="w-24 transition-all duration-200 hover:transform hover:scale-105">
               <label className="block text-xs text-gray-500 mb-1">Max Price</label>
-              <div className="bg-gray-50 border border-gray-300 px-3 py-2 rounded-md font-medium">
+              <div className="bg-gray-50 border border-gray-300 px-3 py-2 rounded-md font-medium shadow-sm hover:shadow transition-shadow duration-200">
                 ${priceRange[1]}
               </div>
             </div>
@@ -134,20 +134,20 @@ const Filters: React.FC<{
         {/* Color Filter */}
         <div className="mb-8">
           <h3 className="text-lg font-medium mb-4">Color</h3>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-3">
             {colors.map(color => (
               <div
                 key={color.name}
-                className={`flex items-center p-2 rounded-md transition-colors duration-200 cursor-pointer ${selectedColors.includes(color.name) ? 'bg-gray-100' : ''
+                className={`flex items-center p-3 rounded-lg transition-all duration-200 cursor-pointer transform hover:scale-105 ${selectedColors.includes(color.name) ? 'bg-gray-100 shadow-inner' : 'hover:shadow-md'
                   }`}
                 onClick={() => handleColorChange(color.name)}
               >
                 <div
-                  className="w-6 h-6 rounded-full mr-3 flex-shrink-0 border border-gray-300"
+                  className="w-6 h-6 rounded-full mr-3 flex-shrink-0 border border-gray-300 transition-transform duration-200 hover:scale-110"
                   style={{ backgroundColor: color.hex, boxShadow: color.name === 'White' ? 'inset 0 0 0 1px rgba(0,0,0,0.1)' : 'none' }}
                 >
                   {selectedColors.includes(color.name) && (
-                    <svg className={`w-6 h-6 ${color.name === 'White' || color.name === 'Teal' ? 'text-black' : 'text-white'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className={`w-6 h-6 ${color.name === 'White' || color.name === 'Teal' ? 'text-black' : 'text-white'} transition-opacity duration-200`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   )}
@@ -168,18 +168,18 @@ const Filters: React.FC<{
             {sizes.map(size => (
               <div
                 key={size.id}
-                className={`p-3 border rounded-md cursor-pointer transition-all ${selectedSizes.includes(size.id)
-                  ? 'border-black bg-gray-50'
-                  : 'border-gray-300 hover:border-gray-400'
+                className={`p-3 border rounded-lg cursor-pointer transition-all duration-200 transform hover:scale-102 ${selectedSizes.includes(size.id)
+                    ? 'border-black bg-gray-50 shadow-inner'
+                    : 'border-gray-300 hover:border-gray-400 hover:shadow-md'
                   }`}
                 onClick={() => handleSizeChange(size.id)}
               >
                 <div className="flex justify-between items-center">
                   <div className="flex items-center">
-                    <div className={`w-4 h-4 rounded mr-3 border flex items-center justify-center ${selectedSizes.includes(size.id) ? 'border-black bg-black text-white' : 'border-gray-400'
+                    <div className={`w-4 h-4 rounded mr-3 border flex items-center justify-center transition-colors duration-200 ${selectedSizes.includes(size.id) ? 'border-black bg-black text-white' : 'border-gray-400'
                       }`}>
                       {selectedSizes.includes(size.id) && (
-                        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="w-3 h-3 text-white transition-opacity duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                         </svg>
                       )}
@@ -195,7 +195,7 @@ const Filters: React.FC<{
 
         {/* Reset Filters Button */}
         <button
-          className="w-full mt-4 py-2 px-4 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors"
+          className="w-full mt-4 py-2 px-4 border border-gray-300 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-gray-50 hover:shadow-md transform hover:scale-102"
           onClick={() => {
             onPriceRangeChange([minPrice, maxPrice]);
             onColorsSelected([]);
