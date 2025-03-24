@@ -67,7 +67,6 @@ export default function Home() {
   const [priceRange, setPriceRange] = useState<[number, number]>([39, 60]);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
-  const [searchQuery, setSearchQuery] = useState<string>("");
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
@@ -83,10 +82,8 @@ export default function Home() {
           onColorsSelected={setSelectedColors}
           selectedSizes={selectedSizes}
           onSizesSelected={setSelectedSizes}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
         />
-        <ProductGrid products={products} />
+        {/* <ProductGrid products={products} /> */}
       </div>
     </div>
   );
