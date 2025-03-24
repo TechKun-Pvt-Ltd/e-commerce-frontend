@@ -2,13 +2,13 @@
 "use client";
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { ProductGridProps } from '../types/responses';
+import { ProductGridProps } from '../../types/responses';
 
 // Define the Product type for better type safety
 
 
 const ProductGrid: React.FC<ProductGridProps> = ({ products }) => {
-  const [imageError, setImageError] = useState<{[key: number]: boolean}>({});
+  const [imageError, setImageError] = useState<{ [key: number]: boolean }>({});
 
   return (
     <div className="lg:w-3/4">
@@ -31,13 +31,13 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products }) => {
                       </div>
                     </div>
                   ) : (
-                    <Image 
+                    <Image
                       src={`https://via.placeholder.com/400x500?text=${encodeURIComponent(product.name)}`}
-                      alt={product.name} 
-                      width={400} 
+                      alt={product.name}
+                      width={400}
                       height={500}
                       className="w-full h-full object-cover transform transition-transform duration-300 group-hover:scale-105"
-                      onError={() => setImageError(prev => ({...prev, [product.id]: true}))}
+                      onError={() => setImageError(prev => ({ ...prev, [product.id]: true }))}
                     />
                   )}
                 </div>

@@ -1,6 +1,6 @@
 "use client";
 import React from 'react';
-import { FiltersProps } from '../types/responses';
+import { FiltersProps } from '../../types/responses';
 
 
 
@@ -43,32 +43,32 @@ const Filters: React.FC<FiltersProps> = ({
   const minPrice = 50; // Assuming your min price is $50
   const maxPrice = 300; // Assuming your max price is $300
   const range = maxPrice - minPrice;
-  
+
   const leftPosition = ((priceRange[0] - minPrice) / range) * 100;
   const rightPosition = ((priceRange[1] - minPrice) / range) * 100;
-  
+
   const handlePriceChange = (newMin: number, newMax: number) => {
     // Ensure min doesn't exceed max and vice versa
     newMin = Math.min(newMin, priceRange[1]);
     newMax = Math.max(newMax, priceRange[0]);
-    
+
     setPriceRange([newMin, newMax]);
   };
 
   return (
     <div className="bg-white rounded-lg p-6 sticky top-4 mb-6">
       <h2 className="text-xl font-semibold mb-6 pb-3 border-b border-gray-200">Filters</h2>
-      
+
       {/* Price Range */}
       <div className="mb-8">
         <h3 className="text-lg font-medium mb-4">Price Range</h3>
         <div className="relative h-2 mt-4 mb-6">
           <div className="absolute h-2 bg-gray-200 rounded-full w-full"></div>
-          <div 
-            className="absolute h-2 bg-black rounded-full" 
+          <div
+            className="absolute h-2 bg-black rounded-full"
             style={{ left: `${leftPosition}%`, width: `${rightPosition - leftPosition}%` }}
           ></div>
-          <div 
+          <div
             className="absolute w-6 h-6 bg-white border-2 border-black rounded-full cursor-pointer transform -translate-y-1/2 top-1/2"
             style={{ left: `${leftPosition}%` }}
             onMouseDown={() => {
@@ -79,17 +79,17 @@ const Filters: React.FC<FiltersProps> = ({
                 const newMin = Math.round((percentage / 100) * range + minPrice);
                 handlePriceChange(newMin, priceRange[1]);
               };
-              
+
               const handleMouseUp = () => {
                 document.removeEventListener('mousemove', handleMouseMove);
                 document.removeEventListener('mouseup', handleMouseUp);
               };
-              
+
               document.addEventListener('mousemove', handleMouseMove);
               document.addEventListener('mouseup', handleMouseUp);
             }}
           ></div>
-          <div 
+          <div
             className="absolute w-6 h-6 bg-white border-2 border-black rounded-full cursor-pointer transform -translate-y-1/2 top-1/2"
             style={{ left: `${rightPosition}%` }}
             onMouseDown={() => {
@@ -100,18 +100,18 @@ const Filters: React.FC<FiltersProps> = ({
                 const newMax = Math.round((percentage / 100) * range + minPrice);
                 handlePriceChange(priceRange[0], newMax);
               };
-              
+
               const handleMouseUp = () => {
                 document.removeEventListener('mousemove', handleMouseMove);
                 document.removeEventListener('mouseup', handleMouseUp);
               };
-              
+
               document.addEventListener('mousemove', handleMouseMove);
               document.addEventListener('mouseup', handleMouseUp);
             }}
           ></div>
         </div>
-        
+
         <div className="flex items-center justify-between mt-4">
           <div className="w-24">
             <label className="block text-xs text-gray-500 mb-1">Min Price</label>
@@ -133,15 +133,14 @@ const Filters: React.FC<FiltersProps> = ({
         <h3 className="text-lg font-medium mb-4">Color</h3>
         <div className="grid grid-cols-2 gap-2">
           {colors.map(color => (
-            <div 
-              key={color.name} 
-              className={`flex items-center p-2 rounded-md transition-colors duration-200 cursor-pointer ${
-                selectedColors.includes(color.name) ? 'bg-gray-100' : ''
-              }`}
+            <div
+              key={color.name}
+              className={`flex items-center p-2 rounded-md transition-colors duration-200 cursor-pointer ${selectedColors.includes(color.name) ? 'bg-gray-100' : ''
+                }`}
               onClick={() => handleColorChange(color.name)}
             >
-              <div 
-                className="w-6 h-6 rounded-full mr-3 flex-shrink-0 border border-gray-300" 
+              <div
+                className="w-6 h-6 rounded-full mr-3 flex-shrink-0 border border-gray-300"
                 style={{ backgroundColor: color.hex, boxShadow: color.name === 'White' ? 'inset 0 0 0 1px rgba(0,0,0,0.1)' : 'none' }}
               >
                 {selectedColors.includes(color.name) && (
@@ -164,20 +163,18 @@ const Filters: React.FC<FiltersProps> = ({
         <h3 className="text-lg font-medium mb-4">Size</h3>
         <div className="space-y-3">
           {sizes.map(size => (
-            <div 
-              key={size.id} 
-              className={`p-3 border rounded-md cursor-pointer transition-all ${
-                selectedSizes.includes(size.id) 
-                  ? 'border-black bg-gray-50' 
+            <div
+              key={size.id}
+              className={`p-3 border rounded-md cursor-pointer transition-all ${selectedSizes.includes(size.id)
+                  ? 'border-black bg-gray-50'
                   : 'border-gray-300 hover:border-gray-400'
-              }`}
+                }`}
               onClick={() => handleSizeChange(size.id)}
             >
               <div className="flex justify-between items-center">
                 <div className="flex items-center">
-                  <div className={`w-4 h-4 rounded mr-3 border flex items-center justify-center ${
-                    selectedSizes.includes(size.id) ? 'border-black bg-black text-white' : 'border-gray-400'
-                  }`}>
+                  <div className={`w-4 h-4 rounded mr-3 border flex items-center justify-center ${selectedSizes.includes(size.id) ? 'border-black bg-black text-white' : 'border-gray-400'
+                    }`}>
                     {selectedSizes.includes(size.id) && (
                       <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
@@ -194,7 +191,7 @@ const Filters: React.FC<FiltersProps> = ({
       </div>
 
       {/* Reset Filters Button */}
-      <button 
+      <button
         className="w-full mt-4 py-2 px-4 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors"
         onClick={() => {
           setPriceRange([minPrice, maxPrice]);
