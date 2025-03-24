@@ -2,17 +2,16 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
-import { Size, ProductSize, ProductType } from "@/app/types/responses";
-
+import { ProductVariant, Product } from "@/app/types/models";
 
 const ProductDetail = () => {
     const { productId } = useParams(); // Get productId from URL
-    const [product, setProduct] = useState<ProductType | null>(null);
+    const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     const [selectedImage, setSelectedImage] = useState<string>("");
-    const [selectedSize, setSelectedSize] = useState<ProductSize | null>(null);
+    const [selectedSize, setSelectedSize] = useState<ProductVariant | null>(null);
     const [selectedMaterial, setSelectedMaterial] = useState("Paper");
     const [selectedFrame, setSelectedFrame] = useState("Unframed");
     const [quantity, setQuantity] = useState(1);
@@ -26,10 +25,10 @@ const ProductDetail = () => {
                 if (!response.ok) {
                     throw new Error("Product not found");
                 }
-                const data: ProductType = await response.json();
+                const data: Product = await response.json();
                 setProduct(data);
                 setSelectedImage(data.images[0]);
-                setSelectedSize(data.sizes[0]); // Set the first size as default
+                setSelectedSize(data.variants[0]); // Set the first size as default
             } catch (err) {
                 setError(err instanceof Error ? err.message : "An error occurred");
             } finally {
