@@ -78,11 +78,11 @@ export default function Home() {
       <div className="flex flex-col lg:flex-row">
         <Filters
           priceRange={priceRange}
-          setPriceRange={setPriceRange}
+          onPriceRangeChange={setPriceRange}
           selectedColors={selectedColors}
-          setSelectedColors={setSelectedColors}
+          onColorsSelected={setSelectedColors}
           selectedSizes={selectedSizes}
-          setSelectedSizes={setSelectedSizes}
+          onSizesSelected={setSelectedSizes}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
         />

@@ -1,29 +1,4 @@
-import React from 'react';
 import { OrderStatus } from './models';
-
-export interface FiltersProps {
-  priceRange: [number, number];
-  setPriceRange: React.Dispatch<React.SetStateAction<[number, number]>>;
-  selectedColors: string[];
-  setSelectedColors: React.Dispatch<React.SetStateAction<string[]>>;
-  selectedSizes: string[];
-  setSelectedSizes: React.Dispatch<React.SetStateAction<string[]>>;
-  searchQuery: string;
-  setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
-}
-
-// ProductGridProps
-export interface ProductGridProps {
-    products: Product[];
-  }
-  type Product = {
-    id: number;
-    name: string;
-    price: number;
-    originalPrice?: number;
-    onSale: boolean;
-    image: string;
-  };
 
 export interface CartItemDTO {
   userId: number;
