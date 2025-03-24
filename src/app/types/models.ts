@@ -7,7 +7,6 @@ export interface Product {
 
 export interface ProductVariant {
     productVariantId: number;
-    product: Product;
     sizeOption: SizeOption;
     frameOption: FrameOption;
     price: number;
@@ -61,7 +60,6 @@ export interface ShopOrder {
 
 export interface OrderItem {
     orderItemId: number;
-    order: ShopOrder;
     productVariant: ProductVariant;
     quantity: number;
 }
