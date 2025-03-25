@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { Product } from '@/app/types/models';
-import apiInstance from '@/app/services/api.service';
+// import apiInstance from '@/app/services/api.service';
+import { mockProducts } from '@/app/mock/products';
 
 interface ProductsState {
     items: Product[];
@@ -23,47 +24,6 @@ export const fetchProducts = createAsyncThunk(
             // const response = await apiInstance.get('/products');
             // return response.data;
 
-            // Mock data instead of API call
-            const mockProducts: Product[] = [
-                {
-                    productId: 1,
-                    name: "Classic Wall Art",
-                    description: "Beautiful classic wall art piece",
-                    variants: [
-                        {
-                            productVariantId: 1,
-                            price: 99.99,
-                            sizeOption: { sizeOptionId: 1, value: "Small (8x10)" },
-                            frameOption: { frameOptionId: 1, value: "Black Wood" }
-                        },
-                        {
-                            productVariantId: 2,
-                            price: 149.99,
-                            sizeOption: { sizeOptionId: 2, value: "Medium (16x20)" },
-                            frameOption: { frameOptionId: 2, value: "Gold Metal" }
-                        }
-                    ]
-                },
-                {
-                    productId: 2,
-                    name: "Modern Abstract Print",
-                    description: "Contemporary abstract art design",
-                    variants: [
-                        {
-                            productVariantId: 3,
-                            price: 129.99,
-                            sizeOption: { sizeOptionId: 1, value: "Small (8x10)" },
-                            frameOption: { frameOptionId: 3, value: "White Wood" }
-                        },
-                        {
-                            productVariantId: 4,
-                            price: 179.99,
-                            sizeOption: { sizeOptionId: 2, value: "Medium (16x20)" },
-                            frameOption: { frameOptionId: 4, value: "Silver Metal" }
-                        }
-                    ]
-                }
-            ];
             return mockProducts;
         } catch (error: any) {
             return rejectWithValue('Failed to fetch products');
@@ -75,8 +35,10 @@ export const fetchProductById = createAsyncThunk(
     'products/fetchProductById',
     async (id: number, { rejectWithValue }) => {
         try {
-            const response = await apiInstance.get(`/products/${id}`);
-            return response.data;
+            // const response = await apiInstance.get(`/products/${id}`);
+            // return response.data;
+
+            return mockProducts[0];
         } catch (error: any) {
             return rejectWithValue(error.response?.data || 'Failed to fetch product');
         }
