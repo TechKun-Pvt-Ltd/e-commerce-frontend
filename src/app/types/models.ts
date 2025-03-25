@@ -7,7 +7,6 @@ export interface Product {
 
 export interface ProductVariant {
     productVariantId: number;
-    product: Product;
     sizeOption: SizeOption;
     frameOption: FrameOption;
     price: number;
@@ -60,14 +59,13 @@ export interface ShopOrder {
 }
 
 export interface OrderItem {
-    id: number;
-    name: string;
-    price: number;
-    image: string;
-    size?: string;
-    quantity?: number;
-  }
-  
+    orderItemId: number;
+    productVariant: ProductVariant;
+    quantity: number;
+}
+
+
+
 export interface OrderDetail {
     id: string;
     status: string;

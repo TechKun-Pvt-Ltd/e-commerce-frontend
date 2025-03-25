@@ -13,7 +13,6 @@ const ProductDetail = () => {
     const [selectedImage, setSelectedImage] = useState<string>("");
     const [selectedSize, setSelectedSize] = useState<ProductVariant | null>(null);
     const [selectedMaterial, setSelectedMaterial] = useState("Paper");
-    const [selectedFrame, setSelectedFrame] = useState("Unframed");
     const [quantity, setQuantity] = useState(1);
     const [currentIndex, setCurrentIndex] = useState(0);
 

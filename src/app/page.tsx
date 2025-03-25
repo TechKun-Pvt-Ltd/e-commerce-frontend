@@ -67,7 +67,6 @@ export default function Home() {
   const [priceRange, setPriceRange] = useState<[number, number]>([39, 60]);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
-  const [searchQuery, setSearchQuery] = useState<string>("");
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
@@ -78,15 +77,13 @@ export default function Home() {
       <div className="flex flex-col lg:flex-row">
         <Filters
           priceRange={priceRange}
-          setPriceRange={setPriceRange}
+          onPriceRangeChange={setPriceRange}
           selectedColors={selectedColors}
-          setSelectedColors={setSelectedColors}
+          onColorsSelected={setSelectedColors}
           selectedSizes={selectedSizes}
-          setSelectedSizes={setSelectedSizes}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
+          onSizesSelected={setSelectedSizes}
         />
-        <ProductGrid products={products} />
+        {/* <ProductGrid products={products} /> */}
       </div>
     </div>
   );

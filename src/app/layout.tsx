@@ -1,17 +1,26 @@
-import "@/app/styles/globals.scss"; // Ensure the correct path
-import Footer from "./layout/Footer";
-import Header from "./layout/Header";
+import './styles/globals.scss';
+import { Inter } from 'next/font/google';
+import Header from './layout/Header';
+import Footer from './layout/Footer';
+import { Providers } from './providers';
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+const inter = Inter({ subsets: ['latin'] });
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
-      <head></head>
-      <body>
-        <Header />
-        <main className="container mx-auto px-4 py-8">
-          {children}
-        </main>
-        <Footer />
+      <body className={inter.className}>
+        <Providers>
+          <Header />
+          <main className="container mx-auto px-4 py-8">
+            {children}
+          </main>
+          <Footer />
+        </Providers>
       </body>
     </html>
   );
