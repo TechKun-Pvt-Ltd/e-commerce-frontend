@@ -335,7 +335,7 @@ const OrderDetails: React.FC = () => {
                                             <p className="text-gray-500 text-sm">Size: {item.productVariant.sizeOption.value}</p>
                                             <p className="text-gray-500 text-sm">Qty: {item.quantity || 1}</p>
                                         </div>
-                                        <p className="text-gray-900 font-bold">Rp{item.productVariant.price}</p>
+                                        <p className="text-gray-900 font-bold">Rs. {item.productVariant.price.toLocaleString('id-ID')}</p>
                                     </div>
                                 </div>
                             </div>
@@ -363,14 +363,14 @@ const OrderDetails: React.FC = () => {
                                         <p className="text-gray-700">{item.productVariant.name}</p>
                                         <span className="text-gray-400 text-sm ml-2">x{item.quantity || 1}</span>
                                     </div>
-                                    <p className="font-medium">Rp{item.productVariant.price}</p>
+                                    <p className="font-medium">Rs. {item.productVariant.price.toLocaleString('id-ID')}</p>
                                 </div>
                             ))}
 
                             {/* Total row with bolder styling */}
                             <div className="flex justify-between items-center pt-3 border-t border-gray-200 font-bold">
                                 <p>Total</p>
-                                <p>Rp{order.payment.total.toLocaleString()}</p>
+                                <p>Rs. {order.payment.total.toLocaleString('id-ID')}</p>
                             </div>
                         </div>
                     </div>
@@ -378,7 +378,7 @@ const OrderDetails: React.FC = () => {
                     {/* Bottom section with total and buttons */}
                     <div className="bg-gray-50 px-5 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div>
-                            <p className="font-bold text-lg">Rp{order.payment.total.toLocaleString()}</p>
+                            <p className="font-bold text-lg">Rs. {order.payment.total.toLocaleString('id-ID')}</p>
                             <p className="text-gray-500 text-sm">({order.items.length} items)</p>
                         </div>
                         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
