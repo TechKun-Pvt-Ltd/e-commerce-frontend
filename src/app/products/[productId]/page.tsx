@@ -2,41 +2,26 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
-import { ProductVariant, Product } from "@/app/types/models";
+import { ProductImage, ProductVariant } from "@/app/types/models";
+import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
+import { fetchProductById } from "@/app/store/slices/productsSlice";
 
 const ProductDetail = () => {
     const { productId } = useParams(); // Get productId from URL
-    const [product, setProduct] = useState<Product | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
 
-    const [selectedImage, setSelectedImage] = useState<string>("");
-    const [selectedSize, setSelectedSize] = useState<ProductVariant | null>(null);
+    const [selectedImage, setSelectedImage] = useState<ProductImage>();
+    const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
     const [selectedMaterial, setSelectedMaterial] = useState("Paper");
     const [quantity, setQuantity] = useState(1);
     const [currentIndex, setCurrentIndex] = useState(0);
+    const { selectedProduct: product, loading, error } = useAppSelector((state) => state.products);
+    const dispatch = useAppDispatch();
 
-    // Fetch product data from API
     useEffect(() => {
-        const fetchProduct = async () => {
-            try {
-                const response = await fetch(`http://localhost:8080/products/${productId}`);
-                if (!response.ok) {
-                    throw new Error("Product not found");
-                }
-                const data: Product = await response.json();
-                setProduct(data);
-                setSelectedImage(data.images[0]);
-                setSelectedSize(data.variants[0]); // Set the first size as default
-            } catch (err) {
-                setError(err instanceof Error ? err.message : "An error occurred");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchProduct();
-    }, [productId]);
+        if (productId) {
+            dispatch(fetchProductById(Number.parseInt(productId as string)));
+        }
+    }, []);
 
     useEffect(() => {
         if (product) {
@@ -68,7 +53,8 @@ const ProductDetail = () => {
         return <div className="text-center text-red-500 text-2xl p-10">Product Not Found</div>;
     }
 
-    const totalPrice = selectedSize ? selectedSize.price * quantity : 0;
+    const totalPrice = selectedVariant ? selectedVariant.price * quantity : 0;
+    const currentImage = Buffer.from(product.images[currentIndex].imageData).toString();
 
     return (
         <div className="max-w-7xl mx-auto p-6 md:p-10 flex flex-col md:flex-row items-start gap-12">
@@ -76,7 +62,7 @@ const ProductDetail = () => {
             <div className="w-full md:w-1/2 flex flex-col items-center">
                 <div className="w-full max-w-lg">
                     <Image
-                        src={product.images[currentIndex]}
+                        src={currentImage}
                         alt={product.name}
                         width={500}
                         height={500}
@@ -93,7 +79,7 @@ const ProductDetail = () => {
                             rounded-lg overflow-hidden hover:opacity-75`}
                             onClick={() => setSelectedImage(img)}
                         >
-                            <Image src={img} alt="Thumbnail" width={80} height={80} className="w-full h-full object-cover" />
+                            <Image src={Buffer.from(img.imageData).toString()} alt="Thumbnail" width={80} height={80} className="w-full h-full object-cover" />
                         </button>
                     ))}
                 </div>
@@ -137,14 +123,14 @@ const ProductDetail = () => {
                 <div>
                     <h3 className="font-medium text-gray-700 mb-2">Size:</h3>
                     <div className="flex flex-wrap gap-2 mb-4">
-                        {product.sizes.map((size) => (
+                        {product.variants.map((variant) => (
                             <button
-                                key={size.productSizeId}
-                                className={`px-4 py-2 text-sm rounded-full transition ${selectedSize?.productSizeId === size.productSizeId ? "bg-blue-500 text-white" : "border border-gray-400 hover:bg-gray-200"
+                                key={variant.sizeOption.sizeOptionId}
+                                className={`px-4 py-2 text-sm rounded-full transition ${selectedVariant?.sizeOption.sizeOptionId === variant.sizeOption.sizeOptionId ? "bg-blue-500 text-white" : "border border-gray-400 hover:bg-gray-200"
                                     }`}
-                                onClick={() => setSelectedSize(size)}
+                                onClick={() => setSelectedVariant(variant)}
                             >
-                                {size.size.name}
+                                {variant.sizeOption.value}
                             </button>
                         ))}
                     </div>
