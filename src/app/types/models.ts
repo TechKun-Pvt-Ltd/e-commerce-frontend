@@ -113,7 +113,7 @@ export interface OrderDetail {
 // }
 
 export interface CartItem {
-    cartId: number;
+    cartItemId: number;
     user: User;
     productVariant: ProductVariant;
     quantity: number;
