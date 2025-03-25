@@ -41,14 +41,14 @@ const CartItems = () => {
                 <div key={item.variant.productVariantId} className="flex items-center gap-4 p-4 bg-white rounded-lg shadow-sm">
                     <div className="w-24 h-24 relative">
                         <Image
-                            src={`https://via.placeholder.com/96?text=${encodeURIComponent(item.variant.product.name)}`}
-                            alt={item.variant.product.name}
+                            src={`https://via.placeholder.com/96?text=${encodeURIComponent(item.variant.name)}`}
+                            alt={item.variant.name}
                             fill
                             className="object-cover rounded-md"
                         />
                     </div>
                     <div className="flex-grow">
-                        <h3 className="text-lg font-medium text-gray-900">{item.variant.product.name}</h3>
+                        <h3 className="text-lg font-medium text-gray-900">{item.variant.name}</h3>
                         <p className="text-sm text-gray-500">
                             Size: {item.variant.sizeOption.value}, Frame: {item.variant.frameOption.value}
                         </p>

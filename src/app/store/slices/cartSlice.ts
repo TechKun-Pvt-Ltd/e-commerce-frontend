@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import apiInstance from '@/app/services/api.service';
-import { CartItem, ProductVariant } from '@/app/types/models';
+import { CartItem, ProductVariant, User } from '@/app/types/models';
 
 interface CartState {
     items: CartItem[];
@@ -22,8 +22,9 @@ export const fetchCartItems = createAsyncThunk(
     'cart/fetchCartItems',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await apiInstance.get('/cart-items');
-            return response.data;
+            // const response = await apiInstance.get('/cart-items');
+            // return response.data;
+            return [];
         } catch (error: any) {
             return rejectWithValue(error.response?.data || 'Failed to fetch cart items');
         }
@@ -34,8 +35,16 @@ export const addToCartAsync = createAsyncThunk(
     'cart/addToCartAsync',
     async (variant: ProductVariant, { rejectWithValue }) => {
         try {
-            const response = await apiInstance.post('/cart-items', { productVariantId: variant.productVariantId });
-            return response.data;
+            // const response = await apiInstance.post('/cart-items', { productVariantId: variant.productVariantId });
+            // return response.data;
+            return [
+                {
+                    cartId: 1,
+                    productVariant: variant,
+                    user: {} as User,
+                    quantity: 1 
+                }
+            ];
         } catch (error: any) {
             return rejectWithValue(error.response?.data || 'Failed to add item to cart');
         }
