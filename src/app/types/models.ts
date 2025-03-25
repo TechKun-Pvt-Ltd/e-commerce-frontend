@@ -78,32 +78,32 @@ export interface OrderDetail {
     id: string;
     status: string;
     timeline: {
-      date: string;
-      time: string;
-      status: string;
-      location: string;
+        date: string;
+        time: string;
+        status: string;
+        location: string;
     }[];
     shipping: {
-      origin: string;
-      destination: string;
-      courier: string;
-      courierDetail: string;
+        origin: string;
+        destination: string;
+        courier: string;
+        courierDetail: string;
     };
     delivery: {
-      estimatedArrival: string;
-      deliveredIn: string;
+        estimatedArrival: string;
+        deliveredIn: string;
     };
     recipient: {
-      name: string;
-      address: string;
+        name: string;
+        address: string;
     };
     tracking: string;
     items: OrderItem[];
     payment: {
-      status: string;
-      total: number;
+        status: string;
+        total: number;
     };
-  }
+}
 
 // export interface OrderItem {
 //     orderItemId: number;
@@ -111,6 +111,13 @@ export interface OrderDetail {
 //     productVariant: ProductVariant;
 //     quantity: number;
 // }
+
+export interface CartItem {
+    cartId: number;
+    user: User;
+    productVariant: ProductVariant;
+    quantity: number;
+}
 
 export enum OrderStatus {
     PENDING = 'PENDING',
