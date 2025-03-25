@@ -1,6 +1,6 @@
 "use client"
 import React from 'react';
-import { OrderItem, OrderDetail } from '@/app/types/models';
+import { OrderDetail } from '@/app/types/models';
 
 
 // Mock data based on the image
