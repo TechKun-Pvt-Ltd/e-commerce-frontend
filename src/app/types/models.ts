@@ -60,11 +60,51 @@ export interface ShopOrder {
 }
 
 export interface OrderItem {
-    orderItemId: number;
-    order: ShopOrder;
-    productVariant: ProductVariant;
-    quantity: number;
-}
+    id: number;
+    name: string;
+    price: number;
+    image: string;
+    size?: string;
+    quantity?: number;
+  }
+  
+export interface OrderDetail {
+    id: string;
+    status: string;
+    timeline: {
+      date: string;
+      time: string;
+      status: string;
+      location: string;
+    }[];
+    shipping: {
+      origin: string;
+      destination: string;
+      courier: string;
+      courierDetail: string;
+    };
+    delivery: {
+      estimatedArrival: string;
+      deliveredIn: string;
+    };
+    recipient: {
+      name: string;
+      address: string;
+    };
+    tracking: string;
+    items: OrderItem[];
+    payment: {
+      status: string;
+      total: number;
+    };
+  }
+
+// export interface OrderItem {
+//     orderItemId: number;
+//     order: ShopOrder;
+//     productVariant: ProductVariant;
+//     quantity: number;
+// }
 
 export enum OrderStatus {
     PENDING = 'PENDING',

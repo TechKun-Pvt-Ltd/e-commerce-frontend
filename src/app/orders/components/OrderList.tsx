@@ -1,79 +1,160 @@
-"use client";
+"use client"
 import React from 'react';
+import { OrderItem, OrderDetail } from '@/app/types/models';
 
-interface OrderItem {
-    name: string;
-    quantity: number;
-    price: number;
-}
 
-interface Order {
-    id: string;
-    orderNumber: string;
-    date: string;
-    total: number;
-    status: string;
-    items: OrderItem[];
-}
+// Mock data based on the image
+const mockOrderDetail: OrderDetail = {
+    id: "8981786",
+    status: "On Deliver",
+    timeline: [
+        {
+            date: "4 Jul (Now)",
+            time: "06:00",
+            status: "Your package is packed by the courier",
+            location: "Malang, East Java, Indonesia"
+        },
+        {
+            date: "2 Jul",
+            time: "06:00",
+            status: "Shipment has been created",
+            location: "Malang, Indonesia"
+        },
+        {
+            date: "1 Jul",
+            time: "06:00",
+            status: "Order placed",
+            location: ""
+        }
+    ],
+    shipping: {
+        origin: "Malang, Indonesia",
+        destination: "Emir's House, Indonesia",
+        courier: "Doordash Indonesia",
+        courierDetail: "Surabaya, Lorkldul, East Java, Indonesia"
+    },
+    delivery: {
+        estimatedArrival: "9 July 2024",
+        deliveredIn: "5 Days"
+    },
+    recipient: {
+        name: "Emir",
+        address: "Malang, East Java, Indonesia"
+    },
+    tracking: "871291892812",
+    items: [
+        {
+            id: 1,
+            name: "Nike Air Max SYSTM",
+            price: 1459000,
+            image: "/nike-air-max-systm.jpg",
+            size: "24",
+            quantity: 1
+        },
+        {
+            id: 2,
+            name: "Nike Air Max Pulse",
+            price: 2379000,
+            image: "/nike-air-max-pulse.jpg",
+            size: "24",
+            quantity: 1
+        },
+        {
+            id: 3,
+            name: "Nike Air Rift",
+            price: 1909000,
+            image: "/nike-air-rift.jpg",
+            size: "24",
+            quantity: 1
+        },
+        {
+            id: 4,
+            name: "Nike Air Max Air",
+            price: 2379000,
+            image: "/nike-air-max-air.jpg",
+            size: "24",
+            quantity: 1
+        }
+    ],
+    payment: {
+        status: "Payment Success",
+        total: 7890000
+    }
+};
 
-interface OrderListProps {
-    orders: Order[];
-}
+const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+        case 'on deliver':
+            return 'bg-amber-100 text-amber-700';
+        case 'delivered':
+            return 'bg-green-100 text-green-700';
+        case 'cancelled':
+            return 'bg-red-100 text-red-700';
+        case 'pending':
+            return 'bg-blue-100 text-blue-700';
+        default:
+            return 'bg-gray-100 text-gray-700';
+    }
+};
 
-const OrderList: React.FC<OrderListProps> = ({ orders }) => {
+const order = mockOrderDetail; // Would normally come from API
+
+const OrderList: React.FC = () => {
     return (
         <div className="space-y-6">
-            {orders.map((order) => (
-                <div key={order.id} className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                    <div className="flex justify-between items-start mb-4">
-                        <div>
-                            <h2 className="text-lg font-medium text-gray-900">
-                                Order #{order.orderNumber}
-                            </h2>
-                            <p className="text-sm text-gray-500">
-                                Placed on {new Date(order.date).toLocaleDateString()}
-                            </p>
-                        </div>
-                        <div className="text-right">
-                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
-                                ${order.status === 'Delivered' ? 'bg-green-100 text-green-800' :
-                                    order.status === 'Processing' ? 'bg-blue-100 text-blue-800' :
-                                        'bg-gray-100 text-gray-800'}`}>
-                                {order.status}
-                            </span>
-                        </div>
+            {/* Order ID and Status Card */}
+            <div className="bg-white rounded-xl shadow-sm p-5 mb-6 transition-all hover:shadow-md">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                    <div>
+                        <p className="text-sm text-gray-500">Order ID</p>
+                        <p className="text-xl font-bold">#{order.id}</p>
                     </div>
-
-                    <div className="border-t border-gray-200 pt-4">
-                        <h3 className="text-sm font-medium text-gray-900 mb-2">Order Items</h3>
-                        <div className="space-y-2">
-                            {order.items.map((item, index) => (
-                                <div key={index} className="flex justify-between text-sm">
-                                    <span className="text-gray-600">
-                                        {item.quantity}x {item.name}
-                                    </span>
-                                    <span className="text-gray-900">
-                                        ${(item.price * item.quantity).toFixed(2)}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="border-t border-gray-200 mt-4 pt-4 flex justify-between items-center">
-                        <div className="text-sm font-medium text-gray-900">
-                            Total
-                            <span className="ml-2">${order.total.toFixed(2)}</span>
-                        </div>
-                        <a
-                            href={`/orders/${order.id}`}
-                            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                        >
-                            View Details →
-                        </a>
+                    <div className={`self-start sm:self-center ${getStatusColor(order.status)} px-4 py-1.5 rounded-full text-sm font-medium`}>
+                        {order.status}
                     </div>
                 </div>
-            ))}
+            </div>
+            {/* Order Summary */}
+            <div className="bg-white rounded-xl shadow-sm mb-6 transition-all hover:shadow-md overflow-hidden">
+                <div className="p-5">
+                    <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-xl font-bold">Order Summary</h3>
+                        <div className="text-green-500 text-sm font-medium rounded-full bg-green-50 px-3 py-1 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1"><path d="M20 6 9 17l-5-5" /></svg>
+                            {order.payment.status}
+                        </div>
+                    </div>
+                    <p className="text-gray-500 text-sm mb-6">Here's your summary for the stuff you bought.</p>
+
+                    {/* Item list with prices aligned to right */}
+                    <div className="space-y-3 mb-4">
+                        {order.items.map(item => (
+                            <div key={item.id} className="flex justify-between items-center">
+                                <div className="flex items-center">
+                                    <p className="text-gray-700">{item.name}</p>
+                                    <span className="text-gray-400 text-sm ml-2">x{item.quantity || 1}</span>
+                                </div>
+                                <p className="font-medium">Rp{item.price.toLocaleString()}</p>
+                            </div>
+                        ))}
+
+                        {/* Total row with bolder styling */}
+                        <div className="flex justify-between items-center pt-3 border-t border-gray-200 font-bold">
+                            <p>Total</p>
+                            <p>Rp{order.payment.total.toLocaleString()}</p>
+                        </div>
+                        <div className="flex justify-between items-center mt-4">
+                            <p className="font-bold text-lg"></p>
+                            <a
+                                href={`/orders/${order.id}`}
+                                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                            >
+                                View Details →
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };
