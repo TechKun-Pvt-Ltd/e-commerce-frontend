@@ -2,7 +2,13 @@ export interface Product {
     productId: number;
     name: string;
     description: string;
+    images: ProductImage[];
     variants: ProductVariant[];
+}
+
+export interface ProductImage {
+    productImageId: number;
+    imageData: Uint8Array;
 }
 
 export interface ProductVariant {
