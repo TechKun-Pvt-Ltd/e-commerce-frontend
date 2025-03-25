@@ -54,7 +54,8 @@ const ProductDetail = () => {
     }
 
     const totalPrice = selectedVariant ? selectedVariant.price * quantity : 0;
-    const currentImage = Buffer.from(product.images[currentIndex].imageData).toString();
+    const imageData = product.images[currentIndex].imageData;
+    const currentImage = imageData ? Buffer.from(imageData).toString(): "";
 
     return (
         <div className="max-w-7xl mx-auto p-6 md:p-10 flex flex-col md:flex-row items-start gap-12">
@@ -79,7 +80,7 @@ const ProductDetail = () => {
                             rounded-lg overflow-hidden hover:opacity-75`}
                             onClick={() => setSelectedImage(img)}
                         >
-                            <Image src={Buffer.from(img.imageData).toString()} alt="Thumbnail" width={80} height={80} className="w-full h-full object-cover" />
+                            <Image src={img.imageData ? Buffer.from(img.imageData).toString(): ""} alt="Thumbnail" width={80} height={80} className="w-full h-full object-cover" />
                         </button>
                     ))}
                 </div>

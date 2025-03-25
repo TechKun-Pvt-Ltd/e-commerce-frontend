@@ -44,35 +44,87 @@ const mockOrderDetail: OrderDetail = {
     tracking: "871291892812",
     items: [
         {
-            id: 1,
-            name: "Nike Air Max SYSTM",
-            price: 1459000,
-            image: "/nike-air-max-systm.jpg",
-            size: "24",
+            orderItemId: 1,
+            productVariant: {
+                productVariantId: 1,
+                name: "Nike Air Max SYSTM",
+                sizeOption: {
+                    sizeOptionId: 1,
+                    value: "24"
+                },
+                frameOption: {
+                    frameOptionId: 1,
+                    value: ""
+                },
+                price: 1459000,
+            },
+            image: {
+                productImageId: 1,
+                imageUrl: "/nike-air-max-systm.jpg"
+            },
             quantity: 1
         },
         {
-            id: 2,
-            name: "Nike Air Max Pulse",
-            price: 2379000,
-            image: "/nike-air-max-pulse.jpg",
-            size: "24",
+            orderItemId: 2,
+            productVariant: {
+                productVariantId: 1,
+                name: "Nike Air Max Pulse",
+                sizeOption: {
+                    sizeOptionId: 1,
+                    value: "24"
+                },
+                frameOption: {
+                    frameOptionId: 1,
+                    value: ""
+                },
+                price: 2379000,
+            },
+            image: {
+                productImageId: 1,
+                imageUrl: "/nike-air-max-pulse.jpg"
+            },
             quantity: 1
         },
         {
-            id: 3,
-            name: "Nike Air Rift",
-            price: 1909000,
-            image: "/nike-air-rift.jpg",
-            size: "24",
+            orderItemId: 3,
+            productVariant: {
+                productVariantId: 1,
+                name: "Nike Air Rift",
+                sizeOption: {
+                    sizeOptionId: 1,
+                    value: "24"
+                },
+                frameOption: {
+                    frameOptionId: 1,
+                    value: ""
+                },
+                price: 1909000,
+            },
+            image: {
+                productImageId: 1,
+                imageUrl: "/nike-air-rift.jpg"
+            },
             quantity: 1
         },
         {
-            id: 4,
-            name: "Nike Air Max Air",
-            price: 2379000,
-            image: "/nike-air-max-air.jpg",
-            size: "24",
+            orderItemId: 4,
+            productVariant: {
+                productVariantId: 1,
+                name: "Nike Air Max Air",
+                sizeOption: {
+                    sizeOptionId: 1,
+                    value: "24"
+                },
+                frameOption: {
+                    frameOptionId: 1,
+                    value: ""
+                },
+                price: 2379000,
+            },
+            image: {
+                productImageId: 1,
+                imageUrl: "/nike-air-max-air.jpg"
+            },
             quantity: 1
         }
     ],
@@ -129,12 +181,12 @@ const OrderList: React.FC = () => {
                     {/* Item list with prices aligned to right */}
                     <div className="space-y-3 mb-4">
                         {order.items.map(item => (
-                            <div key={item.id} className="flex justify-between items-center">
+                            <div key={item.orderItemId} className="flex justify-between items-center">
                                 <div className="flex items-center">
-                                    <p className="text-gray-700">{item.name}</p>
+                                    <p className="text-gray-700">{item.productVariant.name}</p>
                                     <span className="text-gray-400 text-sm ml-2">x{item.quantity || 1}</span>
                                 </div>
-                                <p className="font-medium">Rp{item.price.toLocaleString()}</p>
+                                <p className="font-medium">Rp{item.productVariant.price}</p>
                             </div>
                         ))}
 

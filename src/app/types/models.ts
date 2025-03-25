@@ -8,11 +8,13 @@ export interface Product {
 
 export interface ProductImage {
     productImageId: number;
-    imageData: Uint8Array;
+    imageData?: Uint8Array;
+    imageUrl?: string;
 }
 
 export interface ProductVariant {
     productVariantId: number;
+    name: string;
     sizeOption: SizeOption;
     frameOption: FrameOption;
     price: number;
@@ -67,9 +69,9 @@ export interface ShopOrder {
 export interface OrderItem {
     orderItemId: number;
     productVariant: ProductVariant;
+    image: ProductImage;
     quantity: number;
 }
-
 
 
 export interface OrderDetail {
