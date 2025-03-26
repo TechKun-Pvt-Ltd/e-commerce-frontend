@@ -1,32 +1,16 @@
 "use client";
 import React from 'react';
 import Image from 'next/image';
-import { ProductVariant } from '@/app/types/models';
+import { CartItem } from '@/app/types/models';
 
-interface CartItem {
-    variant: ProductVariant;
-    quantity: number;
+interface CartItemsProps {
+    items: CartItem[];
+    onQuantityChange: (variantId: number, newQuantity: number) => Promise<void>;
+    onRemoveItem: (variantId: number) => Promise<void>;
 }
 
-const CartItems = () => {
-    // This would typically come from a cart context or state management
-    const [cartItems, setCartItems] = React.useState<CartItem[]>([]);
-
-    const updateQuantity = (variantId: number, newQuantity: number) => {
-        setCartItems(items =>
-            items.map(item =>
-                item.variant.productVariantId === variantId
-                    ? { ...item, quantity: Math.max(1, newQuantity) }
-                    : item
-            )
-        );
-    };
-
-    const removeItem = (variantId: number) => {
-        setCartItems(items => items.filter(item => item.variant.productVariantId !== variantId));
-    };
-
-    if (cartItems.length === 0) {
+const CartItems: React.FC<CartItemsProps> = ({ items, onQuantityChange, onRemoveItem }) => {
+    if (items.length === 0) {
         return (
             <div className="text-center py-8">
                 <h2 className="text-xl font-medium text-gray-900 mb-2">Your cart is empty</h2>
@@ -37,50 +21,41 @@ const CartItems = () => {
 
     return (
         <div className="space-y-4">
-            {cartItems.map((item) => (
-                <div key={item.variant.productVariantId} className="flex items-center gap-4 p-4 bg-white rounded-lg shadow-sm">
-                    <div className="w-24 h-24 relative">
+            {items.map((item) => (
+                <div key={item.cartItemId} className="flex items-center gap-4 p-4 border rounded-lg">
+                    <div className="relative w-24 h-24">
                         <Image
-                            src={`https://via.placeholder.com/96?text=${encodeURIComponent(item.variant.name)}`}
-                            alt={item.variant.name}
+                            src="/placeholder-image.jpg"
+                            alt={item.productVariant.name}
                             fill
-                            className="object-cover rounded-md"
+                            className="object-cover rounded"
                         />
                     </div>
-                    <div className="flex-grow">
-                        <h3 className="text-lg font-medium text-gray-900">{item.variant.name}</h3>
-                        <p className="text-sm text-gray-500">
-                            Size: {item.variant.sizeOption.value}, Frame: {item.variant.frameOption.value}
-                        </p>
-                        <div className="mt-2 flex items-center gap-4">
-                            <div className="flex items-center border rounded-md">
-                                <button
-                                    onClick={() => updateQuantity(item.variant.productVariantId, item.quantity - 1)}
-                                    className="px-3 py-1 text-gray-600 hover:bg-gray-100"
-                                >
-                                    -
-                                </button>
-                                <span className="px-3 py-1 text-gray-900">{item.quantity}</span>
-                                <button
-                                    onClick={() => updateQuantity(item.variant.productVariantId, item.quantity + 1)}
-                                    className="px-3 py-1 text-gray-600 hover:bg-gray-100"
-                                >
-                                    +
-                                </button>
-                            </div>
+                    <div className="flex-1">
+                        <h3 className="font-medium">{item.productVariant.name}</h3>
+                        <p className="text-gray-600">${item.productVariant.price}</p>
+                        <div className="flex items-center gap-2 mt-2">
                             <button
-                                onClick={() => removeItem(item.variant.productVariantId)}
-                                className="text-sm text-red-600 hover:text-red-800"
+                                onClick={() => onQuantityChange(item.productVariant.productVariantId, item.quantity - 1)}
+                                className="px-2 py-1 border rounded"
                             >
-                                Remove
+                                -
+                            </button>
+                            <span>{item.quantity}</span>
+                            <button
+                                onClick={() => onQuantityChange(item.productVariant.productVariantId, item.quantity + 1)}
+                                className="px-2 py-1 border rounded"
+                            >
+                                +
                             </button>
                         </div>
                     </div>
-                    <div className="text-right">
-                        <p className="text-lg font-medium text-gray-900">
-                            ${(item.variant.price * item.quantity).toFixed(2)}
-                        </p>
-                    </div>
+                    <button
+                        onClick={() => onRemoveItem(item.productVariant.productVariantId)}
+                        className="text-red-500 hover:text-red-700"
+                    >
+                        Remove
+                    </button>
                 </div>
             ))}
         </div>

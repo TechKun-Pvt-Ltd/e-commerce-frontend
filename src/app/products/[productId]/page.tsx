@@ -247,7 +247,7 @@ const ProductDetail = () => {
                 }}
                 secondaryAction={{
                     label: "Continue Shopping",
-                    onClick: () => setShowAddToCartModal(false)
+                    onClick: () => router.push('/products')
                 }}
             />
 

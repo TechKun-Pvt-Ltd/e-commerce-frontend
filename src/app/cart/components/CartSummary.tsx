@@ -1,47 +1,35 @@
 "use client";
 import React from 'react';
+import { CartItem } from '@/app/types/models';
 
-const CartSummary = () => {
-    // This would typically come from a cart context or state management
-    const subtotal = 0;
-    const shippingCost = 0;
-    const tax = subtotal * 0.1; // 10% tax rate
-    const total = subtotal + shippingCost + tax;
+interface CartSummaryProps {
+    items: CartItem[];
+}
+
+const CartSummary: React.FC<CartSummaryProps> = ({ items }) => {
+    const subtotal = items.reduce((total, item) => total + (item.productVariant.price * item.quantity), 0);
+    const shipping = 10; // Fixed shipping cost
+    const total = subtotal + shipping;
 
     return (
         <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">Order Summary</h2>
-
-            <div className="space-y-3">
-                <div className="flex justify-between text-gray-600">
+            <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
+            <div className="space-y-2">
+                <div className="flex justify-between">
                     <span>Subtotal</span>
                     <span>${subtotal.toFixed(2)}</span>
                 </div>
-
-                <div className="flex justify-between text-gray-600">
+                <div className="flex justify-between">
                     <span>Shipping</span>
-                    <span>${shippingCost.toFixed(2)}</span>
+                    <span>${shipping.toFixed(2)}</span>
                 </div>
-
-                <div className="flex justify-between text-gray-600">
-                    <span>Tax (10%)</span>
-                    <span>${tax.toFixed(2)}</span>
-                </div>
-
-                <div className="border-t border-gray-200 pt-3 mt-3">
-                    <div className="flex justify-between font-medium text-gray-900">
+                <div className="border-t pt-2 mt-2">
+                    <div className="flex justify-between font-semibold">
                         <span>Total</span>
                         <span>${total.toFixed(2)}</span>
                     </div>
                 </div>
             </div>
-
-            <button
-                className="w-full mt-6 bg-blue-500 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-600 transition-colors"
-                onClick={() => window.location.href = '/checkout'}
-            >
-                Proceed to Checkout
-            </button>
         </div>
     );
 };
