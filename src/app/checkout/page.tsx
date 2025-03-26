@@ -1,13 +1,16 @@
 "use client";
-import React from 'react';
-import ShippingAddressForm from './components/ShippingAddressForm';
-import PaymentForm from './components/PaymentForm';
-import OrderReview from './components/OrderReview';
+import React, { useState } from "react";
+import ShippingAddressForm from "./components/ShippingAddressForm";
+import PaymentForm from "./components/PaymentForm";
+import OrderReview from "./components/OrderReview";
+import OrderSuccessModal from "./components/OrderSuccessModal"; // Import Success Modal
 
 const CheckoutPage = () => {
-    const [step, setStep] = React.useState(1);
-    const [shippingAddress, setShippingAddress] = React.useState(null);
-    const [paymentDetails, setPaymentDetails] = React.useState(null);
+    const [step, setStep] = useState(1);
+    const [shippingAddress, setShippingAddress] = useState(null);
+    const [paymentDetails, setPaymentDetails] = useState(null);
+    const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+    const [orderId, setOrderId] = useState("");
 
     const handleShippingSubmit = (address: any) => {
         setShippingAddress(address);
@@ -19,9 +22,10 @@ const CheckoutPage = () => {
         setStep(3);
     };
 
-    const handlePlaceOrder = async () => {
-        // Here we would typically make an API call to create the order
-        console.log('Order placed', { shippingAddress, paymentDetails });
+    const handlePlaceOrder = () => {
+        // API Call ke bina sirf modal open karne ke liye
+        setOrderId("123456"); // Dummy order ID
+        setIsSuccessModalOpen(true);
     };
 
     return (
@@ -30,12 +34,8 @@ const CheckoutPage = () => {
 
             <div className="flex flex-col lg:flex-row gap-8">
                 <div className="lg:w-2/3 space-y-6">
-                    {step === 1 && (
-                        <ShippingAddressForm onSubmit={handleShippingSubmit} />
-                    )}
-                    {step === 2 && (
-                        <PaymentForm onSubmit={handlePaymentSubmit} />
-                    )}
+                    {step === 1 && <ShippingAddressForm onSubmit={handleShippingSubmit} />}
+                    {step === 2 && <PaymentForm onSubmit={handlePaymentSubmit} />}
                     {step === 3 && (
                         <OrderReview
                             shippingAddress={shippingAddress}
@@ -44,33 +44,14 @@ const CheckoutPage = () => {
                         />
                     )}
                 </div>
-
-                <div className="lg:w-1/3">
-                    <div className="bg-white p-6 rounded-lg shadow-sm">
-                        <h2 className="text-lg font-medium text-gray-900 mb-4">Order Progress</h2>
-                        <div className="space-y-4">
-                            <div className={`flex items-center ${step >= 1 ? 'text-blue-500' : 'text-gray-400'}`}>
-                                <div className="w-8 h-8 rounded-full border-2 flex items-center justify-center mr-3">
-                                    1
-                                </div>
-                                Shipping Address
-                            </div>
-                            <div className={`flex items-center ${step >= 2 ? 'text-blue-500' : 'text-gray-400'}`}>
-                                <div className="w-8 h-8 rounded-full border-2 flex items-center justify-center mr-3">
-                                    2
-                                </div>
-                                Payment Details
-                            </div>
-                            <div className={`flex items-center ${step >= 3 ? 'text-blue-500' : 'text-gray-400'}`}>
-                                <div className="w-8 h-8 rounded-full border-2 flex items-center justify-center mr-3">
-                                    3
-                                </div>
-                                Review & Place Order
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
+
+            {/* Order Success Modal */}
+            <OrderSuccessModal
+                isOpen={isSuccessModalOpen}
+                onClose={() => setIsSuccessModalOpen(false)}
+                orderId={orderId}
+            />
         </div>
     );
 };
