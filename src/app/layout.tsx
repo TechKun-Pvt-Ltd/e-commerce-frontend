@@ -4,6 +4,11 @@ import Header from './layout/Header';
 import Footer from './layout/Footer';
 import { Providers } from './providers';
 
+export const metadata: Metadata = {
+  title: "E-Commerce Store",
+  description: "Your one-stop shop for all your needs",
+};
+
 const inter = Inter({ subsets: ['latin'] });
 
 export default function RootLayout({
