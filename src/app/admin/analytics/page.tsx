@@ -2,33 +2,40 @@
 import React, { useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
-import { TrendingUp, DollarSign, ShoppingCart, Users, Calendar, Download } from 'lucide-react';
-// import {
-//   Chart as ChartJS,
-//   CategoryScale,
-//   LinearScale,
-//   PointElement,
-//   LineElement,
-//   BarElement,
-//   Title,
-//   Tooltip,
-//   Legend,
-//   ArcElement,
-// } from 'chart.js';
-// import { Line, Bar, Doughnut } from 'react-chartjs-2';
+import { IoIosTrendingUp } from "react-icons/io";
+import {  
+    FaDollarSign, 
+    FaShoppingCart, 
+    FaUsers, 
+    FaCalendarAlt, 
+    FaDownload 
+} from 'react-icons/fa';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+} from 'chart.js';
+import { Line, Bar, Doughnut } from 'react-chartjs-2';
 
 // Register ChartJS components
-// ChartJS.register(
-//   CategoryScale,
-//   LinearScale,
-//   PointElement,
-//   LineElement,
-//   BarElement,
-//   Title,
-//   Tooltip,
-//   Legend,
-//   ArcElement
-// );
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement
+);
 
 const AnalyticsPage = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -41,28 +48,28 @@ const AnalyticsPage = () => {
             value: '$24,500',
             change: '+12.5%',
             trend: 'up',
-            icon: DollarSign
+            icon: FaDollarSign
         },
         {
             title: 'Total Orders',
             value: '1,234',
             change: '+8.2%',
             trend: 'up',
-            icon: ShoppingCart
+            icon: FaShoppingCart
         },
         {
             title: 'New Customers',
             value: '456',
             change: '+5.7%',
             trend: 'up',
-            icon: Users
+            icon: FaUsers
         },
         {
             title: 'Average Order Value',
             value: '$198.50',
             change: '+3.2%',
             trend: 'up',
-            icon: TrendingUp
+            icon: IoIosTrendingUp
         }
     ];
 
@@ -140,7 +147,7 @@ const AnalyticsPage = () => {
                                 <option value="year">This Year</option>
                             </select>
                             <button className="px-4 py-2 bg-white border rounded-lg hover:bg-gray-50 flex items-center gap-2">
-                                <Download className="w-4 h-4" />
+                                <FaDownload className="w-4 h-4" />
                                 Export
                             </button>
                         </div>
@@ -177,7 +184,7 @@ const AnalyticsPage = () => {
                         <div className="bg-white rounded-lg shadow p-6">
                             <h3 className="text-lg font-semibold text-gray-900 mb-4">Revenue Overview</h3>
                             <div className="h-64">
-                                {/* <Line data={revenueData} options={chartOptions} /> */}
+                                <Line data={revenueData} options={chartOptions} />
                             </div>
                         </div>
 
@@ -185,7 +192,7 @@ const AnalyticsPage = () => {
                         <div className="bg-white rounded-lg shadow p-6">
                             <h3 className="text-lg font-semibold text-gray-900 mb-4">Orders Overview</h3>
                             <div className="h-64">
-                                {/* <Bar data={ordersData} options={chartOptions} /> */}
+                                <Bar data={ordersData} options={chartOptions} />
                             </div>
                         </div>
 
@@ -215,7 +222,7 @@ const AnalyticsPage = () => {
                         <div className="bg-white rounded-lg shadow p-6">
                             <h3 className="text-lg font-semibold text-gray-900 mb-4">Customer Demographics</h3>
                             <div className="h-64">
-                                {/* <Doughnut 
+                                <Doughnut 
                                     data={demographicsData} 
                                     options={{
                                         ...chartOptions,
@@ -226,7 +233,7 @@ const AnalyticsPage = () => {
                                             },
                                         },
                                     }} 
-                                /> */}
+                                />
                             </div>
                         </div>
                     </div>

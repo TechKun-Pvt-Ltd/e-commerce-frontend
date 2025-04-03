@@ -2,7 +2,14 @@
 import React, { useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
-import { Search, Filter, Plus, MoreVertical, Edit, Trash2 } from 'lucide-react';
+import { 
+    FaSearch, 
+    FaFilter, 
+    FaPlus, 
+    FaEllipsisV, 
+    FaEdit, 
+    FaTrash 
+} from 'react-icons/fa';
 import Image from 'next/image';
 
 type ProductStatus = 'in_stock' | 'low_stock' | 'out_of_stock';
@@ -58,9 +65,9 @@ const ProductsPage = () => {
             <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-20'}`}>
                 <div className="p-8">
                     <div className="flex justify-between items-center">
-                        <Header title="Products Management" />
+                        <Header title="Products" />
                         <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
-                            <Plus className="w-4 h-4" />
+                            <FaPlus className="w-4 h-4" />
                             Add Product
                         </button>
                     </div>
@@ -68,14 +75,12 @@ const ProductsPage = () => {
                     {/* Filters and Search */}
                     <div className="mt-8 flex flex-col sm:flex-row gap-4">
                         <div className="relative flex-1">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                             <input
                                 type="text"
                                 placeholder="Search products..."
                                 className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
                             />
+                            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                         </div>
                         <div className="flex gap-2">
                             <select
@@ -88,9 +93,9 @@ const ProductsPage = () => {
                                 <option value="clothing">Clothing</option>
                                 <option value="books">Books</option>
                             </select>
-                            <button className="px-4 py-2 bg-white border rounded-lg hover:bg-gray-50 flex items-center gap-2">
-                                <Filter className="w-4 h-4" />
-                                Filters
+                            <button className="px-4 py-2 border rounded-lg hover:bg-gray-50 flex items-center gap-2">
+                                <FaFilter className="w-4 h-4" />
+                                Filter
                             </button>
                         </div>
                     </div>
@@ -108,7 +113,7 @@ const ProductsPage = () => {
                                     />
                                     <div className="absolute top-2 right-2">
                                         <button className="p-2 bg-white rounded-full shadow hover:bg-gray-50">
-                                            <MoreVertical className="w-4 h-4 text-gray-500" />
+                                            <FaEllipsisV className="w-4 h-4 text-gray-500" />
                                         </button>
                                     </div>
                                 </div>
@@ -125,10 +130,10 @@ const ProductsPage = () => {
                                         <span>Stock: {product.stock}</span>
                                         <div className="flex gap-2">
                                             <button className="p-1 hover:bg-gray-100 rounded">
-                                                <Edit className="w-4 h-4" />
+                                                <FaEdit className="w-4 h-4" />
                                             </button>
                                             <button className="p-1 hover:bg-gray-100 rounded text-red-500">
-                                                <Trash2 className="w-4 h-4" />
+                                                <FaTrash className="w-4 h-4" />
                                             </button>
                                         </div>
                                     </div>

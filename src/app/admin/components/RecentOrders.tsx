@@ -1,69 +1,118 @@
 "use client";
 import React from 'react';
+import { FaCheckCircle, FaClock, FaTimesCircle } from 'react-icons/fa';
 
-interface Order {
-    id: number;
-    customer: string;
-    product: string;
-    amount: number;
-    status: string;
-}
-
-const mockOrders: Order[] = [
-    { id: 1, customer: 'John Doe', product: 'Product 1', amount: 299.99, status: 'Delivered' },
-    { id: 2, customer: 'Jane Smith', product: 'Product 2', amount: 199.99, status: 'Processing' },
-    { id: 3, customer: 'Mike Johnson', product: 'Product 3', amount: 399.99, status: 'Shipped' },
-    { id: 4, customer: 'Sarah Williams', product: 'Product 4', amount: 149.99, status: 'Delivered' },
-    { id: 5, customer: 'Tom Brown', product: 'Product 5', amount: 249.99, status: 'Pending' }
+const orders = [
+    {
+        id: 'ORD001',
+        customer: 'John Doe',
+        product: 'Wireless Headphones',
+        amount: '$99.99',
+        status: 'completed',
+        date: '2024-02-20'
+    },
+    {
+        id: 'ORD002',
+        customer: 'Jane Smith',
+        product: 'Smart Watch',
+        amount: '$199.99',
+        status: 'pending',
+        date: '2024-02-19'
+    },
+    {
+        id: 'ORD003',
+        customer: 'Mike Johnson',
+        product: 'Laptop Backpack',
+        amount: '$49.99',
+        status: 'cancelled',
+        date: '2024-02-18'
+    },
+    {
+        id: 'ORD004',
+        customer: 'Sarah Wilson',
+        product: 'Bluetooth Speaker',
+        amount: '$79.99',
+        status: 'completed',
+        date: '2024-02-17'
+    },
+    {
+        id: 'ORD005',
+        customer: 'Tom Brown',
+        product: 'Wireless Mouse',
+        amount: '$29.99',
+        status: 'pending',
+        date: '2024-02-16'
+    }
 ];
 
 const RecentOrders: React.FC = () => {
     const getStatusColor = (status: string) => {
-        switch (status.toLowerCase()) {
-            case 'delivered':
-                return 'bg-green-100 text-green-800';
-            case 'processing':
-                return 'bg-yellow-100 text-yellow-800';
-            case 'shipped':
-                return 'bg-blue-100 text-blue-800';
+        switch (status) {
+            case 'completed':
+                return 'text-green-500 bg-green-50';
             case 'pending':
-                return 'bg-gray-100 text-gray-800';
+                return 'text-yellow-500 bg-yellow-50';
+            case 'cancelled':
+                return 'text-red-500 bg-red-50';
             default:
-                return 'bg-gray-100 text-gray-800';
+                return 'text-gray-500 bg-gray-50';
+        }
+    };
+
+    const getStatusIcon = (status: string) => {
+        switch (status) {
+            case 'completed':
+                return <FaCheckCircle className="w-4 h-4" />;
+            case 'pending':
+                return <FaClock className="w-4 h-4" />;
+            case 'cancelled':
+                return <FaTimesCircle className="w-4 h-4" />;
+            default:
+                return null;
         }
     };
 
     return (
-        <div className="bg-white rounded-xl shadow-sm p-6">
-            <h3 className="text-lg font-semibold mb-4">Recent Orders</h3>
-            <div className="overflow-x-auto">
-                <table className="w-full">
-                    <thead>
-                        <tr className="text-left text-gray-500">
-                            <th className="pb-4">Order ID</th>
-                            <th className="pb-4">Customer</th>
-                            <th className="pb-4">Product</th>
-                            <th className="pb-4">Amount</th>
-                            <th className="pb-4">Status</th>
+        <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+                <thead>
+                    <tr>
+                        <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+                        <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                        <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                        <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                        <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                    {orders.map((order) => (
+                        <tr key={order.id} className="hover:bg-gray-50">
+                            <td className="px-3 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                                {order.id}
+                            </td>
+                            <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-500">
+                                {order.customer}
+                            </td>
+                            <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-500">
+                                {order.product}
+                            </td>
+                            <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-900">
+                                {order.amount}
+                            </td>
+                            <td className="px-3 py-3 whitespace-nowrap">
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
+                                    {getStatusIcon(order.status)}
+                                    <span className="ml-1 capitalize">{order.status}</span>
+                                </span>
+                            </td>
+                            <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-500">
+                                {order.date}
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        {mockOrders.map((order) => (
-                            <tr key={order.id} className="border-t">
-                                <td className="py-4">#ORD-{order.id}</td>
-                                <td className="py-4">{order.customer}</td>
-                                <td className="py-4">{order.product}</td>
-                                <td className="py-4">${order.amount.toFixed(2)}</td>
-                                <td className="py-4">
-                                    <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(order.status)}`}>
-                                        {order.status}
-                                    </span>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+                    ))}
+                </tbody>
+            </table>
         </div>
     );
 };

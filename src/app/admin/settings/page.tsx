@@ -2,19 +2,27 @@
 import React, { useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
-import { Save, Bell, CreditCard, Lock, Globe, Mail, Shield } from 'lucide-react';
+import { 
+    FaSave, 
+    FaBell, 
+    FaCreditCard, 
+    FaLock, 
+    FaGlobe, 
+    FaEnvelope, 
+    FaShieldAlt 
+} from 'react-icons/fa';
 
 const SettingsPage = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [activeTab, setActiveTab] = useState('general');
 
     const tabs = [
-        { id: 'general', label: 'General', icon: Globe },
-        { id: 'notifications', label: 'Notifications', icon: Bell },
-        { id: 'payment', label: 'Payment', icon: CreditCard },
-        { id: 'security', label: 'Security', icon: Lock },
-        { id: 'email', label: 'Email', icon: Mail },
-        { id: 'privacy', label: 'Privacy', icon: Shield }
+        { id: 'general', label: 'General', icon: FaGlobe },
+        { id: 'notifications', label: 'Notifications', icon: FaBell },
+        { id: 'payment', label: 'Payment', icon: FaCreditCard },
+        { id: 'security', label: 'Security', icon: FaLock },
+        { id: 'email', label: 'Email', icon: FaEnvelope },
+        { id: 'privacy', label: 'Privacy', icon: FaShieldAlt }
     ];
 
     return (
@@ -125,7 +133,7 @@ const SettingsPage = () => {
 
                                     <div className="flex justify-end">
                                         <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
-                                            <Save className="w-4 h-4" />
+                                            <FaSave className="w-4 h-4" />
                                             Save Changes
                                         </button>
                                     </div>
