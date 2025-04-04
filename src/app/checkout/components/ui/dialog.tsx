@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { cn } from "../ui/utils";
-import { X } from "lucide-react";
+import { AiOutlineClose } from "react-icons/ai";
 
 export function Dialog(props: React.ComponentProps<typeof DialogPrimitive.Root>) {
   return <DialogPrimitive.Root {...props} />;
@@ -28,7 +28,7 @@ export const DialogContent = React.forwardRef<
         className="absolute right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100"
         aria-label="Close"
       >
-        <X className="h-5 w-5 text-gray-500 hover:text-gray-700" />
+        <AiOutlineClose className="h-5 w-5 text-gray-500 hover:text-gray-700" />
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>
   </DialogPrimitive.Portal>

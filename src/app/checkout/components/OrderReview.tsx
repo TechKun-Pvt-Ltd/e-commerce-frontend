@@ -9,7 +9,6 @@ interface OrderReviewProps {
 }
 
 const OrderReview: React.FC<OrderReviewProps> = ({ shippingAddress, paymentDetails, onPlaceOrder }) => {
-    const router = useRouter();
 
     if (!shippingAddress || !paymentDetails) {
         return null;

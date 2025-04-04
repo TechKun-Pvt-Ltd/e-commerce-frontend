@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { ShopOrder } from '@/app/types/models';
 import apiInstance from '@/app/services/api.service';
+import mockOrders from '@/app/mock/orders';
 
 interface OrdersState {
     items: ShopOrder[];
@@ -20,8 +21,8 @@ export const fetchOrders = createAsyncThunk(
     'orders/fetchOrders',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await apiInstance.get('/orders');
-            return response.data;
+            // const response = await apiInstance.get('/orders');
+            return mockOrders as ShopOrder[];
         } catch (error: any) {
             return rejectWithValue(error.response?.data || 'Failed to fetch orders');
         }
@@ -45,7 +46,7 @@ export const createOrder = createAsyncThunk(
     async (orderData: Partial<ShopOrder>, { rejectWithValue }) => {
         try {
             const response = await apiInstance.post('/orders', orderData);
-            return response.data;
+            return orderData;
         } catch (error: any) {
             return rejectWithValue(error.response?.data || 'Failed to create order');
         }
@@ -75,6 +76,7 @@ const ordersSlice = createSlice({
                 state.error = null;
             })
             .addCase(fetchOrders.fulfilled, (state, action) => {
+                console.log("Payload:", action.payload);
                 state.loading = false;
                 state.items = action.payload;
             })
@@ -100,7 +102,7 @@ const ordersSlice = createSlice({
             })
             .addCase(createOrder.fulfilled, (state, action) => {
                 state.loading = false;
-                state.items.push(action.payload);
+                state.items.push(action.payload as ShopOrder);
             })
             .addCase(createOrder.rejected, (state, action) => {
                 state.loading = false;

@@ -73,6 +73,7 @@ const CheckoutPage = () => {
         } catch (error) {
             console.error("Order placement failed:", error);
         }
+        router.push('/orders');
     };
 
     return (
@@ -91,6 +92,33 @@ const CheckoutPage = () => {
                         />
                     )}
                 </div>
+
+                <div className="lg:w-1/3">
+                    <div className="bg-white p-6 rounded-lg shadow-sm">
+                        <h2 className="text-lg font-medium text-gray-900 mb-4">Order Progress</h2>
+                        <div className="space-y-4">
+                            <div className={`flex items-center ${step >= 1 ? 'text-blue-500' : 'text-gray-400'}`}>
+                                <div className="w-8 h-8 rounded-full border-2 flex items-center justify-center mr-3">
+                                    1
+                                </div>
+                                Shipping Address
+                            </div>
+                            <div className={`flex items-center ${step >= 2 ? 'text-blue-500' : 'text-gray-400'}`}>
+                                <div className="w-8 h-8 rounded-full border-2 flex items-center justify-center mr-3">
+                                    2
+                                </div>
+                                Payment Details
+                            </div>
+                            <div className={`flex items-center ${step >= 3 ? 'text-blue-500' : 'text-gray-400'}`}>
+                                <div className="w-8 h-8 rounded-full border-2 flex items-center justify-center mr-3">
+                                    3
+                                </div>
+                                Review & Place Order
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
             <OrderSuccessModal

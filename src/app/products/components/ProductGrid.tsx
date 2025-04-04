@@ -11,7 +11,7 @@ const ProductGrid: React.FC<{
   const [imageError, setImageError] = useState<{ [key: number]: boolean }>({});
 
   return (
-    <div className="lg:w-3/4">
+    <div className="px-4 lg:w-3/4">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {products.map((product) => (
           <div key={product.productId} className="group relative cursor-pointer" onClick={() => onProductClick(product.productId)}>

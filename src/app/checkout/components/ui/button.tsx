@@ -1,6 +1,6 @@
 import * as React from "react";
 import { cn } from "../ui/utils";
-import { Loader2 } from "lucide-react";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "default" | "outline" | "ghost" | "destructive" | "link";
@@ -51,7 +51,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {isLoading && (
-          <Loader2 className={cn("mr-2 h-4 w-4 animate-spin", size === "sm" && "h-3 w-3")} />
+          <AiOutlineLoading3Quarters className={cn("mr-2 h-4 w-4 animate-spin", size === "sm" && "h-3 w-3")} />
         )}
         {children}
       </button>

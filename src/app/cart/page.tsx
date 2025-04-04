@@ -29,13 +29,14 @@ const CartPage = () => {
 
     const handleOrderPlacement = async () => {
         try {
-            const response = await fetch("/api/orders", { method: "POST" });
-            const data = await response.json();
+            // const response = await fetch("/api/orders", { method: "POST" });
+            // const data = await response.json();
 
-            if (data.success) {
-                setOrderId(data.orderId);
-                setShowModal(true);
-            }
+            // if (data.success) {
+            //     setOrderId(data.orderId);
+            //     setShowModal(true);
+            // }
+            router.push("/checkout");
         } catch (error) {
             console.error("Order placement failed:", error);
         }

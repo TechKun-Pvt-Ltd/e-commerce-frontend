@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import apiInstance from '@/app/services/api.service';
 import { CartItem, ProductVariant, User } from '@/app/types/models';
+import { mockCartItems } from '@/app/mock/cart-items';
 
 interface CartState {
     items: CartItem[];
@@ -24,7 +25,7 @@ export const fetchCartItems = createAsyncThunk(
         try {
             // const response = await apiInstance.get('/cart-items');
             // return response.data;
-            return [];
+            return mockCartItems;
         } catch (error: any) {
             return rejectWithValue(error.response?.data || 'Failed to fetch cart items');
         }
@@ -37,14 +38,7 @@ export const addToCartAsync = createAsyncThunk(
         try {
             // const response = await apiInstance.post('/cart-items', { productVariantId: variant.productVariantId });
             // return response.data;
-            return [
-                {
-                    cartId: 1,
-                    productVariant: variant,
-                    user: {} as User,
-                    quantity: 1 
-                }
-            ];
+            return mockCartItems;
         } catch (error: any) {
             return rejectWithValue(error.response?.data || 'Failed to add item to cart');
         }
@@ -55,8 +49,9 @@ export const updateCartItemAsync = createAsyncThunk(
     'cart/updateCartItemAsync',
     async ({ variantId, quantity }: { variantId: number; quantity: number }, { rejectWithValue }) => {
         try {
-            const response = await apiInstance.put(`/cart-items/${variantId}`, { quantity });
-            return response.data;
+            // const response = await apiInstance.put(`/cart-items/${variantId}`, { quantity });
+            // return response.data;
+            return mockCartItems;
         } catch (error: any) {
             return rejectWithValue(error.response?.data || 'Failed to update cart item');
         }
