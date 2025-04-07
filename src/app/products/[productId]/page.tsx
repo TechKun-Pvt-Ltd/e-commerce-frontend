@@ -6,6 +6,7 @@ import { ProductImage, ProductVariant } from "@/app/types/models";
 import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
 import { fetchProductById } from "@/app/store/slices/productsSlice";
 import ConfirmationModal from "@/app/components/ConfirmationModal";
+import NotificationCard from '@/app/components/NotificationCard';
 
 const ProductDetail = () => {
     const { productId } = useParams();
@@ -17,6 +18,7 @@ const ProductDetail = () => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [showAddToCartModal, setShowAddToCartModal] = useState(false);
     const [showBuyNowModal, setShowBuyNowModal] = useState(false);
+    const [showNotification, setShowNotification] = useState(false);
     const { selectedProduct: product, loading, error } = useAppSelector((state) => state.products);
     const dispatch = useAppDispatch();
 
@@ -45,12 +47,15 @@ const ProductDetail = () => {
     const decreaseQuantity = () => setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
 
     const getImageUrl = (imageData: Uint8Array | undefined): string => {
-        if (!imageData) return '';
+        if (!imageData) {
+            // Fallback to product-image directory
+            return `/product-image/canvas${Number(productId) % 4 + 1}.jpg`;
+        }
         try {
             return `data:image/jpeg;base64,${Buffer.from(imageData).toString('base64')}`;
         } catch (error) {
             console.error('Error converting image data:', error);
-            return '';
+            return `/product-image/canvas${Number(productId) % 4 + 1}.jpg`;
         }
     };
 
@@ -59,7 +64,7 @@ const ProductDetail = () => {
             alert("Please select a size before adding to cart");
             return;
         }
-        setShowAddToCartModal(true);
+        setShowNotification(true);
     };
 
     const handleBuyNow = () => {
@@ -68,6 +73,10 @@ const ProductDetail = () => {
             return;
         }
         setShowBuyNowModal(true);
+    };
+
+    const handleViewCart = () => {
+        router.push('/cart');
     };
 
     if (loading) {
@@ -235,19 +244,13 @@ const ProductDetail = () => {
                 </div>
             </div>
 
-            {/* Add to Cart Confirmation Modal */}
-            <ConfirmationModal
-                isOpen={showAddToCartModal}
-                onClose={() => setShowAddToCartModal(false)}
-                title="Added to Cart!"
-                message={`${product.name} has been added to your cart. Would you like to view your cart now?`}
-                primaryAction={{
+            <NotificationCard
+                message={`${product.name} added to cart`}
+                isVisible={showNotification}
+                onClose={() => setShowNotification(false)}
+                action={{
                     label: "View Cart",
-                    onClick: () => router.push('/cart')
-                }}
-                secondaryAction={{
-                    label: "Continue Shopping",
-                    onClick: () => router.push('/products')
+                    onClick: handleViewCart
                 }}
             />
 

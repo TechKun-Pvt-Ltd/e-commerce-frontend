@@ -16,8 +16,8 @@ export default function Products() {
   }, [dispatch]);
 
   const [priceRange, setPriceRange] = useState<[number, number]>([39, 60]);
-  const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const router = useRouter();
 
   return (
@@ -30,10 +30,10 @@ export default function Products() {
         <Filters
           priceRange={priceRange}
           onPriceRangeChange={setPriceRange}
-          selectedColors={selectedColors}
-          onColorsSelected={setSelectedColors}
           selectedSizes={selectedSizes}
           onSizesSelected={setSelectedSizes}
+          selectedCategories={selectedCategories}
+          onCategoriesSelected={setSelectedCategories}
         />
         <ProductGrid products={products} onProductClick={pId => router.push('/products/' + pId)} />
       </div>

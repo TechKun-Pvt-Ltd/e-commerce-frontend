@@ -4,69 +4,120 @@ import React, { useState } from 'react';
 import HeroSection from './products/components/HeroSection';
 import Filters from './products/components/Filters';
 import ProductGrid from './products/components/ProductGrid';
-
-// Define the Product type for better type safety
-
-type Product = {
-  id: number;
-  name: string;
-  price: number;
-  originalPrice?: number;
-  onSale: boolean;
-  image: string;
-};
+import { Product } from './types/models';
 
 export default function Home() {
+  // Mock products with the correct Product type
   const products: Product[] = [
     {
-      id: 1,
+      productId: 1,
       name: 'Suspended',
-      price: 39.90,
-      originalPrice: 49.90,
-      onSale: true,
-      image: ''
+      description: 'Beautiful suspended art piece',
+      images: [],
+      variants: [
+        {
+          productVariantId: 1,
+          name: 'Suspended (Small)',
+          price: 39.90,
+          sizeOption: { sizeOptionId: 1, value: 'Small (8x10)' },
+          frameOption: { frameOptionId: 1, value: 'Black Wood' }
+        },
+        {
+          productVariantId: 2,
+          name: 'Suspended (Medium)',
+          price: 49.90,
+          sizeOption: { sizeOptionId: 2, value: 'Medium (16x20)' },
+          frameOption: { frameOptionId: 1, value: 'Black Wood' }
+        }
+      ]
     },
     {
-      id: 2,
+      productId: 2,
       name: 'Pathways',
-      price: 39.90,
-      originalPrice: 49.90,
-      onSale: true,
-      image: ''
+      description: 'Stunning pathways art piece',
+      images: [],
+      variants: [
+        {
+          productVariantId: 3,
+          name: 'Pathways (Small)',
+          price: 39.90,
+          sizeOption: { sizeOptionId: 1, value: 'Small (8x10)' },
+          frameOption: { frameOptionId: 1, value: 'Black Wood' }
+        },
+        {
+          productVariantId: 4,
+          name: 'Pathways (Medium)',
+          price: 49.90,
+          sizeOption: { sizeOptionId: 2, value: 'Medium (16x20)' },
+          frameOption: { frameOptionId: 1, value: 'Black Wood' }
+        }
+      ]
     },
     {
-      id: 3,
+      productId: 3,
       name: 'Dreamstate No.4',
-      price: 49.90,
-      onSale: false,
-      image: '/dreamstate-no4.jpg'
+      description: 'Ethereal dreamstate art piece',
+      images: [],
+      variants: [
+        {
+          productVariantId: 5,
+          name: 'Dreamstate No.4 (Small)',
+          price: 49.90,
+          sizeOption: { sizeOptionId: 1, value: 'Small (8x10)' },
+          frameOption: { frameOptionId: 1, value: 'Black Wood' }
+        }
+      ]
     },
     {
-      id: 4,
+      productId: 4,
       name: 'Time Went by',
-      price: 39.90,
-      onSale: false,
-      image: '/time-went-by.jpg'
+      description: 'Nostalgic time-themed art piece',
+      images: [],
+      variants: [
+        {
+          productVariantId: 6,
+          name: 'Time Went by (Small)',
+          price: 39.90,
+          sizeOption: { sizeOptionId: 1, value: 'Small (8x10)' },
+          frameOption: { frameOptionId: 1, value: 'Black Wood' }
+        }
+      ]
     },
     {
-      id: 5,
+      productId: 5,
       name: 'Step by Step',
-      price: 59.90,
-      onSale: false,
-      image: '/step-by-step.jpg'
+      description: 'Progressive step-themed art piece',
+      images: [],
+      variants: [
+        {
+          productVariantId: 7,
+          name: 'Step by Step (Small)',
+          price: 59.90,
+          sizeOption: { sizeOptionId: 1, value: 'Small (8x10)' },
+          frameOption: { frameOptionId: 1, value: 'Black Wood' }
+        }
+      ]
     },
     {
-      id: 6,
+      productId: 6,
       name: 'Mothi',
-      price: 39.90,
-      onSale: false,
-      image: '/mothi.jpg'
-    },
+      description: 'Elegant mothi-themed art piece',
+      images: [],
+      variants: [
+        {
+          productVariantId: 8,
+          name: 'Mothi (Small)',
+          price: 39.90,
+          sizeOption: { sizeOptionId: 1, value: 'Small (8x10)' },
+          frameOption: { frameOptionId: 1, value: 'Black Wood' }
+        }
+      ]
+    }
   ];
 
   const [priceRange, setPriceRange] = useState<[number, number]>([39, 60]);
-  const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
@@ -78,12 +129,12 @@ export default function Home() {
         <Filters
           priceRange={priceRange}
           onPriceRangeChange={setPriceRange}
-          selectedColors={selectedColors}
-          onColorsSelected={setSelectedColors}
           selectedSizes={selectedSizes}
           onSizesSelected={setSelectedSizes}
+          selectedCategories={selectedCategories}
+          onCategoriesSelected={setSelectedCategories}
         />
-        {/* <ProductGrid products={products} /> */}
+        <ProductGrid products={products} onProductClick={(productId) => window.location.href = `/products/${productId}`} />
       </div>
     </div>
   );

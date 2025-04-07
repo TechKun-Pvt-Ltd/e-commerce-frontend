@@ -4,14 +4,15 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
     FaHome, 
-    FaBox, 
-    FaShoppingCart, 
+    FaShoppingBag, 
     FaUsers, 
     FaChartBar, 
     FaCog, 
     FaSignOutAlt,
     FaBars,
-    FaTimes
+    FaTimes,
+    FaBox,
+    FaShoppingCart
 } from 'react-icons/fa';
 
 interface SidebarProps {
@@ -19,83 +20,81 @@ interface SidebarProps {
     onToggleSidebar: () => void;
 }
 
-const menuItems = [
-    { name: 'Dashboard', icon: <FaHome className="w-5 h-5" />, path: '/admin' },
-    { name: 'Products', icon: <FaBox className="w-5 h-5" />, path: '/admin/products' },
-    { name: 'Orders', icon: <FaShoppingCart className="w-5 h-5" />, path: '/admin/orders' },
-    { name: 'Customers', icon: <FaUsers className="w-5 h-5" />, path: '/admin/customers' },
-    { name: 'Analytics', icon: <FaChartBar className="w-5 h-5" />, path: '/admin/analytics' },
-    { name: 'Settings', icon: <FaCog className="w-5 h-5" />, path: '/admin/settings' },
-];
-
-const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onToggleSidebar }) => {
+const Sidebar = ({ isSidebarOpen, onToggleSidebar }: SidebarProps) => {
     const pathname = usePathname();
+
+    const menuItems = [
+        { name: 'Dashboard', href: '/admin', icon: FaHome },
+        { name: 'Products', href: '/admin/products', icon: FaBox },
+        { name: 'Orders', href: '/admin/orders', icon: FaShoppingCart },
+        { name: 'Customers', href: '/admin/customers', icon: FaUsers },
+        { name: 'Analytics', href: '/admin/analytics', icon: FaChartBar },
+        { name: 'Settings', href: '/admin/settings', icon: FaCog },
+    ];
 
     return (
         <>
-            {/* Mobile Overlay */}
-            {isSidebarOpen && (
-                <div 
-                    className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-                    onClick={onToggleSidebar}
-                />
-            )}
+            {/* Mobile menu button */}
+            <button
+                onClick={onToggleSidebar}
+                className="fixed top-4 left-4 z-50 p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 md:hidden"
+            >
+                <span className="sr-only">Open sidebar</span>
+                {isSidebarOpen ? (
+                    <FaTimes className="h-6 w-6" aria-hidden="true" />
+                ) : (
+                    <FaBars className="h-6 w-6" aria-hidden="true" />
+                )}
+            </button>
 
             {/* Sidebar */}
-            <aside 
-                className={`fixed top-0 left-0 h-screen bg-white border-r border-gray-200 z-50 transition-all duration-300 ease-in-out
-                    ${isSidebarOpen ? 'w-64' : 'w-20'}`}
+            <aside
+                className={`fixed top-14 left-0 z-40 h-[calc(100vh-3.5rem)] w-64 bg-white border-r transform transition-transform duration-300 ease-in-out ${
+                    isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+                } md:translate-x-0`}
             >
-                {/* Logo */}
-                <div className="h-16 flex items-center justify-between px-4 border-b border-gray-200">
-                    <div className={`flex items-center space-x-3 ${!isSidebarOpen && 'hidden'}`}>
-                        <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center">
-                            <span className="text-white font-bold text-lg">A</span>
+                <div className="flex flex-col h-full">
+                    {/* Logo */}
+                    <div className="p-6 border-b">
+                        <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center">
+                                <FaShoppingBag className="w-6 h-6 text-white" />
+                            </div>
+                            <div>
+                                <h1 className="text-xl font-bold text-gray-900">Admin Panel</h1>
+                                <p className="text-sm text-gray-500">E-commerce Dashboard</p>
+                            </div>
                         </div>
-                        <span className="text-xl font-bold text-gray-900">Admin Panel</span>
                     </div>
-                    <button 
-                        onClick={onToggleSidebar}
-                        className="p-2 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        {isSidebarOpen ? (
-                            <FaTimes className="w-5 h-5 text-gray-500" />
-                        ) : (
-                            <FaBars className="w-5 h-5 text-gray-500" />
-                        )}
-                    </button>
-                </div>
 
-                {/* Navigation */}
-                <nav className="p-4 space-y-1">
-                    {menuItems.map((item) => (
-                        <Link
-                            key={item.name}
-                            href={item.path}
-                            className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors
-                                ${pathname === item.path 
-                                    ? 'bg-blue-50 text-blue-600' 
-                                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
-                        >
-                            {item.icon}
-                            {isSidebarOpen && (
-                                <span className="text-sm font-medium">{item.name}</span>
-                            )}
-                        </Link>
-                    ))}
-                </nav>
+                    {/* Navigation */}
+                    <nav className="flex-1 p-4 space-y-1">
+                        {menuItems.map((item) => {
+                            const isActive = pathname === item.href;
+                            return (
+                                <Link
+                                    key={item.name}
+                                    href={item.href}
+                                    className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                                        isActive
+                                            ? 'bg-blue-50 text-blue-700'
+                                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                    }`}
+                                >
+                                    <item.icon className={`w-5 h-5 mr-3 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} />
+                                    {item.name}
+                                </Link>
+                            );
+                        })}
+                    </nav>
 
-                {/* Logout Button */}
-                <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
-                    <button 
-                        className={`flex items-center space-x-3 w-full px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-colors
-                            ${!isSidebarOpen && 'justify-center'}`}
-                    >
-                        <FaSignOutAlt className="w-5 h-5" />
-                        {isSidebarOpen && (
-                            <span className="text-sm font-medium">Logout</span>
-                        )}
-                    </button>
+                    {/* Logout Button */}
+                    <div className="p-4 border-t">
+                        <button className="flex items-center w-full px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors">
+                            <FaSignOutAlt className="w-5 h-5 mr-3 text-gray-400" />
+                            Logout
+                        </button>
+                    </div>
                 </div>
             </aside>
         </>

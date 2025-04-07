@@ -326,7 +326,13 @@ const OrderDetails: React.FC = () => {
                         {order.items.map(item => (
                             <div key={item.orderItemId} className="bg-white rounded-xl shadow-sm p-4 flex hover:shadow-md transition-all">
                                 <div className="flex-none w-20 h-20 bg-gray-100 rounded-lg overflow-hidden">
-                                    <Image src={item.image.imageUrl || ""} alt={item.productVariant.name} width={80} height={80} className="w-full h-full object-cover" />
+                                    <Image 
+                                        src={item.image.imageUrl || `/product-image/canvas${item.productVariant.productVariantId % 4 + 1}.jpg`} 
+                                        alt={item.productVariant.name} 
+                                        width={80} 
+                                        height={80} 
+                                        className="w-full h-full object-cover" 
+                                    />
                                 </div>
                                 <div className="ml-4 flex-grow">
                                     <p className="font-medium text-lg mb-1">{item.productVariant.name}</p>

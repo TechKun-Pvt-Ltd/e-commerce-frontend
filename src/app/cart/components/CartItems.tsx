@@ -44,7 +44,7 @@ const CartItems: React.FC<CartItemsProps> = ({ items, onQuantityChange, onRemove
                 >
                     <div className="relative w-32 h-32 flex-shrink-0">
                         <Image
-                            src={item.productVariant.image?.imageUrl || "/placeholder-image.jpg"}
+                            src={`/product-image/canvas${item.productVariant.productVariantId % 4 + 1}.jpg`}
                             alt={item.productVariant.name}
                             fill
                             className="object-cover rounded-lg"
