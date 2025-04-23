@@ -41,7 +41,7 @@ const mockOrderItems: OrderItem[] = [
     }
 ];
 
-export const mockOrders: readonly(ShopOrder)[] = Object.freeze([
+export const mockOrders: ShopOrder[] = [
     {
         orderId: 1001,
         orderItems: mockOrderItems,
@@ -69,6 +69,6 @@ export const mockOrders: readonly(ShopOrder)[] = Object.freeze([
         orderTotal: 299.98,
         status: OrderStatus.PENDING
     }
-]);
+];
 
 export default mockOrders;
