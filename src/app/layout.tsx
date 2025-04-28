@@ -1,13 +1,9 @@
-'use client';
-import './styles/globals.css';
+import './globals.css';
 import { Inter } from 'next/font/google';
 import Header from './layout/Header';
 import Footer from './layout/Footer';
 import { Providers } from './providers';
-import { Provider } from "react-redux";
-import { store } from "./store/store";
 import { Metadata } from "next";
-import { SessionProvider } from "next-auth/react";
 
 export const metadata: Metadata = {
   title: "E-Commerce Store",
@@ -24,17 +20,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <SessionProvider>
-          <Provider store={store}>
-            <Providers>
-              <Header />
-              <main className="container mx-auto px-4 py-8">
-                {children}
-              </main>
-              <Footer />
-            </Providers>
-          </Provider>
-        </SessionProvider>
+        <Providers>
+          <Header />
+          <main className="container mx-auto px-4 py-8">
+            {children}
+          </main>
+          <Footer />
+        </Providers>
       </body>
     </html>
   );
