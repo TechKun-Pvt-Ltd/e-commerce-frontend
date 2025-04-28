@@ -7,7 +7,8 @@ const config: Config = {
     "./src/pages/**/*.{js,ts,jsx,tsx}", // Only if using `pages` directory
   ],
   theme: {
-    extend: {},
+    extend: {
+    }
   },
   plugins: [],
 };
