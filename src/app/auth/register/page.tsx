@@ -43,14 +43,14 @@ export default function RegisterPage() {
     const roleId = 3
 
     const payload = {
-      name,
+      fullName: name,
       email,
-      phone,
+      phoneNo: phone,
       password,
       roleId,
-    }
+    };
     console.log('Registering user:', payload);
-    
+
     try{
       const response = await axios.post('/api/auth/register',payload)
       console.log('Registeration Successful:',response.data)
