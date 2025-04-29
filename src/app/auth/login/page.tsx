@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -47,7 +46,7 @@ export default function LoginPage() {
           </h2>
           <p className="mt-2 text-sm text-gray-600">
             Don't have an account?{" "}
-            <Link href="/register">
+            <Link href="auth/register">
               <span className="font-medium text-indigo-600 hover:text-indigo-500 cursor-pointer">
                 Sign Up
               </span>
@@ -112,7 +111,7 @@ export default function LoginPage() {
           <div className="flex items-center justify-between">
             <div className="text-sm">
               <Link
-                href="/forgot-password"
+                href="auth/forgot-password"
                 className="font-medium text-indigo-600 hover:text-indigo-500"
               >
                 Forgot your password?

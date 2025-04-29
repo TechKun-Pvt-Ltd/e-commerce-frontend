@@ -1,4 +1,5 @@
 "use client";
+import axios from 'axios';
 import { useState } from 'react';
 import Link from 'next/link';
 
@@ -28,11 +29,6 @@ export default function RegisterPage() {
       setIsLoading(false);
       return;
     }
-    if (!phone) {
-      setError('Please enter your phone number.');
-      setIsLoading(false);
-      return;
-    }
     if (password.length < 8) {
       setError('Password must be at least 8 characters long.');
       setIsLoading(false);
@@ -44,17 +40,29 @@ export default function RegisterPage() {
       return;
     }
 
-    console.log('Registering user:', { name, email, phone });
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      console.log("Registration successful (simulated)");
-      setIsSuccess(true);
-    } catch (err: any) {
+    const roleId = 3
+
+    const payload = {
+      name,
+      email,
+      phone,
+      password,
+      roleId,
+    }
+    console.log('Registering user:', payload);
+    
+    try{
+      const response = await axios.post('/api/auth/register',payload)
+      console.log('Registeration Successful:',response.data)
+      setIsSuccess(true)
+    }catch(err:any){
+      console.log('Registration failed:', err.response?.data || err.message)
       setError(err.message || 'An error occurred during registration.');
-    } finally {
+    }finally {
       setIsLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans">
@@ -137,7 +145,6 @@ export default function RegisterPage() {
                   name="phone"
                   type="tel"
                   autoComplete="tel"
-                  required
                   className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-50"
                   placeholder="+91 "
                   value={phone}
