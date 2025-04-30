@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import axios from 'axios';
 import { useState } from 'react';
 import Link from 'next/link';
@@ -7,6 +7,7 @@ export default function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [countryCode, setCountryCode] = useState('+91');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -40,185 +41,159 @@ export default function RegisterPage() {
       return;
     }
 
-    const roleId = 3
+    const roleId = 3;
 
     const payload = {
       fullName: name,
       email,
-      phoneNo: phone,
+      phoneNo: countryCode + phone,
       password,
       roleId,
     };
-    console.log('Registering user:', payload);
 
-    try{
-      const response = await axios.post('/api/auth/register',payload)
-      console.log('Registeration Successful:',response.data)
-      setIsSuccess(true)
-    }catch(err:any){
-      console.log('Registration failed:', err.response?.data || err.message)
-      setError(err.message || 'An error occurred during registration.');
-    }finally {
+    try {
+      const response = await axios.post('/api/auth/register', payload);
+      setIsSuccess(true);
+    } catch (err: any) {
+      setError(err.response?.data || err.message || 'An error occurred during registration.');
+    } finally {
       setIsLoading(false);
     }
   };
 
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans">
-      <div className="max-w-md w-full bg-white p-8 md:p-10 rounded-2xl shadow-xl border border-gray-100">
-        <div className="text-center">
-          <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-900">
-            Create an Account
-          </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Already have an account?{' '}
-            <Link href="/auth/login">
-              <span className="font-medium text-indigo-600 hover:text-indigo-500 cursor-pointer">
-                Sign In
-              </span>
+    <div className="min-h-screen bg-gradient-to-tr from-purple-100 via-white to-blue-100 flex items-center justify-center p-6">
+      <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 transition-all">
+        <div className="text-center mb-6">
+          <h2 className="text-3xl font-extrabold text-gray-900">Create Your Account</h2>
+          <p className="text-sm text-gray-600 mt-2">
+            Already registered?{' '}
+            <Link href="/auth/login" className="text-indigo-600 font-medium hover:underline">
+              Sign In
             </Link>
           </p>
         </div>
-        
+
         {isSuccess ? (
-          <div className="mt-8 text-center">
-             <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
+          <div className="text-center">
+            <div className="flex justify-center mb-4">
+              <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center">
                 <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                 </svg>
-             </div>
-             <h3 className="text-lg leading-6 font-medium text-gray-900">Registration Successful!</h3>
-             <div className="mt-2 px-7 py-3">
-                <p className="text-sm text-gray-500">
-                   Your account has been created. You can now sign in.
-                </p>
-             </div>
-             <div className="mt-4">
-                <Link href="/auth/login">
-                   <button
-                      type="button"
-                      className="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm"
-                   >
-                      Go to Sign In
-                   </button>
-                </Link>
-             </div>
+              </div>
+            </div>
+            <h3 className="text-lg font-medium text-gray-800">Registration Successful!</h3>
+            <p className="text-sm text-gray-500 mt-2">You can now sign in using your credentials.</p>
+            <Link href="/auth/login">
+              <button className="mt-5 w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition font-medium">
+                Go to Sign In
+              </button>
+            </Link>
           </div>
         ) : (
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="full-name" className="block text-sm font-medium text-gray-700 mb-1">Full name</label>
-                <input
-                  id="full-name"
-                  name="name"
-                  type="text"
-                  autoComplete="name"
-                  required
-                  className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-50"
-                  placeholder="John Doe"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+              <input
+                type="text"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="John Doe"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                disabled={isLoading}
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input
+                type="email"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isLoading}
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+              <div className="flex gap-2">
+                <select
+                  value={countryCode}
+                  onChange={(e) => setCountryCode(e.target.value)}
+                  className="w-24 px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                   disabled={isLoading}
-                />
-              </div>
-              <div>
-                <label htmlFor="email-address" className="block text-sm font-medium text-gray-700 mb-1">Email address</label>
+                >
+                  <option value="+91">+91</option>
+                  <option value="+1">+1</option>
+                  <option value="+44">+44</option>
+                  <option value="+86">+86</option>
+                </select>
                 <input
-                  id="email-address"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-50"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={isLoading}
-                />
-              </div>
-              <div>
-                <label htmlFor="phone-number" className="block text-sm font-medium text-gray-700 mb-1">Phone number</label>
-                <input
-                  id="phone-number"
-                  name="phone"
                   type="tel"
-                  autoComplete="tel"
-                  className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-50"
-                  placeholder="+91 "
+                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder="Enter phone number"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   disabled={isLoading}
+                  required
                 />
               </div>
+            </div>
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
                 <input
-                  id="password"
-                  name="password"
                   type="password"
-                  autoComplete="new-password"
-                  required
-                  className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-50"
-                  placeholder="Min. 8 characters"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder="At least 8 characters"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
-                />
-              </div>
-              <div>
-                <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
-                <input
-                  id="confirm-password"
-                  name="confirm-password"
-                  type="password"
-                  autoComplete="new-password"
                   required
-                  className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-50"
-                  placeholder="Re-enter password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  disabled={isLoading}
                 />
+                <p className="text-xs text-gray-500 mt-1">Password is case-sensitive.</p>
               </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+              <input
+                type="password"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="Re-enter password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                disabled={isLoading}
+                required
+              />
             </div>
 
             {error && (
-              <div className="rounded-lg bg-red-50 p-4 border border-red-200">
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-sm font-medium text-red-800">{error}</p>
-                  </div>
-                </div>
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                {error}
               </div>
             )}
 
-            <div>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed transition duration-150 ease-in-out"
-              >
-                {isLoading ? (
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                ) : null}
-                <span className="absolute left-0 inset-y-0 flex items-center pl-3">
-                </span>
-                {isLoading ? 'Creating Account...' : 'Create Account'}
-              </button>
-            </div>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {isLoading ? (
+                <div className="flex items-center justify-center">
+                  <svg className="animate-spin h-5 w-5 mr-2 text-white" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.37 0 0 5.37 0 12h4z" />
+                  </svg>
+                  Creating Account...
+                </div>
+              ) : (
+                'Create Account'
+              )}
+            </button>
           </form>
         )}
       </div>
     </div>
   );
-} 
+}
