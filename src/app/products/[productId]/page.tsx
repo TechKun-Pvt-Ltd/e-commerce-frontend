@@ -3,8 +3,8 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { ProductImage, ProductVariant } from "@/app/types/models";
-import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
-import { fetchProductById } from "@/app/store/slices/productsSlice";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { fetchProductById } from "@/store/slices/productsSlice";
 import ConfirmationModal from "@/app/components/ConfirmationModal";
 import NotificationCard from '@/app/components/NotificationCard';
 
@@ -119,12 +119,12 @@ const ProductDetail = () => {
                                     rounded-lg overflow-hidden hover:opacity-75`}
                                     onClick={() => setSelectedImage(img)}
                                 >
-                                    <Image 
+                                    <Image
                                         src={getImageUrl(img.imageData) || '/placeholder-image.jpg'}
-                                        alt="Thumbnail" 
-                                        width={80} 
-                                        height={80} 
-                                        className="w-full h-full object-cover" 
+                                        alt="Thumbnail"
+                                        width={80}
+                                        height={80}
+                                        className="w-full h-full object-cover"
                                     />
                                 </button>
                             ))}
@@ -172,11 +172,10 @@ const ProductDetail = () => {
                                 {product.variants.map((variant) => (
                                     <button
                                         key={variant.sizeOption.sizeOptionId}
-                                        className={`px-4 py-2 text-sm rounded-full transition ${
-                                            selectedVariant?.sizeOption.sizeOptionId === variant.sizeOption.sizeOptionId
+                                        className={`px-4 py-2 text-sm rounded-full transition ${selectedVariant?.sizeOption.sizeOptionId === variant.sizeOption.sizeOptionId
                                                 ? "bg-blue-500 text-white"
                                                 : "border border-gray-400 hover:bg-gray-200"
-                                        }`}
+                                            }`}
                                         onClick={() => setSelectedVariant(variant)}
                                     >
                                         {variant.sizeOption.value}
@@ -192,11 +191,10 @@ const ProductDetail = () => {
                                 {["Paper", "Canvas"].map((material) => (
                                     <button
                                         key={material}
-                                        className={`px-4 py-2 text-sm rounded-full transition ${
-                                            selectedMaterial === material
+                                        className={`px-4 py-2 text-sm rounded-full transition ${selectedMaterial === material
                                                 ? "bg-blue-500 text-white"
                                                 : "border border-gray-400 hover:bg-gray-200"
-                                        }`}
+                                            }`}
                                         onClick={() => setSelectedMaterial(material)}
                                     >
                                         {material}
@@ -227,13 +225,13 @@ const ProductDetail = () => {
 
                         {/* Action Buttons */}
                         <div className="flex gap-4 pt-4">
-                            <button 
+                            <button
                                 onClick={handleAddToCart}
                                 className="flex-1 py-3 border rounded-lg text-gray-900 font-medium hover:bg-gray-100"
                             >
                                 Add to Cart
                             </button>
-                            <button 
+                            <button
                                 onClick={handleBuyNow}
                                 className="flex-1 py-3 bg-blue-500 text-white font-medium rounded-lg hover:bg-blue-700"
                             >

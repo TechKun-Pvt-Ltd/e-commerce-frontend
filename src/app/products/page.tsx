@@ -4,8 +4,8 @@ import HeroSection from './components/HeroSection';
 import Filters from './components/Filters';
 import ProductGrid from './components/ProductGrid';
 import { useRouter } from 'next/navigation';
-import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
-import { fetchProducts } from '@/app/store/slices/productsSlice';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { fetchProducts } from '@/store/slices/productsSlice';
 
 export default function Products() {
   const dispatch = useAppDispatch();

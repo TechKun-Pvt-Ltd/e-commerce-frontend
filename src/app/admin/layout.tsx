@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { useAppSelector } from '@/app/store/hooks';
+import { useAppSelector } from '@/store/hooks';
 
 interface AdminLayoutProps {
     children: React.ReactNode;

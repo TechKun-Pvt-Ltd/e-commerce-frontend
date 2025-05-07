@@ -4,9 +4,9 @@ import ShippingAddressForm from "./components/ShippingAddressForm";
 import PaymentForm from "./components/PaymentForm";
 import OrderReview from "./components/OrderReview";
 import OrderSuccessModal from "./components/OrderSuccessModal";
-import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
-import { createOrder } from '@/app/store/slices/ordersSlice';
-import { clearCart } from '@/app/store/slices/cartSlice';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { createOrder } from '@/store/slices/ordersSlice';
+import { clearCart } from '@/store/slices/cartSlice';
 import { useRouter } from 'next/navigation';
 import { ShopOrder, OrderItem, OrderStatus, ProductImage } from '@/app/types/models';
 

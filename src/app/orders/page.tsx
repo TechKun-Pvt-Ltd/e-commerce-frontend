@@ -1,8 +1,8 @@
 "use client";
 import React, { useEffect } from 'react';
 import OrderList from './components/OrderList';
-import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
-import { fetchOrders } from '@/app/store/slices/ordersSlice';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { fetchOrders } from '@/store/slices/ordersSlice';
 
 const OrdersPage = () => {
     const dispatch = useAppDispatch();

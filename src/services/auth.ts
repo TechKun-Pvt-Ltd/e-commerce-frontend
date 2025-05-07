@@ -3,7 +3,8 @@ import type { ServiceFunction } from "@/types/api";
 import {
     RegistrationPayload, LoginPayload, TokenPayload,
     ForgotPasswordPayload, ResetPasswordPayload,
-    ChangePasswordPayload, DeleteAccountPayload
+    ChangePasswordPayload, DeleteAccountPayload,
+    UserEssentials
 } from "@/types/domains/auth";
 import type { ShopUser } from "@/types/domains/user";
 
@@ -11,8 +12,23 @@ export const register: ServiceFunction<RegistrationPayload, ShopUser> = (payload
     return servicesApiClient.post("/auth/register", { data: payload });
 };
 
-export const login: ServiceFunction<LoginPayload, TokenPayload> = (payload) => {
-    return servicesApiClient.post("/auth/login", { data: payload });
+export const login: ServiceFunction<LoginPayload, TokenPayload> = async (payload) => {
+    const res = await fetch("/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    return (res.ok ? {
+        data,
+        success: true
+    } : {
+        success: false,
+        error: data?.error
+    });
+};
+
+export const me: ServiceFunction<[], UserEssentials> = () => {
+    return servicesApiClient.get("/auth/me");
 };
 
 export const forgotPassword: ServiceFunction<ForgotPasswordPayload, Map<string, any>> = (payload) => {

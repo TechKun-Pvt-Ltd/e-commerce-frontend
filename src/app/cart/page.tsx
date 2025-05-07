@@ -4,8 +4,8 @@ import CartItems from './components/CartItems';
 import CartSummary from './components/CartSummary';
 import ShippingCalculator from './components/ShippingCalculator';
 import OrderSuccessModal from "../checkout/components/OrderSuccessModal";
-import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
-import { fetchCartItems, updateCartItemAsync, removeFromCartAsync } from '@/app/store/slices/cartSlice';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { fetchCartItems, updateCartItemAsync, removeFromCartAsync } from '@/store/slices/cartSlice';
 import { useRouter } from 'next/navigation';
 
 const CartPage = () => {
@@ -55,7 +55,7 @@ const CartPage = () => {
             <h1 className="text-3xl font-bold mb-8">Shopping Cart</h1>
             <div className="flex flex-col lg:flex-row gap-8">
                 <div className="lg:w-2/3">
-                    <CartItems 
+                    <CartItems
                         items={cartItems}
                         onQuantityChange={handleQuantityChange}
                         onRemoveItem={handleRemoveItem}
@@ -64,8 +64,8 @@ const CartPage = () => {
                 <div className="lg:w-1/3">
                     <CartSummary items={cartItems} />
                     <ShippingCalculator />
-                    <button 
-                        onClick={handleOrderPlacement} 
+                    <button
+                        onClick={handleOrderPlacement}
                         className="w-full bg-black text-white py-3 px-4 rounded-lg mt-4 hover:bg-gray-800 transition-colors"
                     >
                         Proceed to Checkout
@@ -73,10 +73,10 @@ const CartPage = () => {
                 </div>
             </div>
 
-            <OrderSuccessModal 
-                isOpen={showModal} 
-                onClose={() => setShowModal(false)} 
-                orderId={orderId} 
+            <OrderSuccessModal
+                isOpen={showModal}
+                onClose={() => setShowModal(false)}
+                orderId={orderId}
             />
         </div>
     );

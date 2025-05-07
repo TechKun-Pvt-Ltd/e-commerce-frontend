@@ -1,5 +1,5 @@
-import { AddressDTO } from "./address";
-import { ShopUser } from "./user";
+import { Address, AddressDTO } from "./address";
+import { UserRole } from "./user";
 
 export interface ChangePasswordPayload {
     currentPassword: string;
@@ -36,5 +36,16 @@ export interface ResetPasswordPayload {
 export interface TokenPayload {
     message: string;
     token: string;
-    user: ShopUser;
+    user: UserEssentials;
+}
+
+export interface UserEssentials {
+    userId: number;
+    fullName: string;
+    email: string;
+    phoneNo: string;
+    address: Address;
+    roleId: number;
+    roleName: UserRole;
+    joinedAt: Date;
 }
