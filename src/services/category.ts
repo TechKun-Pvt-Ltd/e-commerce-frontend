@@ -6,7 +6,7 @@ export const createCategory: ServiceFunction<CategoryDTO, Category> = (payload) 
     return servicesApiClient.post('/categories', { data: payload });
 };
 
-export const updateCategory: ServiceFunction<[categoryId: number, payload: CategoryDTO], Category> = (categoryId, payload) => {
+export const updateCategory: ServiceFunction<[categoryId: number, payload: Partial<CategoryDTO>], Category> = (categoryId, payload) => {
     return servicesApiClient.put(`/categories/${categoryId}`, { data: payload });
 };
 

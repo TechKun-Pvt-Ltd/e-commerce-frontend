@@ -27,6 +27,19 @@ export const login: ServiceFunction<LoginPayload, TokenPayload> = async (payload
     });
 };
 
+export const logout: ServiceFunction<[], string> = async () => {
+    const res = await fetch("/api/auth/logout", {
+        method: "POST"
+    });
+    return (res.ok ? {
+        data: "Logout Successful!",
+        success: true
+    } : {
+        success: false,
+        error: "Logout Failed!"
+    });
+};
+
 export const me: ServiceFunction<[], UserEssentials> = () => {
     return servicesApiClient.get("/auth/me");
 };

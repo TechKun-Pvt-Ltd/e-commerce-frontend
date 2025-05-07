@@ -1,10 +1,9 @@
+import { CartItemPreview, CartItemUpdatePayload } from '@/types/domains/cart';
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import apiInstance from '@/app/services/api.service';
-import { CartItem, ProductVariant, User } from '@/app/types/models';
-import { mockCartItems } from '@/app/mock/cart-items';
+import * as cartServices from "@/services/cart";
 
 interface CartState {
-    items: CartItem[];
+    items: CartItemPreview[];
     totalItems: number;
     totalAmount: number;
     loading: boolean;
@@ -23,56 +22,70 @@ export const fetchCartItems = createAsyncThunk(
     'cart/fetchCartItems',
     async (_, { rejectWithValue }) => {
         try {
-            // const response = await apiInstance.get('/cart-items');
-            // return response.data;
-            return mockCartItems;
-        } catch (error: any) {
-            return rejectWithValue(error.response?.data || 'Failed to fetch cart items');
+            const response = await cartServices.getAllCartItems();
+            if (response.success)
+                return response.data;
+
+            return rejectWithValue(response.error);
+        } catch (error) {
+            return rejectWithValue((error as { error: string }).error || 'Failed to fetch cart items');
         }
     }
 );
 
 export const addToCartAsync = createAsyncThunk(
     'cart/addToCartAsync',
-    async (variant: ProductVariant, { rejectWithValue }) => {
+    async (itemToAdd: CartItemPreview, { rejectWithValue }) => {
         try {
-            // const response = await apiInstance.post('/cart-items', { productVariantId: variant.productVariantId });
-            // return response.data;
-            return mockCartItems;
+            const response = await cartServices.addCartItem({
+                productVariantId: itemToAdd.productVariantId,
+                quantity: itemToAdd.quantity,
+                imageUrl: itemToAdd.imageUrl,
+                personalization: itemToAdd.personalization
+            });
+            if (response.success)
+                return itemToAdd;
+
+            return rejectWithValue(response.error);
         } catch (error: any) {
-            return rejectWithValue(error.response?.data || 'Failed to add item to cart');
+            return rejectWithValue((error as { error: string }).error || 'Failed to add item to cart');
         }
     }
 );
 
 export const updateCartItemAsync = createAsyncThunk(
     'cart/updateCartItemAsync',
-    async ({ variantId, quantity }: { variantId: number; quantity: number }, { rejectWithValue }) => {
+    async ({ cartItemId, payload }: { cartItemId: number, payload: CartItemUpdatePayload }, { dispatch, rejectWithValue }) => {
         try {
-            // const response = await apiInstance.put(`/cart-items/${variantId}`, { quantity });
-            // return response.data;
-            return mockCartItems;
+            const response = await cartServices.updateCartItem(cartItemId, payload);
+            if (response.success)
+                return response.data;
+
+            return rejectWithValue(response.error);
         } catch (error: any) {
-            return rejectWithValue(error.response?.data || 'Failed to update cart item');
+            return rejectWithValue((error as { error: string }).error || 'Failed to update cart item');
         }
     }
 );
 
 export const removeFromCartAsync = createAsyncThunk(
     'cart/removeFromCartAsync',
-    async (variantId: number, { rejectWithValue }) => {
+    async (cartItemId: number, { rejectWithValue }) => {
         try {
-            await apiInstance.delete(`/cart-items/${variantId}`);
-            return variantId;
+            const response = await cartServices.deleteCartItem(cartItemId);
+            if (response.success)
+                return cartItemId;
+
+            return rejectWithValue(response.error);
         } catch (error: any) {
-            return rejectWithValue(error.response?.data || 'Failed to remove item from cart');
+            return rejectWithValue((error as { error: string }).error || 'Failed to remove item from cart');
         }
     }
 );
 
 const calculateTotals = (state: CartState) => {
     state.totalItems = state.items.reduce((total, item) => total + item.quantity, 0);
-    state.totalAmount = state.items.reduce((total, item) => total + (item.productVariant.price * item.quantity), 0);
+    state.totalAmount = state.items.reduce((total, item) => total + (item.price * item.quantity), 0);
 };
 
 const cartSlice = createSlice({
@@ -106,7 +119,7 @@ const cartSlice = createSlice({
             })
             .addCase(addToCartAsync.fulfilled, (state, action) => {
                 state.loading = false;
-                state.items = action.payload;
+                state.items = [ ...state.items, action.payload ];
                 calculateTotals(state);
             })
             .addCase(addToCartAsync.rejected, (state, action) => {
@@ -119,7 +132,14 @@ const cartSlice = createSlice({
             })
             .addCase(updateCartItemAsync.fulfilled, (state, action) => {
                 state.loading = false;
-                state.items = action.payload;
+                state.items = state.items.map(item => {
+                    if (item.cartItemId !== action.payload.cartItemId)
+                        return item;
+
+                    item.quantity = action.payload.quantity;
+                    item.personalization = action.payload.personalization;
+                    return item;
+                });
                 calculateTotals(state);
             })
             .addCase(updateCartItemAsync.rejected, (state, action) => {
@@ -132,7 +152,7 @@ const cartSlice = createSlice({
             })
             .addCase(removeFromCartAsync.fulfilled, (state, action) => {
                 state.loading = false;
-                state.items = state.items.filter(item => item.productVariant.productVariantId !== action.payload);
+                state.items = state.items.filter(item => item.cartItemId !== action.payload);
                 calculateTotals(state);
             })
             .addCase(removeFromCartAsync.rejected, (state, action) => {

@@ -1,9 +1,9 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { User } from '@/app/types/models';
-import apiInstance from '@/app/services/api.service';
+import * as authServices from "@/services/auth";
+import { LoginPayload, UserEssentials } from '@/types/domains/auth';
 
 interface AuthState {
-    user: User | null;
+    user: UserEssentials | null;
     loading: boolean;
     error: string | null;
 }
@@ -16,12 +16,15 @@ const initialState: AuthState = {
 
 export const login = createAsyncThunk(
     'auth/login',
-    async (credentials: { email: string; password: string }, { rejectWithValue }) => {
+    async (credentials: LoginPayload, { rejectWithValue }) => {
         try {
-            const response = await apiInstance.post('/auth/login', credentials);
-            return response.data;
-        } catch (error: any) {
-            return rejectWithValue(error.response?.data || 'Login failed');
+            const response = await authServices.login(credentials);
+            if (response.success)
+                return response.data;
+
+            return rejectWithValue(response.error);
+        } catch (error) {
+            return rejectWithValue((error as { error: string }).error || 'Login failed');
         }
     }
 );
@@ -30,8 +33,11 @@ export const logout = createAsyncThunk(
     'auth/logout',
     async (_, { rejectWithValue }) => {
         try {
-            await apiInstance.post('/auth/logout');
-            return null;
+            const response = await authServices.logout();
+            if (response.success)
+                return response.data;
+
+            return rejectWithValue(response.error);
         } catch (error: any) {
             return rejectWithValue(error.response?.data || 'Logout failed');
         }
@@ -54,7 +60,7 @@ const authSlice = createSlice({
             })
             .addCase(login.fulfilled, (state, action) => {
                 state.loading = false;
-                state.user = action.payload;
+                state.user = action.payload?.user || null;
             })
             .addCase(login.rejected, (state, action) => {
                 state.loading = false;
@@ -64,7 +70,7 @@ const authSlice = createSlice({
                 state.loading = true;
                 state.error = null;
             })
-            .addCase(logout.fulfilled, (state) => {
+            .addCase(logout.fulfilled, (state, action) => {
                 state.loading = false;
                 state.user = null;
             })

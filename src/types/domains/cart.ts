@@ -5,19 +5,19 @@ import { ShopUser } from "./user";
 export type CartItemPreview = {
     cartItemId: number;
     addedAt: Date;
-    imageUrl: string;
+    imageUrl?: string;
     title: string;
     productVariantId: number;
     price: number;
     quantity: number;
-    personalization: Personalization;
+    personalization?: Personalization;
 };
 
 export type CartItemDTO = {
-    imageUrl: string;
+    imageUrl?: string;
     productVariantId: number;
     quantity: number;
-    personalization: Personalization;
+    personalization?: Personalization;
 };
 
 export interface CartItemUpdatePayload {

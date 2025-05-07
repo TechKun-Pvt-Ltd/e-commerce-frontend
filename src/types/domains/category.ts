@@ -12,6 +12,7 @@ export interface Category {
 export interface CategoryTree {
     categoryId: number;
     name: string;
+    path: string;
     subcategories: CategoryTree[];
 }
 
