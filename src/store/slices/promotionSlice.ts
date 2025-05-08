@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { PromotionDetails, PromotionDTO } from '@/types/domains/promotion';
+import { PromotionDetails } from '@/types/domains/promotion';
 import * as promotionServices from "@/services/promotion";
 
 interface PromotionsState {
@@ -54,4 +54,5 @@ const promotionsSlice = createSlice({
     },
 });
 
+export const { updatePromotions } = promotionsSlice.actions;
 export default promotionsSlice.reducer;
