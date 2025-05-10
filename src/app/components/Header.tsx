@@ -1,72 +1,294 @@
 "use client";
-import React, { useState } from 'react';
+import Link from "next/link"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { ShoppingCart, UserRound, Search, LogIn, UserPlus2Icon, Heart, Package, CircleUserRoundIcon, LogOut, ChevronDown, MoreHorizontal } from "lucide-react"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuSub,
+    DropdownMenuSubContent,
+    DropdownMenuSubTrigger,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { useAppSelector } from "@/store/hooks"
+import { CategoryTree } from "@/types/domains/category";
 
-const Header = () => {
-  const [searchQuery, setSearchQuery] = useState('');
+const categoryTree: CategoryTree[] = [
+    {
+        categoryId: 1,
+        name: "Men",
+        path: "0",
+        subcategories: [
+            {
+                categoryId: 11,
+                name: "Clothing",
+                path: "0.0",
+                subcategories: [
+                    { categoryId: 111, name: "Shirts", path: "0.0.0", subcategories: [] },
+                    { categoryId: 112, name: "Pants", path: "0.0.1", subcategories: [] },
+                ],
+            },
+            {
+                categoryId: 12,
+                name: "Shoes",
+                path: "0.1",
+                subcategories: [],
+            },
+        ],
+    },
+    {
+        categoryId: 2,
+        name: "Women",
+        path: "1",
+        subcategories: [
+            {
+                categoryId: 21,
+                name: "Accessories",
+                path: "1.0",
+                subcategories: [],
+            },
+        ],
+    },
+    {
+        categoryId: 3,
+        name: "Kids",
+        path: "2",
+        subcategories: [
+            {
+                categoryId: 31,
+                name: "Toys",
+                path: "2.0",
+                subcategories: [],
+            },
+            {
+                categoryId: 32,
+                name: "Clothing",
+                path: "2.1",
+                subcategories: [
+                    { categoryId: 321, name: "T-Shirts", path: "2.1.0", subcategories: [] },
+                    { categoryId: 322, name: "Shorts", path: "2.1.1", subcategories: [] },
+                ],
+            },
+        ],
+    },
+    {
+        categoryId: 4,
+        name: "Home",
+        path: "3",
+        subcategories: [
+            {
+                categoryId: 41,
+                name: "Furniture",
+                path: "3.0",
+                subcategories: [],
+            },
+            {
+                categoryId: 42,
+                name: "Decor",
+                path: "3.1",
+                subcategories: [],
+            },
+        ],
+    },
+    {
+        categoryId: 5,
+        name: "Electronics",
+        path: "4",
+        subcategories: [
+            {
+                categoryId: 51,
+                name: "Mobile Phones",
+                path: "4.0",
+                subcategories: [],
+            },
+            {
+                categoryId: 52,
+                name: "Laptops",
+                path: "4.1",
+                subcategories: [],
+            },
+        ],
+    },
+    {
+        categoryId: 6,
+        name: "Sports",
+        path: "5",
+        subcategories: [
+            {
+                categoryId: 61,
+                name: "Outdoor",
+                path: "5.0",
+                subcategories: [],
+            },
+            {
+                categoryId: 62,
+                name: "Indoor",
+                path: "5.1",
+                subcategories: [],
+            },
+        ],
+    },
+    {
+        categoryId: 7,
+        name: "Beauty",
+        path: "6",
+        subcategories: [
+            {
+                categoryId: 71,
+                name: "Skincare",
+                path: "6.0",
+                subcategories: [],
+            },
+            {
+                categoryId: 72,
+                name: "Makeup",
+                path: "6.1",
+                subcategories: [],
+            },
+        ],
+    },
+];
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Implement search functionality here
-    console.log('Searching for:', searchQuery);
-  };
+function renderCategoryDropdown(category: CategoryTree) {
+    if (category.subcategories.length === 0) {
+        return (
+            <DropdownMenuItem asChild key={category.path}>
+                <Link href={`/category/${category.categoryId}`}>{category.name}</Link>
+            </DropdownMenuItem>
+        )
+    }
 
-  return (
-    <>
-      {/* Announcement Bar */}
-      <div className="bg-black text-white text-center py-2 text-sm">
-        Free shipping on all orders over $50 • Use code15 at checkout to get 15% off
-      </div>
+    return (
+        <DropdownMenuSub key={category.path}>
+            <DropdownMenuSubTrigger>{category.name}</DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+                {category.subcategories.map((sub) => renderCategoryDropdown(sub))}
+            </DropdownMenuSubContent>
+        </DropdownMenuSub>
+    )
+}
 
-      {/* Header/Navigation */}
-      <header className="container mx-auto px-4 py-5">
-        <div className="flex flex-col md:flex-row md:justify-between items-center space-y-4 md:space-y-0">
-          <div className="text-2xl font-bold text-gray-900">KIOSKO</div>
-          
-          {/* Enhanced Search Bar */}
-          <div className="w-full max-w-2xl px-4">
-            <form onSubmit={handleSearch} className="relative">
-              <input
-                type="text"
-                placeholder="Search for products, brands, and more..."
-                className="w-full px-5 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent shadow-sm"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <button 
-                type="submit"
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-black text-white p-2 rounded-full hover:bg-gray-800 transition-colors duration-200"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </button>
-            </form>
-          </div>
-          
-          <nav className="flex items-center space-x-8">
-            <a href="#" className="text-gray-600 hover:text-black transition-colors duration-200">Home</a>
-            <a href="#" className="text-gray-600 hover:text-black transition-colors duration-200">Blog</a>
-            <a href="#" className="text-gray-600 hover:text-black transition-colors duration-200">About</a>
-            <a href="#" className="text-gray-600 hover:text-black transition-colors duration-200">Contact</a>
-            <div className="flex items-center space-x-4">
-              <a href="#" className="text-gray-600 hover:text-black transition-colors duration-200">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </a>
-              <a href="#" className="text-gray-600 hover:text-black transition-colors duration-200">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                </svg>
-              </a>
+
+export default function Header() {
+    const { authenticated } = useAppSelector(state => state.auth);
+    const { items } = useAppSelector(state => state.categories);
+    const visibleLimit = 6
+    const categoriesOverflowing = categoryTree.length > (visibleLimit + 1);
+    const visibleCategories = categoriesOverflowing ? categoryTree.slice(0, visibleLimit) : categoryTree;
+    const overflowCategories = categoriesOverflowing ? categoryTree.slice(visibleLimit) : [];
+
+    return (<>
+        <nav className="sticky top-0 z-50 w-full border-b bg-background px-8 py-3">
+            <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
+                {/* Logo */}
+                <Link href="/" className="text-xl font-bold">
+                    KIOSKO
+                </Link>
+
+                {/* Search Input */}
+                <div className="flex-1 max-w-lg">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                            type="search"
+                            placeholder="Search products..."
+                            className="w-full pl-10"
+                        />
+                    </div>
+                </div>
+
+                {/* User + Cart */}
+                <div className="flex items-center gap-4">
+                    {/* User Dropdown */}
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" aria-label="User menu">
+                                <UserRound className="h-5 w-5" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            {authenticated ? (
+                                <>
+                                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                                    <DropdownMenuItem>
+                                        <CircleUserRoundIcon />
+                                        <Link href="/account/settings">Account Settings</Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem>
+                                        <Package />
+                                        <Link href="/account/orders">Orders</Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem>
+                                        <LogOut />
+                                        Logout
+                                    </DropdownMenuItem>
+                                </>
+                            ) : (
+                                <>
+                                    <DropdownMenuItem>
+                                        <LogIn />
+                                        <Link href="/account/login">Login</Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem>
+                                        <UserPlus2Icon />
+                                        <Link href="/account/register">Register</Link>
+                                    </DropdownMenuItem>
+                                </>
+                            )}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    <Button variant="ghost" size="icon" aria-label="Wishlist">
+                        <Heart className="h-5 w-5" />
+                        <span className="sr-only">Wishlist</span>
+                    </Button>
+                    {/* Cart Icon */}
+                    <Button variant="ghost" size="icon" aria-label="Cart">
+                        <ShoppingCart className="h-5 w-5" />
+                        <span className="sr-only">Cart</span>
+                    </Button>
+                </div>
             </div>
-          </nav>
+        </nav>
+
+        <div className="w-full border-b bg-background px-4">
+            <div className="mx-auto w-max max-w-full overflow-x-auto p-2 flex gap-4" style={{scrollbarWidth: 'none'}}>
+                {visibleCategories.map((category) => (
+                    <DropdownMenu key={category.path}>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost">
+                                {category.name}
+                                <ChevronDown />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start">{category.subcategories.map(renderCategoryDropdown)}</DropdownMenuContent>
+                    </DropdownMenu>
+                ))}
+                {overflowCategories.length > 0 && (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild className="sticky right-0 bg-white">
+                            <Button variant="ghost">
+                                <MoreHorizontal className="h-4 w-4" /> More
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            {overflowCategories.map((category) => (
+                                <DropdownMenuSub key={category.path}>
+                                    <DropdownMenuSubTrigger>{category.name}</DropdownMenuSubTrigger>
+                                    <DropdownMenuSubContent>
+                                        {category.subcategories.map((sub) => renderCategoryDropdown(sub))}
+                                    </DropdownMenuSubContent>
+                                </DropdownMenuSub>
+                            ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                )}
+            </div>
         </div>
-      </header>
-
-      <div className="border-t border-gray-200"></div>
-    </>
-  );
-};
-
-export default Header;
+    </>)
+}

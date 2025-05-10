@@ -4,7 +4,7 @@ import { WishlistItem, WishlistItemDTO } from "@/types/domains/wishlist_item";
 
 const API_BASE_URL = '/wishlist-items';
 
-export const getWishlistItems: ServiceFunction<[], WishlistItemDTO> = () => {
+export const getWishlistItems: ServiceFunction<[], WishlistItemDTO[]> = () => {
     return servicesApiClient.get(`${API_BASE_URL}`, {});
 };
 

@@ -22,6 +22,7 @@ export interface PromotionDetails {
     promotionId: number;
     description: string;
     promotionType: PromotionType;
+    imageUrl?: string;
     discountValue: number;
     validFrom?: Date;
     validTill?: Date;

@@ -1,199 +1,235 @@
 'use client';
-import axios from 'axios';
+
 import { useState } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import useDataFetch from '@/hooks/use-data-fetch';
+import { register as registerService } from '@/services/auth';
+import type { RegistrationPayload } from '@/types/domains/auth';
+
+const registerSchema = z.object({
+    email: z.string().email('Invalid email address'),
+    password: z.string().min(8, 'Password must be at least 8 characters'),
+    fullName: z.string().min(2, 'Full name must be at least 2 characters'),
+    phoneNo: z.string().min(10, 'Phone number must be at least 10 characters'),
+    address: z.object({
+        street: z.string().min(1, 'Street is required'),
+        city: z.string().min(1, 'City is required'),
+        state: z.string().min(1, 'State is required'),
+        country: z.string().min(1, 'Country is required'),
+        zipCode: z.string().min(1, 'Zip code is required')
+    })
+});
 
 export default function RegisterPage() {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [countryCode, setCountryCode] = useState('+91');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+    const router = useRouter();
+    const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setIsLoading(true);
-    setIsSuccess(false);
+    const { request, isLoading } = useDataFetch(registerService, {
+        onResponseReceived: () => {
+            router.push('/auth/login?registered=true');
+        }
+    });
 
-    if (!name) {
-      setError('Please enter your full name.');
-      setIsLoading(false);
-      return;
-    }
-    if (!email || !/\S+@\S+\.\S+/.test(email)) {
-      setError('Please enter a valid email address.');
-      setIsLoading(false);
-      return;
-    }
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters long.');
-      setIsLoading(false);
-      return;
-    }
-    if (password !== confirmPassword) {
-      setError('Passwords do not match.');
-      setIsLoading(false);
-      return;
-    }
+    const form = useForm<z.infer<typeof registerSchema>>({
+        resolver: zodResolver(registerSchema),
+        defaultValues: {
+            email: '',
+            password: '',
+            fullName: '',
+            phoneNo: '',
+            address: {
+                street: '',
+                city: '',
+                state: '',
+                country: '',
+                zipCode: ''
+            }
+        }
+    });
 
-    const roleId = 3;
-
-    const payload = {
-      fullName: name,
-      email,
-      phoneNo: countryCode + phone,
-      password,
-      roleId,
+    const onSubmit = async (values: z.infer<typeof registerSchema>) => {
+        setError(null);
+        try {
+            const payload: RegistrationPayload = {
+                ...values,
+                roleId: 3, // Customer role
+                address: {
+                    ...values.address,
+                    addressId: 0 // New address
+                }
+            };
+            await request(payload);
+        } catch (err) {
+            setError('Registration failed. Please try again.');
+        }
     };
 
-    try {
-      const response = await axios.post('/api/auth/register', payload);
-      setIsSuccess(true);
-    } catch (err: any) {
-      setError(err.response?.data || err.message || 'An error occurred during registration.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    return (
+        <div className="container mx-auto py-10">
+            <Card className="max-w-lg mx-auto">
+                <CardHeader>
+                    <CardTitle>Create an Account</CardTitle>
+                    <CardDescription>Sign up to start shopping</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                            <FormField
+                                control={form.control}
+                                name="fullName"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Full Name</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="John Doe" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="email"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Email</FormLabel>
+                                        <FormControl>
+                                            <Input type="email" placeholder="john@example.com" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="password"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Password</FormLabel>
+                                        <FormControl>
+                                            <Input type="password" placeholder="********" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="phoneNo"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Phone Number</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="+1234567890" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
 
-  return (
-    <div className="min-h-screen bg-gradient-to-tr from-purple-100 via-white to-blue-100 flex items-center justify-center p-6">
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 transition-all">
-        <div className="text-center mb-6">
-          <h2 className="text-3xl font-extrabold text-gray-900">Create Your Account</h2>
-          <p className="text-sm text-gray-600 mt-2">
-            Already registered?{' '}
-            <Link href="/auth/login" className="text-indigo-600 font-medium hover:underline">
-              Sign In
-            </Link>
-          </p>
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-medium">Address</h3>
+                                <FormField
+                                    control={form.control}
+                                    name="address.street"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Street</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="123 Main St" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <div className="grid grid-cols-2 gap-4">
+                                    <FormField
+                                        control={form.control}
+                                        name="address.city"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>City</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="New York" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="address.state"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>State</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="NY" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <FormField
+                                        control={form.control}
+                                        name="address.country"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Country</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="United States" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="address.zipCode"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Zip Code</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="10001" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+                            </div>
+
+                            {error && (
+                                <div className="text-sm font-medium text-destructive">{error}</div>
+                            )}
+
+                            <div className="flex justify-between items-center">
+                                <Button
+                                    type="submit"
+                                    disabled={isLoading}
+                                >
+                                    {isLoading ? 'Creating Account...' : 'Create Account'}
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    onClick={() => router.push('/auth/login')}
+                                >
+                                    Already have an account?
+                                </Button>
+                            </div>
+                        </form>
+                    </Form>
+                </CardContent>
+            </Card>
         </div>
-
-        {isSuccess ? (
-          <div className="text-center">
-            <div className="flex justify-center mb-4">
-              <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center">
-                <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-            </div>
-            <h3 className="text-lg font-medium text-gray-800">Registration Successful!</h3>
-            <p className="text-sm text-gray-500 mt-2">You can now sign in using your credentials.</p>
-            <Link href="/auth/login">
-              <button className="mt-5 w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition font-medium">
-                Go to Sign In
-              </button>
-            </Link>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-              <input
-                type="text"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="John Doe"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                disabled={isLoading}
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input
-                type="email"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={isLoading}
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-              <div className="flex gap-2">
-                <select
-                  value={countryCode}
-                  onChange={(e) => setCountryCode(e.target.value)}
-                  className="w-24 px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                  disabled={isLoading}
-                >
-                  <option value="+91">+91</option>
-                  <option value="+1">+1</option>
-                  <option value="+44">+44</option>
-                  <option value="+86">+86</option>
-                </select>
-                <input
-                  type="tel"
-                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder="Enter phone number"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  disabled={isLoading}
-                  required
-                />
-              </div>
-            </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                <input
-                  type="password"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder="At least 8 characters"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={isLoading}
-                  required
-                />
-                <p className="text-xs text-gray-500 mt-1">Password is case-sensitive.</p>
-              </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
-              <input
-                type="password"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="Re-enter password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                disabled={isLoading}
-                required
-              />
-            </div>
-
-            {error && (
-              <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {isLoading ? (
-                <div className="flex items-center justify-center">
-                  <svg className="animate-spin h-5 w-5 mr-2 text-white" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.37 0 0 5.37 0 12h4z" />
-                  </svg>
-                  Creating Account...
-                </div>
-              ) : (
-                'Create Account'
-              )}
-            </button>
-          </form>
-        )}
-      </div>
-    </div>
-  );
+    );
 }

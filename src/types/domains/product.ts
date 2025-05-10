@@ -1,3 +1,4 @@
+import { SortOption } from "../api";
 import { Attribute } from "./attribute";
 import { VariationOption } from "./variation";
 
@@ -65,7 +66,7 @@ export interface ProductPreview {
     productId: number;
     productVariantId: number;
     categoryId: number;
-    dateAdded: string;
+    dateAdded: Date;
     quantityInStock: number;
     imageUrl: string;
     price: number;
@@ -75,8 +76,8 @@ export interface ProductPreview {
 }
 
 export interface ProductQueryOptions {
-    searchInput: string;
-    categoryId: number;
-    variations: Record<number, number>;
-    sortBy: SortOption;
+    searchInput?: string;
+    categoryId?: number;
+    variations?: Record<number, number>;
+    sortBy?: SortOption;
 }

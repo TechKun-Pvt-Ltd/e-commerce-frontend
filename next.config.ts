@@ -8,7 +8,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['via.placeholder.com'],
+    domains: ['img.freepik.com'],
+    // remotePatterns: [new URL('https://img.freepik.com/**')]
   },
 }
 
