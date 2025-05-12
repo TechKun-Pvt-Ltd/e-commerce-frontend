@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect } from 'react';
-import HeroSection from './products/components/HeroSection';
-import FeaturedByCategory from './components/FeaturedByCategory';
+import HeroSection from '../products/components/HeroSection';
+import FeaturedByCategory from '../components/FeaturedByCategory';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { fetchCategories } from '@/store/slices/categorySlice';
 import { fetchPromotions } from '@/store/slices/promotionSlice';
@@ -10,7 +10,7 @@ import { getAllProducts } from '@/services/product';
 import { CategoryTree } from '@/types/domains/category';
 import { PromotionDetails, PromotionType } from '@/types/domains/promotion';
 import { ProductPreview } from '@/types/domains/product';
-import Testimonials from './components/Testimonials';
+import Testimonials from '../components/Testimonials';
 import { ReviewDetails } from '@/types/domains/review';
 
 const categories: CategoryTree[] = [

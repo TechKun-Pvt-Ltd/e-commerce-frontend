@@ -1,9 +1,8 @@
 import './globals.css';
 import { Inter } from 'next/font/google';
-import Header from './components/Header';
-import Footer from './components/Footer';
 import { Metadata } from "next";
 import Providers from './Providers';
+import { Wrapper } from './Wrapper';
 
 export const metadata: Metadata = {
     title: "E-Commerce Store",
@@ -17,16 +16,13 @@ export default function RootLayout({
 }: {
     children: React.ReactNode;
 }) {
-
     return (
         <html lang="en">
             <body className={inter.className}>
                 <Providers>
-                    <Header />
-                    <main className="container mx-auto px-4 py-8">
+                    <Wrapper>
                         {children}
-                    </main>
-                    <Footer />
+                    </Wrapper>
                 </Providers>
             </body>
         </html>
