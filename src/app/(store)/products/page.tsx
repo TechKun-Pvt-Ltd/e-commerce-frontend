@@ -1,8 +1,8 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import HeroSection from './components/HeroSection';
-import Filters from './components/Filters';
-import ProductGrid from './components/ProductGrid';
+import HeroSection from '../../products/components/HeroSection';
+import Filters from '../../products/components/Filters';
+import ProductGrid from '../../products/components/ProductGrid';
 import { useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 // import { fetchProducts } from '@/store/slices/productsSlice';

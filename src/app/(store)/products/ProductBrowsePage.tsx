@@ -14,7 +14,7 @@ import { CategoryDetails } from "@/types/domains/category";
 import { Variation } from "@/types/domains/variation";
 import { ProductPreview } from "@/types/domains/product";
 import { Button } from "@/components/ui/button";
-import ProductCard from "../components/ProductCard";
+import ProductCard from "../../components/ProductCard";
 
 interface ProductBrowsePageProps {
     categoryDetails: CategoryDetails
