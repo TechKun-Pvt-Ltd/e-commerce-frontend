@@ -3,6 +3,9 @@ import { useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
+import { Menu } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 import Sidebar from "./components/Sidebar";
 import PersonalInformation from "./components/PersonalInformation";
@@ -57,8 +60,8 @@ export default function AccountSettings() {
     );
   }
 
-  const initialUserData: UserData = {
-    fullName: session?.user?.fullName || "",
+  const initialUserData = {
+    fullName: session?.user?.name || "",
     email: session?.user?.email || "",
     phoneNo: "",
     address: "",
@@ -66,21 +69,45 @@ export default function AccountSettings() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <div className="flex flex-1 flex-col md:flex-row">
-        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-        <main className="flex-1 p-8">
+      {/* Mobile Menu Button */}
+      <div className="lg:hidden p-4 border-b bg-white">
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="outline" size="icon">
+              <Menu className="h-6 w-6" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="p-0 w-80">
+            <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+          </SheetContent>
+        </Sheet>
+      </div>
+
+      <div className="flex flex-1">
+        {/* Desktop Sidebar */}
+        <div className="hidden lg:block">
+          <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+        </div>
+
+        {/* Main Content */}
+        <main className="flex-1 p-4 md:p-6 lg:p-8">
           {/* Breadcrumb */}
-          <Breadcrumb>
-            <Breadcrumb.Item href="/account/settings">Account Settings</Breadcrumb.Item>
-            <Breadcrumb.Item isCurrent>{tabLabels[activeTab]}</Breadcrumb.Item>
-          </Breadcrumb>
+          <div className="mb-6">
+            <Breadcrumb>
+              <Breadcrumb.Item href="/account/settings">Account Settings</Breadcrumb.Item>
+              <Breadcrumb.Item isCurrent>{tabLabels[activeTab]}</Breadcrumb.Item>
+            </Breadcrumb>
+          </div>
+
           {/* Content */}
-          {activeTab === "personal" && <PersonalInformation initialData={initialUserData} />}
-          {activeTab === "orders" && <OrderHistory />}
-          {activeTab === "security" && <Security />}
-          {activeTab === "payment" && <PaymentMethods />}
-          {activeTab === "reviews" && <Reviews />}
-          {activeTab === "support" && <SupportTickets />}
+          <div className="max-w-4xl mx-auto">
+            {activeTab === "personal" && <PersonalInformation />}
+            {activeTab === "orders" && <OrderHistory />}
+            {activeTab === "security" && <Security />}
+            {activeTab === "payment" && <PaymentMethods />}
+            {activeTab === "reviews" && <Reviews />}
+            {activeTab === "support" && <SupportTickets />}
+          </div>
         </main>
       </div>
     </div>

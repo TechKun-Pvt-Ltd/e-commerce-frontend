@@ -1,7 +1,12 @@
 "use client";
-import axios from 'axios';
-import { useEffect, useState } from "react";
+
+import { useState } from "react";
+import { useSession } from "next-auth/react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import axios from "axios";
+import { Textarea } from "@/components/ui/textarea";
 
 interface UserData {
   fullName: string;
@@ -10,36 +15,15 @@ interface UserData {
   address: string;
 }
 
-interface PersonalInformationProps {
-  initialData: UserData;
-}
-
-export default function PersonalInformation({ initialData }: PersonalInformationProps) {
-  const [userData, setUserData] = useState<UserData>(initialData);
+export default function PersonalInformation() {
+  const { data: session } = useSession();
   const { toast } = useToast();
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setUserData(prev => ({ ...prev, [name]: value }));
-  };
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const response = await axios.get("/user");
-        setUserData(response.data);
-      } catch (err) {
-        toast({
-          title: "Error",
-          description: "Failed to load user data",
-          variant: "destructive",
-        });
-      }
-    };
-
-    fetchUser();
-  }, []);
-  
+  const [userData, setUserData] = useState<UserData>({
+    fullName: session?.user?.fullName || "",
+    email: session?.user?.email || "",
+    phoneNo: "",
+    address: "",
+  });
 
   const handleSave = async () => {
     try {
@@ -65,63 +49,63 @@ export default function PersonalInformation({ initialData }: PersonalInformation
 
   return (
     <div className="space-y-8 animate-fade-in">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold">Personal Information</h2>
-        <div className="h-1 w-20 bg-gradient-to-r from-gray-600 to-gray-800 rounded-full"></div>
+      <div className="flex items-center">
+        <h2 className="text-3xl font-bold text-gray-900">Personal Information</h2>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-          <label className="text-sm font-medium mb-2 block">Full Name</label>
-          <input
-            type="text"
-            placeholder="Your name"
-            name="fullName"
-            value={userData.fullName}
-            onChange={handleInputChange}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400 dark:bg-gray-700 dark:border-gray-600"
-          />
+
+      <div className="bg-white/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-100 shadow-sm">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-900">Full Name</label>
+            <Input
+              name="fullName"
+              value={userData.fullName}
+              onChange={(e) => setUserData({ ...userData, fullName: e.target.value })}
+              className="w-full px-4 py-2 rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500"
+              placeholder="Enter your full name"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-900">Email Address</label>
+            <Input
+              name="email"
+              value={userData.email}
+              onChange={(e) => setUserData({ ...userData, email: e.target.value })}
+              className="w-full px-4 py-2 rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500"
+              placeholder="Enter your email"
+              type="email"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-900">Phone Number</label>
+            <Input
+              name="phoneNo"
+              value={userData.phoneNo}
+              onChange={(e) => setUserData({ ...userData, phoneNo: e.target.value })}
+              className="w-full px-4 py-2 rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500"
+              placeholder="Enter your phone number"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-900">Address</label>
+            <Textarea
+              name="address"
+              value={userData.address}
+              onChange={(e) => setUserData({ ...userData, address: e.target.value })}
+              className="w-full rounded-xl border border-gray-200 px-4 py-2 focus:ring-2 focus:ring-indigo-500"
+              placeholder="Enter your address"
+            />
+          </div>
         </div>
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-          <label className="text-sm font-medium mb-2 block">Email</label>
-          <input
-            type="email"
-            placeholder="you@example.com"
-            name="email"
-            value={userData.email}
-            onChange={handleInputChange}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400 dark:bg-gray-700 dark:border-gray-600"
-          />
+
+        <div className="mt-8 flex justify-end">
+          <Button
+            onClick={handleSave}
+            className="px-6 py-2.5 bg-gradient-to-r from-gray-800 to-black text-white rounded-xl font-medium shadow-md hover:from-gray-900 hover:to-black transition-all duration-200"
+          >
+            Save Changes
+          </Button>
         </div>
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-          <label className="text-sm font-medium mb-2 block">Phone Number</label>
-          <input
-            type="tel"
-            placeholder="----------"
-            name="phoneNo"
-            value={userData.phoneNo}
-            onChange={handleInputChange}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400 dark:bg-gray-700 dark:border-gray-600"
-          />
-        </div>
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-          <label className="text-sm font-medium mb-2 block">Address</label>
-          <textarea
-            name="address"
-            placeholder="Your address"
-            value={userData.address}
-            onChange={handleInputChange}
-            rows={3}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400 dark:bg-gray-700 dark:border-gray-600"
-          />
-        </div>
-      </div>
-      <div className="flex justify-end">
-        <button
-          onClick={handleSave}
-          className="px-6 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors"
-        >
-          Save Changes
-        </button>
       </div>
     </div>
   );

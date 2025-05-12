@@ -22,7 +22,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <Providers>
           <Header />
-          <main className="container mx-auto px-4 py-8">
+          <main>
             {children}
           </main>
           <Footer />
