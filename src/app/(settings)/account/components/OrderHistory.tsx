@@ -1,23 +1,22 @@
 "use client";
 import { useEffect } from "react";
 import OrderList from "@/app/orders/components/OrderList";
-import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
-import { fetchOrders } from "@/app/store/slices/ordersSlice";
+import useDataFetch from "@/hooks/use-data-fetch";
+import { getAllOrders } from "@/services/shopOrder";
 
 export default function OrderHistory() {
-  const dispatch = useAppDispatch();
-  const { items: orders, loading, error } = useAppSelector(state => state.orders);
+  const orders = useDataFetch(getAllOrders);
 
   useEffect(() => {
-    dispatch(fetchOrders());
-  }, [dispatch]);
+    orders.request();
+  }, [orders]);
 
-  if (loading) {
+  if (orders.isLoading) {
     return <div className="text-center text-blue-500 text-2xl p-10">Loading...</div>;
   }
 
-  if (error) {
-    return <div className="text-center text-red-500 text-2xl p-10">{error}</div>;
+  if (orders.hasError || !orders.response?.length) {
+    return <div className="text-center text-red-500 text-2xl p-10">{"No data."}</div>;
   }
 
   return (
@@ -28,7 +27,7 @@ export default function OrderHistory() {
 
       <div className="bg-white/50 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="p-6">
-          <OrderList orders={orders} />
+          <OrderList orders={orders.response} />
         </div>
       </div>
     </div>

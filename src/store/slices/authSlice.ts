@@ -1,6 +1,8 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import * as authServices from "@/services/auth";
+import * as userServices from "@/services/user";
 import { LoginPayload, UserEssentials } from '@/types/domains/auth';
+import { UserUpdatePayload } from '@/types/domains/user';
 
 interface AuthState {
     user: UserEssentials | null;
@@ -61,6 +63,21 @@ export const logout = createAsyncThunk(
     }
 );
 
+export const saveMyInformation = createAsyncThunk(
+    'auth/saveMyInformation',
+    async (user: UserUpdatePayload, { rejectWithValue }) => {
+        try {
+            const response = await userServices.updateUser(user);
+            if (response.success)
+                return response.data;
+
+            return rejectWithValue(response.error);
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data || 'Logout failed');
+        }
+    }
+);
+
 const authSlice = createSlice({
     name: 'auth',
     initialState,
@@ -109,6 +126,29 @@ const authSlice = createSlice({
                 state.user = null;
             })
             .addCase(logout.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
+            })
+            .addCase(saveMyInformation.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(saveMyInformation.fulfilled, (state, action) => {
+                state.loading = false;
+                state.authenticated = true;
+                state.user = {
+                    ...state.user!,
+                    fullName: action.payload.fullName || state.user!.fullName,
+                    address: {
+                        ...state.user!.address,
+                        street: action.payload.address?.street || state.user!.address.street,
+                        city: action.payload.address?.city || state.user!.address.city,
+                        country: action.payload.address?.country || state.user!.address.country,
+                        pincode: action.payload.address?.pincode || state.user!.address.pincode,
+                    },
+                };
+            })
+            .addCase(saveMyInformation.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string;
             });

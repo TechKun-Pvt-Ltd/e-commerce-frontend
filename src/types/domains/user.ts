@@ -9,8 +9,8 @@ export interface UserQueryOptions {
 }
 
 export interface UserUpdatePayload {
-    fullName: string;
-    address: AddressDTO;
+    fullName?: string;
+    address?: AddressDTO;
 }
 
 export interface CustomerContact {
