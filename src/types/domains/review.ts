@@ -12,6 +12,7 @@ export interface ReviewDetails {
     reviewText: string;
     customer: CustomerContact;
     productId: number;
+    productTitle: string;
     rating: number;
     dateOfSubmission: Date;
 }

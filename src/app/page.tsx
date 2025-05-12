@@ -10,7 +10,8 @@ import { getAllProducts } from '@/services/product';
 import { CategoryTree } from '@/types/domains/category';
 import { PromotionDetails, PromotionType } from '@/types/domains/promotion';
 import { ProductPreview } from '@/types/domains/product';
-
+import Testimonials from './components/Testimonials';
+import { ReviewDetails } from '@/types/domains/review';
 
 const categories: CategoryTree[] = [
     {
@@ -147,7 +148,6 @@ const categories: CategoryTree[] = [
         ],
     },
 ];
-
 
 const promotions: PromotionDetails[] = [
     {
@@ -409,7 +409,37 @@ const products: ProductPreview[] = [
         starred: false,
     }      
 ];
-  
+
+
+const mockReviews: ReviewDetails[] = [
+    {
+        reviewId: 1,
+        reviewText: "These shoes are incredibly comfortable and stylish. I've been wearing them daily!",
+        customer: { customerId: 101, customerName: "Alice Johnson", email: "alicejohnson@gmail.com", phoneNumber: "123-456-7890" },
+        productId: 201,
+        productTitle: "CloudRunner Sneakers",
+        rating: 4.8,
+        dateOfSubmission: new Date("2024-08-22"),
+    },
+    {
+        reviewId: 2,
+        reviewText: "The quality of this jacket is top-notch. Keeps me warm even in heavy snow.",
+        customer: { customerId: 102, customerName: "Mark Peterson", email: "markpeterson@gmail.com", phoneNumber: "987-654-3210" },
+        productId: 202,
+        productTitle: "ArcticShell Winter Jacket",
+        rating: 4.9,
+        dateOfSubmission: new Date("2025-01-15"),
+    },
+    {
+        reviewId: 3,
+        reviewText: "Lightweight and breathable fabric. Loved the design and fit.",
+        customer: { customerId: 103, customerName: "Emily Zhang", email: "emilyzhang@gmail.com", phoneNumber: "555-123-4567" },
+        productId: 203,
+        productTitle: "AirFlex Yoga Pants",
+        rating: 4.6,
+        dateOfSubmission: new Date("2025-03-10"),
+    },
+];
 
 export default function LandingPage() {
     // const { items: categories } = useAppSelector(state => state.categories);
@@ -439,27 +469,10 @@ export default function LandingPage() {
                 />
             </section>
 
-            {/* Benefits Section */}
-            <section className="bg-gray-50 py-16">
-                <div className="container mx-auto px-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div className="text-center">
-                            <div className="mb-4">🚚</div>
-                            <h3 className="text-xl font-semibold mb-2">Free Shipping</h3>
-                            <p className="text-gray-600">On orders over $50</p>
-                        </div>
-                        <div className="text-center">
-                            <div className="mb-4">🔒</div>
-                            <h3 className="text-xl font-semibold mb-2">Secure Payment</h3>
-                            <p className="text-gray-600">100% secure payment</p>
-                        </div>
-                        <div className="text-center">
-                            <div className="mb-4">💫</div>
-                            <h3 className="text-xl font-semibold mb-2">Money Back Guarantee</h3>
-                            <p className="text-gray-600">Within 30 days</p>
-                        </div>
-                    </div>
-                </div>
+            <section className="container mx-auto mb-16 px-4">
+                <Testimonials
+                    reviews={mockReviews}
+                />
             </section>
 
             {/* Newsletter Section */}

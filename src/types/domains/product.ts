@@ -20,13 +20,17 @@ export interface ProductVariant {
     disabled: boolean;
     quantityInStock: number;
     price: number;
-    product: Product;
-    variationOptions: VariationOption[];
+    // product: Product;
+    variationOptions: {
+        variationOptionId: number;
+        name: string;
+        variationId: number;
+    }[];
 }
 
 export interface ProductAttribute {
     productAttributeId: number;
-    product: Product;
+    // product: Product;
     attribute: Attribute;
     value: string;
 }
@@ -35,7 +39,7 @@ export interface ProductImage {
     productImageId: number;
     imageUrl: string;
     isDefault: boolean;
-    product: Product;
+    // product: Product;
 }
 
 export interface ProductDetails {
