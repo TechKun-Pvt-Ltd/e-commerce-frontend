@@ -9,7 +9,7 @@ export default function OrderHistory() {
 
   useEffect(() => {
     orders.request();
-  }, [orders]);
+  }, []);
 
   if (orders.isLoading) {
     return <div className="text-center text-blue-500 text-2xl p-10">Loading...</div>;

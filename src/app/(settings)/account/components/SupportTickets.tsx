@@ -7,34 +7,46 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { LifeBuoy, Plus } from "lucide-react";
 
-interface Ticket {
+interface CustomerContact {
   id: string;
-  subject: string; 
-  message: string;
-  status: "open" | "closed" | "in-progress";
-  date: string;
+  name: string;
+  email: string;
+  phone?: string;
+}
+
+interface Ticket {
+  ticketId: number;
+  subject: string;
+  description: string;
+  status: string;
+  customer: CustomerContact;
 }
 
 export default function SupportTickets() {
   const { toast } = useToast();
   const [tickets, setTickets] = useState<Ticket[]>([
     {
-      id: "#TKT-2024-001",
+      ticketId: 1001,
       subject: "Order Delivery Question",
-      message: "I haven't received any updates about my order delivery.",
-      status: "in-progress",
-      date: "2024-01-15"
+      description: "I haven't received any updates about my order delivery.",
+      status: "Open",
+      customer: {
+        id: "1",
+        name: "John Doe",
+        email: "john@example.com",
+        phone: "+1234567890"
+      }
     }
   ]);
 
   const [showNewTicketForm, setShowNewTicketForm] = useState(false);
   const [newTicket, setNewTicket] = useState({
     subject: "",
-    message: ""
+    description: ""
   });
 
   const handleSubmitTicket = () => {
-    if (!newTicket.subject || !newTicket.message) {
+    if (!newTicket.subject || !newTicket.description) {
       toast({
         title: "Error",
         description: "Please fill in all fields",
@@ -44,15 +56,20 @@ export default function SupportTickets() {
     }
 
     const ticket: Ticket = {
-      id: `#TKT-${Date.now()}`,
+      ticketId: Math.floor(1000 + Math.random() * 9000),
       subject: newTicket.subject,
-      message: newTicket.message,
-      status: "open",
-      date: new Date().toISOString().split('T')[0]
+      description: newTicket.description,
+      status: "Open",
+      customer: {
+        id: "1", // Replace with actual user ID
+        name: "John Doe", // Replace with actual user name
+        email: "john@example.com", // Replace with actual user email
+        phone: "+1234567890" // Replace with actual user phone
+      }
     };
 
     setTickets([ticket, ...tickets]);
-    setNewTicket({ subject: "", message: "" });
+    setNewTicket({ subject: "", description: "" });
     setShowNewTicketForm(false);
 
     toast({
@@ -62,7 +79,7 @@ export default function SupportTickets() {
   };
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-8 animate-fade-in sticky top-4">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold text-gray-900">Support Tickets</h2>
         <Button
@@ -83,16 +100,16 @@ export default function SupportTickets() {
               <Input
                 value={newTicket.subject}
                 onChange={(e) => setNewTicket({ ...newTicket, subject: e.target.value })}
-                className="w-full px-4 py-2 rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-4 py-2 rounded-xl border-gray-200 focus:ring-2 focus:ring-gray-800"
                 placeholder="Enter ticket subject"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-900">Message</label>
+              <label className="text-sm font-medium text-gray-900">Description</label>
               <Textarea
-                value={newTicket.message}
-                onChange={(e) => setNewTicket({ ...newTicket, message: e.target.value })}
-                className="w-full rounded-xl border-gray-200 px-4 py-2 focus:ring-2 focus:ring-indigo-500"
+                value={newTicket.description}
+                onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })}
+                className="w-full rounded-xl border-gray-200 px-4 py-2 focus:ring-2 focus:ring-gray-800"
                 placeholder="Describe your issue"
                 rows={4}
               />
@@ -119,8 +136,8 @@ export default function SupportTickets() {
       <div className="space-y-4">
         {tickets.map((ticket) => (
           <div
-            key={ticket.id}
-            className="bg-white/50 backdrop-blur-sm p-6 rounded-2xl border border-gray-100 shadow-sm"
+            key={ticket.ticketId}
+            className="bg-white/50 backdrop-blur-sm p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300"
           >
             <div className="flex items-start justify-between">
               <div className="flex items-start gap-4">
@@ -128,23 +145,22 @@ export default function SupportTickets() {
                 <div>
                   <div className="flex items-center gap-3">
                     <h3 className="font-medium text-gray-900">{ticket.subject}</h3>
-                    <span className="text-sm text-gray-500">{ticket.id}</span>
+                    <span className="text-sm text-gray-500">#{ticket.ticketId}</span>
                   </div>
-                  <p className="mt-1 text-sm text-gray-600">{ticket.message}</p>
+                  <p className="mt-1 text-sm text-gray-600">{ticket.description}</p>
                   <div className="mt-2 flex items-center gap-3">
-                    <span className="text-sm text-gray-500">
-                      {new Date(ticket.date).toLocaleDateString()}
-                    </span>
+                    <div className="text-sm text-gray-500">
+                      <span className="font-medium">{ticket.customer.name}</span> ·{" "}
+                      <span>{ticket.customer.email}</span>
+                    </div>
                     <span
                       className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        ticket.status === "open"
-                          ? "bg-green-100 text-green-800"
-                          : ticket.status === "in-progress"
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-gray-100 text-gray-800"
+                        ticket.status === "Open" ? "bg-green-100 text-green-800" :
+                        ticket.status === "Closed" ? "bg-gray-100 text-gray-800" :
+                        "bg-blue-100 text-blue-800"
                       }`}
                     >
-                      {ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1)}
+                      {ticket.status}
                     </span>
                   </div>
                 </div>
