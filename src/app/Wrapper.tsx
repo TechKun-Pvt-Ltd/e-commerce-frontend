@@ -8,7 +8,7 @@ export function Wrapper({ children }: { children: React.ReactNode }) {
     const dispatch = useAppDispatch();
     useEffect(() => {
         dispatch(getMyInformation());
-    });
+    },[]);
 
     return <>
         {children}

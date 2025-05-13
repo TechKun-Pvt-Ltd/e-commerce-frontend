@@ -1,98 +1,196 @@
 "use client";
-import React, { useState } from "react";
-import { Input } from "@/components/ui/input";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Textarea } from "@/components/ui/textarea";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { saveMyInformation } from "@/store/slices/authSlice";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+
+const formSchema = z.object({
+  fullName: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  phoneNo: z.string().min(10, "Phone number must be at least 10 digits"),
+  street: z.string().min(5, "Street address must be at least 5 characters"),
+  city: z.string().min(2, "City must be at least 2 characters"),
+  country: z.string().min(2, "Country must be at least 2 characters"),
+  pincode: z.string().min(6, "PIN code must be at least 6 characters"),
+});
 
 export default function PersonalInformation() {
-    const dispatch = useAppDispatch();
-    const { user, loading } = useAppSelector(state => state.auth);
-    const { toast } = useToast();
-    const [userData, setUserData] = useState(user!);
+  const dispatch = useAppDispatch();
+  const { user } = useAppSelector(state => state.auth);
+  const { toast } = useToast();
 
-    const handleSave = async () => {
-        const res = await dispatch(saveMyInformation({
-            fullName: userData?.fullName,
-            address: userData?.address
-        }));
-        if (res.payload) {
-            toast({
-                title: "Success",
-                description: "Profile updated successfully",
-                variant: "default",
-            });
-        } else {
-            toast({
-                title: "Error",
-                description: res.payload,
-                variant: "destructive",
-            });
-        }
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      fullName: user?.fullName || "",
+      email: user?.email || "",
+      phoneNo: user?.phoneNo || "",
+      street: user?.address?.street || "",
+      city: user?.address?.city || "",
+      country: user?.address?.country || "",
+      pincode: user?.address?.pincode ? String(user.address.pincode) : "",
+    },
+  });
+
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    const formattedValues = {
+      ...values,
+      address: {
+        street: values.street,
+        city: values.city,
+        country: values.country,
+        pincode: Number(values.pincode),
+      },
     };
+    const res = await dispatch(saveMyInformation(formattedValues));
+    if (res.payload) {
+      toast({
+        title: "Success",
+        description: "Profile updated successfully",
+        variant: "default",
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: res.payload,
+        variant: "destructive",
+      });
+    }
+  };
 
-    return (
-        <div className="space-y-8 animate-fade-in">
-            <div className="flex items-center">
-                <h2 className="text-3xl font-bold text-gray-900">Personal Information</h2>
+  return (
+    <div className="space-y-8 animate-fade-in">
+      <div className="flex items-center">
+        <h2 className="text-3xl font-bold text-gray-900">Personal Information</h2>
+      </div>
+
+      <div className="bg-white/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-100 shadow-sm">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="fullName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Full Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter your full name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email Address</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="Enter your email" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="phoneNo"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter your phone number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="street"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Street Address</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter your street address" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="city"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>City</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter your city" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="country"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Country</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter your country" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="pincode"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>PIN Code</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter your PIN code" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
-            <div className="bg-white/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-100 shadow-sm">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-900">Full Name</label>
-                        <Input
-                            name="fullName"
-                            value={user?.fullName}
-                            onChange={(e) => setUserData({ ...userData, fullName: e.target.value })}
-                            className="w-full px-4 py-2 rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500"
-                            placeholder="Enter your full name"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-900">Email Address</label>
-                        <Input
-                            name="email"
-                            value={userData.email}
-                            onChange={(e) => setUserData({ ...userData, email: e.target.value })}
-                            className="w-full px-4 py-2 rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500"
-                            placeholder="Enter your email"
-                            type="email"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-900">Phone Number</label>
-                        <Input
-                            name="phoneNo"
-                            value={userData.phoneNo}
-                            onChange={(e) => setUserData({ ...userData, phoneNo: e.target.value })}
-                            className="w-full px-4 py-2 rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500"
-                            placeholder="Enter your phone number"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-900">Address</label>
-                        <Textarea
-                            name="address"
-                            value={userData.address}
-                            onChange={(e) => setUserData({ ...userData, address: e.target.value })}
-                            className="w-full rounded-xl border border-gray-200 px-4 py-2 focus:ring-2 focus:ring-indigo-500"
-                            placeholder="Enter your address"
-                        />
-                    </div>
-                </div>
-
-                <div className="mt-8 flex justify-end">
-                    <Button
-                        onClick={handleSave}
-                        className="px-6 py-2.5 bg-gradient-to-r from-gray-800 to-black text-white rounded-xl font-medium shadow-md hover:from-gray-900 hover:to-black transition-all duration-200"
-                    >
-                        Save Changes
-                    </Button>
-                </div>
+            <div className="flex justify-end">
+              <Button
+                type="submit"
+                className="px-6 py-2.5 bg-gradient-to-r from-gray-800 to-black text-white rounded-xl font-medium shadow-md hover:from-gray-900 hover:to-black transition-all duration-200"
+              >
+                Save Changes
+              </Button>
             </div>
-        </div>
-    );
+          </form>
+        </Form>
+      </div>
+    </div>
+  );
 }

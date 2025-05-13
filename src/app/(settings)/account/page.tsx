@@ -10,7 +10,6 @@ import Sidebar from "./components/Sidebar";
 import PersonalInformation from "./components/PersonalInformation";
 import OrderHistory from "./components/OrderHistory";
 import Security from "./components/Security";
-import PaymentMethods from "./components/PaymentMethods";
 import Reviews from "./components/Reviews";
 import SupportTickets from "./components/SupportTickets";
 import { useAppSelector } from "@/store/hooks";
@@ -32,10 +31,6 @@ const tabs: Record<string, {label: string, Component: React.FC }> = {
     security: {
         label: "Security",
         Component: Security
-    },
-    payment: {
-        label: "Payment Methods",
-        Component: PaymentMethods
     },
     support: {
         label: "Support Tickets",
