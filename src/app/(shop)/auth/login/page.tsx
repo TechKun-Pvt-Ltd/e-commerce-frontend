@@ -40,9 +40,14 @@ export default function LoginPage() {
 
     const onSubmit = async (values: z.infer<typeof loginSchema>) => {
         try {
-            const result = await dispatch(login(values)).unwrap();
-            if (result) {
+            const result = await dispatch(login(values));
+            if (result.meta.requestStatus === 'fulfilled') {
                 router.push('/');
+            } else {
+                form.setError('root', {
+                    type: 'manual',
+                    message: result.payload as string
+                });
             }
         } catch (error) {
             form.setError('root', {
