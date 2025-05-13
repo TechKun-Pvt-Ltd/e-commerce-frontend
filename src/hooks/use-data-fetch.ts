@@ -1,5 +1,6 @@
 import { ServiceFunction } from "@/types/api";
 import { useCallback, useState } from "react";
+import { toast } from "sonner";
 
 const useDataFetch = <T, R>(apiFunc: ServiceFunction<T, R>, options?: {
     defaultValue?: R,
@@ -18,7 +19,7 @@ const useDataFetch = <T, R>(apiFunc: ServiceFunction<T, R>, options?: {
             const result = await apiFunc(...args);
             if (!result.success) {
                 hasError = true;
-                // showErrorAlert(error);
+                toast.error(result.error, {richColors: true});
             } else {
                 if (options?.onResponseReceived)
                     options.onResponseReceived(result.data);
@@ -27,7 +28,8 @@ const useDataFetch = <T, R>(apiFunc: ServiceFunction<T, R>, options?: {
             response = result.data;
         } catch (e) {
             hasError = true;
-            // showErrorAlert(e.message);
+            if (e instanceof Error)
+                toast.error(e.message);
         }
         setDataFetchState({ response, hasError, isLoading: false });
     }, [dataFetchState]);

@@ -57,7 +57,7 @@ class ApiClient {
                 return response.json()
                     .then(data => ({
                         success: false,
-                        error: data.error
+                        error: data.message
                     }));
 
             if (contentType === ContentType.JSON)

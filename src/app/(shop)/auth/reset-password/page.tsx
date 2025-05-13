@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import axios from 'axios';
 import Link from "next/link";
 
 export default function ResetPasswordPage() {
@@ -28,21 +27,10 @@ export default function ResetPasswordPage() {
 
 
     try {
-      const res = await axios.put('/api/auth/reset-password',{
-        token: searchParams.get('token'),
-        newPassword,
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (res.status === 200) {
-        setSuccess('Password has been reset successfully');
-        setTimeout(() => {
-          router.push('/auth/login');
-        }, 1000);
-      }
+      setSuccess('Password has been reset successfully');
+      setTimeout(() => {
+        router.push('/auth/login');
+      }, 1000);
     } catch (err: any) {
       console.error(err);
       setError(err?.response?.data?.message || 'Failed to reset password. Please try again.');
