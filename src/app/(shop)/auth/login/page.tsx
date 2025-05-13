@@ -1,17 +1,17 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useDispatch } from 'react-redux';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { login } from '@/store/slices/authSlice';
-import type { AppDispatch } from '@/store/store';
+import { toast } from 'sonner';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
 
 const loginSchema = z.object({
     email: z.string().email('Invalid email address'),
@@ -20,8 +20,15 @@ const loginSchema = z.object({
 
 export default function LoginPage() {
     const router = useRouter();
-    const searchParams = useSearchParams();
-    const dispatch = useDispatch<AppDispatch>();
+    const { loading, authenticated } = useAppSelector(state => state.auth);
+    const dispatch = useAppDispatch();
+
+    useEffect(() => {
+        if (!loading && authenticated) {
+            toast.success('You are already logged in!', {icon: null, richColors: true});
+            router.push('/');
+        }
+    }, [loading, authenticated]);
 
     const form = useForm<z.infer<typeof loginSchema>>({
         resolver: zodResolver(loginSchema),
@@ -30,13 +37,6 @@ export default function LoginPage() {
             password: ''
         }
     });
-
-    useEffect(() => {
-        if (searchParams.get('registered')) {
-            // Could show a success toast here
-            console.log('Registration successful! Please log in.');
-        }
-    }, [searchParams]);
 
     const onSubmit = async (values: z.infer<typeof loginSchema>) => {
         try {
@@ -52,7 +52,7 @@ export default function LoginPage() {
         } catch (error) {
             form.setError('root', {
                 type: 'manual',
-                message: 'Invalid email or password'
+                message: 'An error occurred. Please check the credentials and try again.'
             });
         }
     };
@@ -107,22 +107,20 @@ export default function LoginPage() {
                                 >
                                     {form.formState.isSubmitting ? 'Signing in...' : 'Sign in'}
                                 </Button>
-                                <div className="space-x-4">
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        onClick={() => router.push('/auth/forgot-password')}
-                                    >
-                                        Forgot password?
-                                    </Button>
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        onClick={() => router.push('/auth/register')}
-                                    >
-                                        Create account
-                                    </Button>
-                                </div>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    onClick={() => router.push('/auth/forgot-password')}
+                                >
+                                    Forgot password?
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    onClick={() => router.push('/auth/register')}
+                                >
+                                    Create account
+                                </Button>
                             </div>
                         </form>
                     </Form>

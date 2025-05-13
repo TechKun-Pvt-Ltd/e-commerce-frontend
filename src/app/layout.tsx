@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import { Metadata } from "next";
 import Providers from './Providers';
 import { Wrapper } from './Wrapper';
+import { Toaster } from '@/components/ui/sonner';
 
 export const metadata: Metadata = {
     title: "E-Commerce Store",
@@ -22,6 +23,7 @@ export default function RootLayout({
                 <Providers>
                     <Wrapper>
                         {children}
+                        <Toaster />
                     </Wrapper>
                 </Providers>
             </body>

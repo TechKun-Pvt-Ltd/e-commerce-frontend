@@ -2,19 +2,10 @@
 import Link from "next/link"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { ShoppingCart, UserRound, Search, LogIn, UserPlus2Icon, Heart, Package, CircleUserRoundIcon, LogOut, ChevronDown, MoreHorizontal } from "lucide-react"
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { useAppSelector } from "@/store/hooks"
+import { ShoppingCart, Search, Heart } from "lucide-react"
+import UserMenu from "./UserMenu";
 
 export default function Header() {
-    const { authenticated } = useAppSelector(state => state.auth);
 
     return (<>
         <nav className="sticky top-0 z-50 w-full border-b bg-background px-8 py-3">
@@ -39,44 +30,7 @@ export default function Header() {
                 {/* User + Cart */}
                 <div className="flex items-center gap-4">
                     {/* User Dropdown */}
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" aria-label="User menu">
-                                <UserRound className="h-5 w-5" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            {authenticated ? (
-                                <>
-                                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                                    <DropdownMenuItem>
-                                        <CircleUserRoundIcon />
-                                        <Link href="/account/settings">Account Settings</Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                        <Package />
-                                        <Link href="/account/orders">Orders</Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem>
-                                        <LogOut />
-                                        Logout
-                                    </DropdownMenuItem>
-                                </>
-                            ) : (
-                                <>
-                                    <DropdownMenuItem>
-                                        <LogIn />
-                                        <Link href="/account/login">Login</Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                        <UserPlus2Icon />
-                                        <Link href="/account/register">Register</Link>
-                                    </DropdownMenuItem>
-                                </>
-                            )}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    <UserMenu />
 
                     <Button variant="ghost" size="icon" aria-label="Wishlist">
                         <Heart className="h-5 w-5" />

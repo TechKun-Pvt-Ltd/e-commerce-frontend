@@ -9,15 +9,14 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import Sidebar from "./components/Sidebar";
 import PersonalInformation from "./components/PersonalInformation";
 import OrderHistory from "./components/OrderHistory";
-import Security from "./components/Security";
 import Reviews from "./components/Reviews";
 import SupportTickets from "./components/SupportTickets";
 import { useAppSelector } from "@/store/hooks";
 import { useRouter } from "next/navigation";
 
 const tabs: Record<string, {label: string, Component: React.FC }> = {
-    personal: {
-        label: "Personal Information",
+    account: {
+        label: "Account Settings",
         Component: PersonalInformation
     },
     orders: {
@@ -28,10 +27,6 @@ const tabs: Record<string, {label: string, Component: React.FC }> = {
         label: "My Reviews",
         Component: Reviews
     },
-    security: {
-        label: "Security",
-        Component: Security
-    },
     support: {
         label: "Support Tickets",
         Component: SupportTickets
@@ -41,7 +36,7 @@ const tabs: Record<string, {label: string, Component: React.FC }> = {
 export default function AccountSettings() {
     const { authenticated, loading } = useAppSelector((state) => state.auth);
     const router = useRouter();
-    const [activeTabKey, setActiveTabKey] = useState("personal");
+    const [activeTabKey, setActiveTabKey] = useState("account");
 
     useEffect(() => {
         if (!loading && !authenticated) {
@@ -79,13 +74,13 @@ export default function AccountSettings() {
                     {/* Breadcrumb */}
                     <div className="mb-6">
                         <Breadcrumb>
-                            <Breadcrumb.Item href="/account/settings">Account Settings</Breadcrumb.Item>
+                            <Breadcrumb.Item href="/account/settings">My Account</Breadcrumb.Item>
                             <Breadcrumb.Item isCurrent>{activeTab.label}</Breadcrumb.Item>
                         </Breadcrumb>
                     </div>
 
                     {/* Content */}
-                    <div className="max-w-4xl mx-auto">
+                    <div className="">
                         <ActiveTabComponent />
                     </div>
                 </main>

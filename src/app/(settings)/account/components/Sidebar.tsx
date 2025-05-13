@@ -4,10 +4,6 @@ import {
     User2,
     PackageSearch,
     Star,
-    ShieldCheck,
-    CreditCard,
-    LifeBuoy,
-    LogOut
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -26,11 +22,9 @@ interface SidebarProps {
 }
 
 const tabs: Tab[] = [
-    { id: "personal", label: "Personal Information", icon: <User2 className="w-5 h-5" /> },
+    { id: "account", label: "Account Settings", icon: <User2 className="w-5 h-5" /> },
     { id: "orders", label: "Order History", icon: <PackageSearch className="w-5 h-5" /> },
     { id: "reviews", label: "My Reviews", icon: <Star className="w-5 h-5" /> },
-    { id: "security", label: "Security", icon: <ShieldCheck className="w-5 h-5" /> },
-    { id: "payment", label: "Payment Methods", icon: <CreditCard className="w-5 h-5" /> },
     { id: "support", label: "Support Tickets", icon: <LifeBuoy className="w-5 h-5" /> },
 ];
 

@@ -3,36 +3,19 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 export default function Security() {
-  const { toast } = useToast();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const handlePasswordChange = async () => {
-    if (newPassword !== confirmPassword) {
-      toast({
-        title: "Error",
-        description: "New passwords do not match",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
       // Add your password change logic here
-      toast({
-        title: "Success",
-        description: "Password updated successfully",
-      });
+      toast.success("Password updated successfully");
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update password",
-        variant: "destructive",
-      });
+      toast.error("Failed to update password");
     }
   };
 
