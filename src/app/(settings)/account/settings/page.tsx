@@ -263,7 +263,7 @@ export default function AccountSettings() {
             <div className="bg-white/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300">
                 <h2 className="text-2xl font-semibold text-gray-900 mb-6">Security Settings</h2>
                 <Form {...passwordForm}>
-                    <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-8 max-w-1/2 pr-3">
+                    <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-8 max-w-full md:max-w-1/2 pr-3">
                         <div className="space-y-6">
                             <FormField
                                 control={passwordForm.control}
@@ -333,7 +333,7 @@ export default function AccountSettings() {
             <div className="bg-white/50 backdrop-blur-sm p-8 rounded-2xl border border-red-100 shadow-sm hover:shadow-md transition-all duration-300">
                 <h2 className="text-2xl font-semibold text-red-600 mb-6">Delete Account</h2>
                 <Form {...deleteAccountForm}>
-                    <form onSubmit={deleteAccountForm.handleSubmit(handleDeleteAccount)} className="space-y-6 max-w-1/2 pr-3">
+                    <form onSubmit={deleteAccountForm.handleSubmit(handleDeleteAccount)} className="space-y-6 max-w-full md:max-w-1/2 pr-3">
                         <FormField
                             control={deleteAccountForm.control}
                             name="password"

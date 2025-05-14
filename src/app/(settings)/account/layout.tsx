@@ -1,6 +1,6 @@
 "use client";
 import { SidebarFooter, SidebarHeader, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import {
     Sidebar,
     SidebarContent,
@@ -14,11 +14,10 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/compon
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import UserMenuContent from "@/app/components/UserMenuContent";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { Button } from "@/components/ui/button";
 import { logout } from "@/store/slices/authSlice";
 import { Separator } from "@/components/ui/separator";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { toast } from "sonner";
 import { NAVBAR_HEIGHT } from "@/lib/constants";
 
@@ -49,6 +48,12 @@ export default function MyAccountLayout({ children }: { children: React.ReactNod
     const { user, loading, authenticated } = useAppSelector(state => state.auth);
     const dispatch = useAppDispatch();
     const router = useRouter();
+    const pathname = usePathname();
+
+    const currentPathTitle = useMemo(
+        () => items.find(item => item.url === pathname)?.title,
+        [pathname]
+    );
 
     useEffect(() => {
         if (!loading && !authenticated) {
@@ -120,7 +125,7 @@ export default function MyAccountLayout({ children }: { children: React.ReactNod
                 </SidebarMenu>
             </SidebarFooter>
         </Sidebar>
-        <main className="h-full flex-1 overflow-y-auto bg-gray-50">
+        <main className="h-full flex-1 bg-gray-50">
             <div className="flex items-center gap-2 px-4 py-2">
                 <SidebarTrigger />
                 <Separator orientation="vertical" className="mr-2" style={{height: '1rem'}} />
@@ -131,7 +136,7 @@ export default function MyAccountLayout({ children }: { children: React.ReactNod
                         </BreadcrumbItem>
                         <BreadcrumbSeparator />
                         <BreadcrumbItem>
-                            <BreadcrumbPage>Account Setings</BreadcrumbPage>
+                            <BreadcrumbPage>{currentPathTitle}</BreadcrumbPage>
                         </BreadcrumbItem>
                     </BreadcrumbList>
                 </Breadcrumb>
