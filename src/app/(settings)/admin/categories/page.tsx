@@ -119,9 +119,7 @@ export default function AdminCategoryPage() {
 
     return (<>
         <div className="h-full space-y-8 flex flex-col">
-            <div className="">
-                <h1 className="text-3xl font-bold text-gray-900">Categories</h1>
-            </div>
+            <h1 className="text-3xl font-bold text-gray-900">Categories</h1>
             <div className="flex-1 flex gap-4">
                 <div className="flex-[7] min-w-0">
                     {loading ?
@@ -157,9 +155,9 @@ export default function AdminCategoryPage() {
                         <div className="font-medium text-base">Add Category</div>
                     </div>
                 </div>
-                <div className="flex-[5] min-w-0 bg-card text-card-foreground rounded-md border p-6">
+                <div className="relative flex-[5] min-w-0 bg-card text-card-foreground rounded-md border p-6">
                     {selectedCategory || getCategory.isLoading ?
-                        <EditCategoryForm loading={getCategory.isLoading || updateCategory.isLoading}
+                        <EditCategoryForm loading={updateCategory.isLoading}
                             category={selectedCategory}
                             variations={variations}
                             attributes={attributes}
@@ -170,6 +168,11 @@ export default function AdminCategoryPage() {
                             <div className="text-lg text-center">Select a Category</div>
                         </div>
                     }
+                    {getCategory.isLoading && (
+                        <div className="bg-white/50 absolute top-0 left-0 w-full h-full flex justify-center items-center">
+                            <Spinner />
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

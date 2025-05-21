@@ -1,13 +1,11 @@
 "use client";
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ChevronsUpDown, Settings } from "lucide-react";
-import { MultiSelect, MultiSelectContent, MultiSelectFooter, MultiSelectMenu, MultiSelectMenuItem, MultiSelectSearchInput, MultiSelectTrigger } from "@/components/ui/multiselect";
 import { Variation } from "@/types/domains/variation";
 import { Attribute } from "@/types/domains/attribute";
 import Spinner from "@/components/ui/spinner";
@@ -32,7 +30,7 @@ const categorySchema = z.object({
     attributes: recordSchema
 });
 
-const getFormValuesFromCategory = (category: CategoryData | null) => {
+const getDefaultValue = (category: CategoryData | null, variations: Variation[], attributes: Attribute[]) => {
     if (!category)
         return {
             name: "",
@@ -40,33 +38,41 @@ const getFormValuesFromCategory = (category: CategoryData | null) => {
             attributes: {} as Record<number, OptionState>
         };
 
-    const variations = category.variationIds
+    const variationItemStates = variations
         .reduce((acc, v) => {
-            acc[v] = "present";
+            acc[v.variationId] = "absent";
             return acc;
         }, {} as Record<number, OptionState>);
 
-    const attributes = category.attributeIds
+    const attributeItemStates = attributes
         .reduce((acc, a) => {
-            acc[a] = "present";
+            acc[a.attributeId] = "absent";
             return acc;
         }, {} as Record<number, OptionState>);
+
+
+    category.variationIds.forEach(v => {
+        variationItemStates[v] = "present";
+    }); 
+    category.attributeIds.forEach(a => {
+        attributeItemStates[a] = "absent";
+    });
 
     let current = category.parentCategory;
     while (current) {
         current.variationIds.forEach(v => {
-            if (!variations[v]) variations[v] = "present_in_parent";
+            if (!variationItemStates[v]) variationItemStates[v] = "present_in_parent";
         });
         current.attributeIds.forEach(a => {
-            if (!attributes[a]) attributes[a] = "present_in_parent";
+            if (!attributeItemStates[a]) attributeItemStates[a] = "present_in_parent";
         });
         current = current.parentCategory;
     }
 
     return {
         name: category.name,
-        variations,
-        attributes
+        variations: variationItemStates,
+        attributes: attributeItemStates
     }
 };
 
@@ -85,12 +91,16 @@ export default function EditCategoryForm({
 }) {
     const form = useForm<z.infer<typeof categorySchema>>({
         resolver: zodResolver(categorySchema),
-        defaultValues: getFormValuesFromCategory(category)
+        defaultValues: {
+            name: "",
+            variations: {},
+            attributes: {}
+        }
     });
 
     useEffect(() => {
-        form.reset(getFormValuesFromCategory(category));
-    }, [category]);
+        form.reset(getDefaultValue(category, variations, attributes));
+    }, [category, variations, attributes]);
 
     return (
         <Form {...form}>
@@ -157,7 +167,7 @@ export default function EditCategoryForm({
                         </FormItem>
                     )}
                 />
-                <Button disabled={loading}
+                <Button disabled={loading || !form.formState.isDirty}
                     variant="default"
                     type="submit"
                     size="sm"
