@@ -116,9 +116,9 @@ export default function MyAccountLayout({ children }: { children: React.ReactNod
                     <SidebarMenuItem>
                         <SidebarMenuButton
                             onClick={() => dispatch(logout())}
-                            className="w-full justify-start gap-3 text-red-500 hover:text-red-600 hover:bg-red-50/50 rounded-lg transition-all duration-200"
+                            className="text-red-600 hover:text-red-600 hover:bg-red-100"
                         >
-                            <LogOut className="w-5 h-5" />
+                            <LogOut />
                             Logout
                         </SidebarMenuButton>
                     </SidebarMenuItem>

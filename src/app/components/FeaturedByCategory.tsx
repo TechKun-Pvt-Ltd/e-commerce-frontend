@@ -1,9 +1,7 @@
 // components/FeaturedByCategorySection.tsx
 import Image from "next/image"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Heart, ShoppingCart, Star } from "lucide-react"
 import { CategoryTree } from "@/types/domains/category"
 import { ProductPreview } from "@/types/domains/product"
 import { PromotionDetails } from "@/types/domains/promotion"

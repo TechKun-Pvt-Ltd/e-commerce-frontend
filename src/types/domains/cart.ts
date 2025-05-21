@@ -8,13 +8,15 @@ export type CartItemPreview = {
     imageUrl?: string;
     title: string;
     productVariantId: number;
+    sku: string;
     price: number;
+    quantityInStock: number;
     quantity: number;
     personalization?: Personalization;
 };
 
 export type CartItemDTO = {
-    imageUrl?: string;
+    productImageId?: number;
     productVariantId: number;
     quantity: number;
     personalization?: Personalization;

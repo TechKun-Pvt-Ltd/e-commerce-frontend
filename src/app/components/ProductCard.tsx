@@ -1,10 +1,15 @@
 "use client";
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Heart, ShoppingCart, Star } from 'lucide-react';
+import { Heart, Minus, Plus, ShoppingCart, Star, X } from 'lucide-react';
 import Image from 'next/image';
 import { ProductPreview } from '@/types/domains/product';
 import { PromotionDetails } from '@/types/domains/promotion';
+import { toast } from 'sonner';
+import { CartItemPreview } from '@/types/domains/cart';
+import CartToast from './CartToast';
+import { useAppDispatch } from '@/store/hooks';
+import { addToCart } from '@/store/slices/cartSlice';
 
 function getDiscountedPrice(
     price: number,
@@ -20,6 +25,7 @@ function getDiscountedPrice(
 };
 
 export default function ProductCard({ product, promo }: { product: ProductPreview, promo: PromotionDetails | null }) {
+    const dispatch = useAppDispatch();
     const discounted = getDiscountedPrice(product.price, promo);
     const isDiscounted = promo && discounted < product.price;
 
@@ -73,7 +79,27 @@ export default function ProductCard({ product, promo }: { product: ProductPrevie
                 </div>
 
                 {/* Add to Cart */}
-                <Button variant="default" size="sm" className="w-full">
+                <Button variant="default" size="sm" className="w-full"
+                    onClick={() => {
+                        dispatch(addToCart({
+                            productVariantId: product.productVariantId,
+                            quantity: 1
+                        }));
+                        if (toast.getToasts().find(toast => toast.id === 'cart-toast'))
+                            return;
+
+                        toast(CartToast, {
+                            id: 'cart-toast',
+                            position: 'bottom-left',
+                            closeButton: false,
+                            style: {
+                                display: 'block', padding: '0px',
+                                width: '500px', height: 'auto'
+                            },
+                            dismissible: false,
+                            duration: Infinity
+                        });
+                    }}>
                     <ShoppingCart className="h-4 w-4 mr-1" />
                     Add to Cart
                 </Button>
