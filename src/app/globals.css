@@ -45,6 +45,25 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+@theme {
+  --animate-dash: dash 1.5s ease-in-out infinite;
+
+  @keyframes dash {
+    0% {
+      stroke-dasharray: 1, 150;
+      stroke-dashoffset: 0;
+    }
+    50% {
+      stroke-dasharray: 90, 150;
+      stroke-dashoffset: -35;
+    }
+    100% {
+      stroke-dasharray: 1, 150;
+      stroke-dashoffset: -125;
+    }
+  }
+}
+
 :root {
   --radius: 0.625rem;
   --card: oklch(1 0 0);
@@ -122,3 +141,24 @@
     @apply bg-background text-foreground;
   }
 } 
+
+.thin-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.thin-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background: #aaa;
+  border-radius: 5px;
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #888;
+}
+
+.thin-scrollbar::-webkit-scrollbar-corner {
+  background: transparent;
+}
