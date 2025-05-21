@@ -10,7 +10,7 @@ interface PromotionsState {
 
 const initialState: PromotionsState = {
     items: [],
-    loading: false,
+    loading: true,
     error: null
 };
 

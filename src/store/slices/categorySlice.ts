@@ -2,15 +2,15 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { CategoryTree } from '@/types/domains/category';
 import * as categoryServices from "@/services/category";
 
-interface CategoriesState {
+interface CategoryState {
     items: CategoryTree[];
     loading: boolean;
     error: string | null;
 }
 
-const initialState: CategoriesState = {
+const initialState: CategoryState = {
     items: [],
-    loading: false,
+    loading: true,
     error: null
 };
 
@@ -24,12 +24,12 @@ export const fetchCategories = createAsyncThunk(
 
             return rejectWithValue(response.error);
         } catch (error: any) {
-            return rejectWithValue((error as { error: string }).error || 'Failed to fetch categories');
+            return rejectWithValue((error as { error: string }).error || 'Failed to fetch categories!');
         }
     }
 );
 
-const categoriesSlice = createSlice({
+const categorySlice = createSlice({
     name: 'categories',
     initialState,
     reducers: {
@@ -54,5 +54,5 @@ const categoriesSlice = createSlice({
     },
 });
 
-export const { updateCategories } = categoriesSlice.actions;
-export default categoriesSlice.reducer;
+export const { updateCategories } = categorySlice.actions;
+export default categorySlice.reducer;

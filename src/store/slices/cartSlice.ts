@@ -1,5 +1,5 @@
-import { CartItemPreview, CartItemUpdatePayload } from '@/types/domains/cart';
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { CartItemDTO, CartItemPreview, CartItemUpdatePayload } from '@/types/domains/cart';
+import { createSlice, createAsyncThunk, PayloadAction, GetThunkAPI } from '@reduxjs/toolkit';
 import * as cartServices from "@/services/cart";
 
 interface CartState {
@@ -14,11 +14,13 @@ const initialState: CartState = {
     items: [],
     totalItems: 0,
     totalAmount: 0,
-    loading: false,
+    loading: true,
     error: null
 };
 
-export const fetchCartItems = createAsyncThunk(
+type ThunkApiConfig = { rejectValue: string };
+
+export const fetchCartItems = createAsyncThunk<CartItemPreview[], void, ThunkApiConfig>(
     'cart/fetchCartItems',
     async (_, { rejectWithValue }) => {
         try {
@@ -33,18 +35,22 @@ export const fetchCartItems = createAsyncThunk(
     }
 );
 
-export const addToCartAsync = createAsyncThunk(
+const addToCartAsync = createAsyncThunk<CartItemPreview[], CartItemDTO, ThunkApiConfig>(
     'cart/addToCartAsync',
-    async (itemToAdd: CartItemPreview, { rejectWithValue }) => {
+    async (itemToAdd, { dispatch, rejectWithValue }) => {
         try {
             const response = await cartServices.addCartItem({
                 productVariantId: itemToAdd.productVariantId,
                 quantity: itemToAdd.quantity,
-                imageUrl: itemToAdd.imageUrl,
+                productImageId: itemToAdd.productImageId,
                 personalization: itemToAdd.personalization
             });
-            if (response.success)
-                return itemToAdd;
+            if (response.success) {
+                const fetchAction = await dispatch(fetchCartItems());
+                return fetchAction.meta.requestStatus === "fulfilled" ?
+                    fetchAction.payload as CartItemPreview[] :
+                    rejectWithValue(fetchAction.payload as string);
+            }
 
             return rejectWithValue(response.error);
         } catch (error: any) {
@@ -55,7 +61,7 @@ export const addToCartAsync = createAsyncThunk(
 
 export const updateCartItemAsync = createAsyncThunk(
     'cart/updateCartItemAsync',
-    async ({ cartItemId, payload }: { cartItemId: number, payload: CartItemUpdatePayload }, { dispatch, rejectWithValue }) => {
+    async ({ cartItemId, payload }: { cartItemId: number, payload: CartItemUpdatePayload }, { rejectWithValue }) => {
         try {
             const response = await cartServices.updateCartItem(cartItemId, payload);
             if (response.success)
@@ -68,9 +74,9 @@ export const updateCartItemAsync = createAsyncThunk(
     }
 );
 
-export const removeFromCartAsync = createAsyncThunk(
+export const removeFromCartAsync = createAsyncThunk<number, number, { rejectValue: string }>(
     'cart/removeFromCartAsync',
-    async (cartItemId: number, { rejectWithValue }) => {
+    async (cartItemId, { rejectWithValue }) => {
         try {
             const response = await cartServices.deleteCartItem(cartItemId);
             if (response.success)
@@ -88,10 +94,29 @@ const calculateTotals = (state: CartState) => {
     state.totalAmount = state.items.reduce((total, item) => total + (item.price * item.quantity), 0);
 };
 
+let cartItemId = 423;
+
 const cartSlice = createSlice({
     name: 'cart',
     initialState,
     reducers: {
+        addToCart: (state, action: PayloadAction<CartItemDTO>) => {
+            state.items = [...state.items, {
+                ...action.payload,
+                cartItemId: ++cartItemId,
+                imageUrl: "https://drive.google.com/uc?export=view&id=1P5LsB3Kl1wb0j_D8BrkhVJetaSRqdTMX",
+                addedAt: new Date(),
+                quantityInStock: 50,
+                price: 300,
+                sku: "KHFDJ89873",
+                title: "Test"
+            }];
+            calculateTotals(state);
+        },
+        updateCart: (state, action: PayloadAction<CartItemPreview[]>) => {
+            state.items = action.payload;
+            calculateTotals(state);
+        },
         clearCart: (state) => {
             state.items = [];
             state.totalItems = 0;
@@ -119,7 +144,7 @@ const cartSlice = createSlice({
             })
             .addCase(addToCartAsync.fulfilled, (state, action) => {
                 state.loading = false;
-                state.items = [ ...state.items, action.payload ];
+                state.items = action.payload;
                 calculateTotals(state);
             })
             .addCase(addToCartAsync.rejected, (state, action) => {
@@ -157,10 +182,10 @@ const cartSlice = createSlice({
             })
             .addCase(removeFromCartAsync.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload as string;
+                if (action.payload) state.error = action.payload;
             });
     },
 });
 
-export const { clearCart } = cartSlice.actions;
+export const { updateCart, clearCart, addToCart } = cartSlice.actions;
 export default cartSlice.reducer;

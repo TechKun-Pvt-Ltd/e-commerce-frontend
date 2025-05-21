@@ -29,6 +29,7 @@ class ApiClient {
         const params: Record<string, string> = {};
         if (requestOptions.params)
             Object.entries(requestOptions.params)
+                .filter(([, value]) => value !== undefined && value !== null)
                 .forEach(([key, value]) => params[key] = String(value));
 
         const url = `${this.baseURL}${endpoint}?${new URLSearchParams(params).toString()}`;
@@ -60,8 +61,15 @@ class ApiClient {
                         error: data.message
                     }));
 
-            if (contentType === ContentType.JSON)
-                return response.json()
+            if (contentType === ContentType.JSON && response.headers.get("content-type")?.includes(ContentType.JSON))
+                return response.text()
+                    .then(text => {
+                        try {
+                            return JSON.parse(text);
+                        } catch {
+                            return text;
+                        }
+                    })
                     .then(data => ({
                         data,
                         success: true
