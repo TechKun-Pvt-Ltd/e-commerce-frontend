@@ -1,97 +1,97 @@
 "use client";
 import React from 'react';
 import Image from 'next/image';
-import { CartItem, ProductVariant, User } from '@/app/types/models';
+import { CartItem } from '@/app/types/models';
+import { FiTrash2 } from 'react-icons/fi';
 
-const CartItems = () => {
-    // This would typically come from a cart context or state management
-    const [cartItems, setCartItems] = React.useState<CartItem[]>([{
-        cartItemId: 1,
-        productVariant: {
-            productVariantId: 1,
-            name: 'Product 1',
-            price: 10.99,
-            sizeOption: {
-                sizeOptionId: 1,
-                value: 'Small'
-            },
-            frameOption: {
-                frameOptionId: 1,
-                value: 'Wooden' 
-            }
-        },
-        user: {} as User,
-        quantity: 1
-    }]);
+interface CartItemsProps {
+    items: CartItem[];
+    onQuantityChange: (variantId: number, newQuantity: number) => Promise<void>;
+    onRemoveItem: (variantId: number) => Promise<void>;
+}
 
-    const updateQuantity = (variantId: number, newQuantity: number) => {
-        setCartItems(items =>
-            items.map(item =>
-                item.productVariant.productVariantId === variantId
-                    ? { ...item, quantity: Math.max(1, newQuantity) }
-                    : item
-            )
-        );
-    };
-
-    const removeItem = (variantId: number) => {
-        setCartItems(items => items.filter(item => item.productVariant.productVariantId !== variantId));
-    };
-
-    if (cartItems.length === 0) {
+const CartItems: React.FC<CartItemsProps> = ({ items, onQuantityChange, onRemoveItem }) => {
+    if (items.length === 0) {
         return (
-            <div className="text-center py-8">
-                <h2 className="text-xl font-medium text-gray-900 mb-2">Your cart is empty</h2>
-                <p className="text-gray-500">Add some items to your cart to continue shopping</p>
+            <div className="flex flex-col items-center justify-center py-16 px-4">
+                <div className="w-24 h-24 mb-6">
+                    <Image
+                        src="/empty-cart.svg"
+                        alt="Empty Cart"
+                        width={96}
+                        height={96}
+                        className="opacity-50"
+                    />
+                </div>
+                <h2 className="text-2xl font-semibold text-gray-900 mb-2">Your cart is empty</h2>
+                <p className="text-gray-500 text-center mb-6">Add some items to your cart to continue shopping</p>
+                <button 
+                    onClick={() => window.history.back()}
+                    className="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition-colors"
+                >
+                    Continue Shopping
+                </button>
             </div>
         );
     }
 
     return (
-        <div className="space-y-4">
-            {cartItems.map((item) => (
-                <div key={item.productVariant.productVariantId} className="flex items-center gap-4 p-4 bg-white rounded-lg shadow-sm">
-                    <div className="w-24 h-24 relative">
+        <div className="space-y-6">
+            {items.map((item) => (
+                <div 
+                    key={item.cartItemId} 
+                    className="flex items-center gap-6 p-6 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow"
+                >
+                    <div className="relative w-32 h-32 flex-shrink-0">
                         <Image
-                            src={`https://via.placeholder.com/96?text=${encodeURIComponent(item.productVariant.name)}`}
+                            src={`/product-image/canvas${item.productVariant.productVariantId % 4 + 1}.jpg`}
                             alt={item.productVariant.name}
                             fill
-                            className="object-cover rounded-md"
+                            className="object-cover rounded-lg"
                         />
                     </div>
-                    <div className="flex-grow">
-                        <h3 className="text-lg font-medium text-gray-900">{item.productVariant.name}</h3>
-                        <p className="text-sm text-gray-500">
-                            Size: {item.productVariant.sizeOption.value}, Frame: {item.productVariant.frameOption.value}
-                        </p>
-                        <div className="mt-2 flex items-center gap-4">
-                            <div className="flex items-center border rounded-md">
+                    <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                                    {item.productVariant.name}
+                                </h3>
+                                <div className="text-sm text-gray-500 space-y-1">
+                                    <p>Size: {item.productVariant.sizeOption.value}</p>
+                                    <p>Frame: {item.productVariant.frameOption.value}</p>
+                                </div>
+                            </div>
+                            <p className="text-xl font-semibold text-gray-900">
+                                ${(item.productVariant.price * item.quantity).toFixed(2)}
+                            </p>
+                        </div>
+                        <div className="flex items-center justify-between mt-4">
+                            <div className="flex items-center gap-3">
                                 <button
-                                    onClick={() => updateQuantity(item.productVariant.productVariantId, item.quantity - 1)}
-                                    className="px-3 py-1 text-gray-600 hover:bg-gray-100"
+                                    onClick={() => onQuantityChange(item.productVariant.productVariantId, item.quantity - 1)}
+                                    disabled={item.quantity <= 1}
+                                    className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full 
+                                             hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     -
                                 </button>
-                                <span className="px-3 py-1 text-gray-900">{item.quantity}</span>
+                                <span className="w-12 text-center font-medium">{item.quantity}</span>
                                 <button
-                                    onClick={() => updateQuantity(item.productVariant.productVariantId, item.quantity + 1)}
-                                    className="px-3 py-1 text-gray-600 hover:bg-gray-100"
+                                    onClick={() => onQuantityChange(item.productVariant.productVariantId, item.quantity + 1)}
+                                    className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full 
+                                             hover:bg-gray-100"
                                 >
                                     +
                                 </button>
                             </div>
                             <button
-                                onClick={() => removeItem(item.productVariant.productVariantId)}
-                                className="text-sm text-red-600 hover:text-red-800"
+                                onClick={() => onRemoveItem(item.productVariant.productVariantId)}
+                                className="flex items-center gap-2 text-red-500 hover:text-red-700 transition-colors"
                             >
-                                Remove
+                                <FiTrash2 className="w-5 h-5" />
+                                <span>Remove</span>
                             </button>
                         </div>
-                    </div>
-                    <div className="text-right">
-                        <p className="text-lg font-medium text-gray-900">
-                            ${(item.productVariant.price * item.quantity).toFixed(2)}
-                        </p>
                     </div>
                 </div>
             ))}
