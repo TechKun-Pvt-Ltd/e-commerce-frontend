@@ -22,7 +22,6 @@ const CategoryTreeNode = React.memo(({
 }) => {
     const [collapsed, setCollapsed] = useState(false);
     const editButtonRef = useRef<HTMLButtonElement>(null);
-    console.log("Node Render");
 
     const nodeTitleEl = (
         <span className="font-medium text-gray-800 overflow-hidden whitespace-nowrap overflow-ellipsis">{node.name}</span>
