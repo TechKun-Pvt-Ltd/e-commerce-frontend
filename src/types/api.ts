@@ -11,6 +11,8 @@ export type ApiResponse<T> = Promise<{
 
 export type ServiceFunction<T, R> = (...apiArgs: T extends any[] ? T : [T]) => ApiResponse<R>;
 
+export type ServiceResponse<S extends ServiceFunction<any, any>> = S extends ServiceFunction<any, infer R> ? R : never;
+
 export enum ContentType {
     TEXT = "text/html",
     JSON = "application/json",
