@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useRef, useState } from "react";
-import { ChevronDown, ChevronUp, Minus, Pen, Plus } from "lucide-react";
+import { ChevronDown, ChevronRight, Minus, Pen, Plus } from "lucide-react";
 import { CategoryTree } from "@/types/domains/category";
 import { Button } from "@/components/ui/button";
 
@@ -56,7 +56,7 @@ const CategoryTreeNode = React.memo(({
                         onClick={() => setCollapsed(prev => !prev)}
                     >
                         {collapsed ?
-                            <ChevronUp className="w-4 h-4 text-gray-600" />:
+                            <ChevronRight className="w-4 h-4 text-gray-600" />:
                             <ChevronDown className="w-4 h-4 text-gray-600" />
                         }
                     </Button>

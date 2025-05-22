@@ -61,8 +61,18 @@ export default function AdminCategoryPage() {
                 variationIds: res.variations.map(v => v.variationId),
                 attributeIds: res.attributes.map(a => a.attributeId),
             });
+            if (!targetParent) {
+                dispatch(updateCategories([...categories, {
+                    categoryId: res.categoryId,
+                    name: res.name,
+                    path: `${categories.length}`,
+                    subcategories: []
+                }]));
+                addDialogRef.current?.close();
+                return;
+            }
             dispatch(updateCategories(
-                transformByParentStack(categories, targetParent!, (list, index) => {
+                transformByParentStack(categories, targetParent, (list, index) => {
                     const node = list[index];
                     node.subcategories.push({
                         categoryId: res.categoryId,
@@ -90,7 +100,12 @@ export default function AdminCategoryPage() {
                 variationIds: res.variations.map(v => v.variationId),
                 attributeIds: res.attributes.map(a => a.attributeId),
             });
-            dispatch(updateCategories(transformByParentStack(categories, selectedCategory)));
+            dispatch(updateCategories(transformByParentStack(categories, selectedCategory, (list, index) => {
+                list[index] = {
+                    ...list[index],
+                    name: res.name
+                };
+            })));
             setSelectedCategory(null);
         }, [categories, selectedCategory])
     });
@@ -258,7 +273,7 @@ function removeCategoryByPath(tree: CategoryTree[], targetPath: string): Categor
 function transformByParentStack(
     tree: CategoryTree[],
     categoryData: CategoryData,
-    action: (list: CategoryTree[], targetIndex: number) => void = () => {}
+    action: (list: CategoryTree[], targetIndex: number) => void
 ): CategoryTree[] {
     let current: CategoryData | undefined = categoryData;
     const stack = [current.categoryId];
@@ -292,7 +307,7 @@ function transformByParentStack(
 function transformByPath(
     tree: CategoryTree[],
     path: string,
-    action: (list: CategoryTree[], targetIndex: number) => void = () => {}
+    action: (list: CategoryTree[], targetIndex: number) => void
 ): CategoryTree[] {
     const regexp = /\d+(?:\.\d+)*/;
     let tempTree = tree;
