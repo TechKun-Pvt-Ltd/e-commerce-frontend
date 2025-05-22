@@ -6,11 +6,24 @@ import { XIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-function Dialog({
-  ...props
-}: React.ComponentProps<typeof DialogPrimitive.Root>) {
-  return <DialogPrimitive.Root data-slot="dialog" {...props} />
-}
+const Dialog = React.forwardRef(({
+    ...props
+  }: Omit<React.ComponentProps<typeof DialogPrimitive.Root>, "open" | "onOpenChange">,
+  ref: React.ForwardedRef<{open: () => void, close: () => void}>
+) => {
+  const [open, setOpen] = React.useState(false);
+
+  React.useImperativeHandle(ref, () => ({
+    open: () => setOpen(true),
+    close: () => setOpen(false)
+  }), [setOpen]);
+
+  return <DialogPrimitive.Root
+    open={open}
+    onOpenChange={setOpen}
+    data-slot="dialog" {...props}
+  />;
+});
 
 function DialogTrigger({
   ...props

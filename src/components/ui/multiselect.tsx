@@ -78,11 +78,11 @@ export function MultiSelectMenuItem({
             `rounded-sm px-2 py-1.5 flex items-center gap-2 cursor-pointer hover:bg-accent ${disabled? "opacity-50 cursor-not-allowed" : ""}`,
             className
         )}
-        onClick={toggle}
+        onClick={disabled ? undefined: toggle}
     >
         <Checkbox
             checked={checked}
-            onChange={toggle}
+            onChange={disabled ? undefined: toggle}
         />
         <span className="text-sm">{label}</span>
     </div>;
