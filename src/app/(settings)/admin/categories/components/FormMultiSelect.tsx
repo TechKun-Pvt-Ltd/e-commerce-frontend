@@ -43,11 +43,12 @@ const FormMultiSelect: React.FC<{
                 <MultiSelectMenu>
                     {items.map(v => {
                         const optionState = value[v.id] ?? "absent";
+                        const presentInParent = optionState === "present_in_parent";
 
                         return <MultiSelectMenuItem key={v.id}
-                            checked={optionState === "present" || optionState === "present_in_parent"}
-                            disabled={optionState === "present_in_parent"}
-                            disabledMessage="Present in parent category"
+                            checked={optionState === "present" || presentInParent}
+                            disabled={presentInParent}
+                            tooltip={presentInParent ? "Present in parent category": undefined}
                             label={v.name} toggle={() => onChange({
                                 ...value,
                                 [v.id]: optionState === "absent"? "present": "absent"

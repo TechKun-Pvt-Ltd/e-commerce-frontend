@@ -7,10 +7,12 @@ import { useEffect } from "react";
 import { fetchCategories } from "@/store/slices/categorySlice";
 import { fetchVariations } from "@/store/slices/variationSlice";
 import { fetchAttributes } from "@/store/slices/attributeSlice";
+import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 setAutoFreeze(false);
 
-export function Wrapper({ children }: { children: React.ReactNode }) {
+export function AppGateway({ children }: { children: React.ReactNode }) {
     const dispatch = useAppDispatch();
     useEffect(() => {
         dispatch(getMyInformation());
@@ -19,7 +21,8 @@ export function Wrapper({ children }: { children: React.ReactNode }) {
         dispatch(fetchAttributes());
     },[]);
 
-    return <>
+    return <TooltipProvider delayDuration={0}>
         {children}
-    </>;
+        <Toaster />
+    </TooltipProvider>;
 };

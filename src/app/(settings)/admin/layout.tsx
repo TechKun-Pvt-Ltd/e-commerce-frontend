@@ -55,7 +55,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <SidebarMenuItem>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <SidebarMenuButton
+                                <SidebarMenuButton tooltip={user?.fullName}
                                     size="lg"
                                     className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                                 >

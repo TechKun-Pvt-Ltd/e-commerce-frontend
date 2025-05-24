@@ -1,9 +1,8 @@
 import './globals.css';
 import { Inter } from 'next/font/google';
 import { Metadata } from "next";
-import Providers from './Providers';
-import { Wrapper } from './Wrapper';
-import { Toaster } from '@/components/ui/sonner';
+import ReduxProvider from './ReduxProvider';
+import { AppGateway } from './AppGateway';
 
 export const metadata: Metadata = {
     title: "E-Commerce Store",
@@ -20,12 +19,11 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body className={`${inter.className} overflow-x-hidden`} style={{width: '100vw'}}>
-                <Providers>
-                    <Wrapper>
+                <ReduxProvider>
+                    <AppGateway>
                         {children}
-                        <Toaster />
-                    </Wrapper>
-                </Providers>
+                    </AppGateway>
+                </ReduxProvider>
             </body>
         </html>
     );
