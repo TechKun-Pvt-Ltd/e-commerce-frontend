@@ -26,7 +26,7 @@ const product: Product = {
     productImages: [
         {
             productImageId: 1,
-            imageUrl: "https://example.com/images/headphones1.png",
+            imageUrl: "https://img.freepik.com/premium-photo/young-woman-order-purchase-product-internet-using-laptop-blithe_31965-289001.jpg?w=996",
             isDefault: true,
         },
         {

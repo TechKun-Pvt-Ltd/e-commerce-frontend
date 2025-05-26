@@ -48,6 +48,7 @@ const useFormField = () => {
   const { getFieldState } = useFormContext()
   const formState = useFormState({ name: fieldContext.name })
   const fieldState = getFieldState(fieldContext.name, formState)
+  console.log(`${fieldContext.name}:`, fieldState);
 
   if (!fieldContext) {
     throw new Error("useFormField should be used within <FormField>")
@@ -155,6 +156,8 @@ function FormMessage({ className, ...props }: React.ComponentProps<"p">) {
   )
 }
 
+const memoizedFormField = React.memo(FormField) as typeof FormField;
+
 export {
   useFormField,
   Form,
@@ -163,5 +166,5 @@ export {
   FormControl,
   FormDescription,
   FormMessage,
-  FormField,
-}
+  memoizedFormField as FormField
+};

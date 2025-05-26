@@ -8,7 +8,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { LifeBuoy, LogOut, MoreVerticalIcon, PackageSearch, Star, User2 } from "lucide-react"
+import { LifeBuoy, LogOut, MoreVerticalIcon } from "lucide-react"
 import Link from "next/link";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -26,6 +26,11 @@ const items = [
     {
         title: "Categories",
         url: "/admin/categories",
+        icon: LifeBuoy
+    },
+    {
+        title: "Variations",
+        url: "/admin/variations",
         icon: LifeBuoy
     }
 ];
