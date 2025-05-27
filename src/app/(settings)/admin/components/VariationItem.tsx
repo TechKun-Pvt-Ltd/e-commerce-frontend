@@ -13,7 +13,6 @@ function VariationItem({ variation, onEdit, onDelete }: {
     onDelete: (variation: Variation) => void;
 }) {
     const [collapsed, setCollapsed] = useState(false);
-    console.log("VariationItemRender");
 
     const nodeTitleEl = (
         <span className="font-medium text-gray-800 overflow-hidden whitespace-nowrap overflow-ellipsis">

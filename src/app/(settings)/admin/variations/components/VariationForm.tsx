@@ -92,8 +92,6 @@ export default function VariationForm({
                 });
             else
                 onSubmit(data);
-
-            variationForm.reset();
         })}>
             <div className="space-y-4">
                 <FormField
@@ -182,7 +180,7 @@ export default function VariationForm({
                 className="w-full"
             >
                 {loading && <Spinner />}
-                Add
+                Save
             </Button>
         </form>
     </Form>
