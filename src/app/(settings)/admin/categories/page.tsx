@@ -92,14 +92,11 @@ export default function AdminCategoryPage() {
             if (!selectedCategory)
                 return;
 
-            const parent = res.parentCategory;
-            categoryDetailsMap.set(selectedCategory.categoryId, {
-                categoryId: selectedCategory.categoryId,
-                name: res.name,
-                parentCategory: parent ? categoryDetailsMap.get(parent.categoryId): undefined,
-                variationIds: res.variations.map(v => v.variationId),
-                attributeIds: res.attributes.map(a => a.attributeId),
-            });
+            const categoryDetails = categoryDetailsMap.get(selectedCategory.categoryId)!;
+            categoryDetails.name = res.name;
+            categoryDetails.variationIds = res.variations.map(v => v.variationId);
+            categoryDetails.attributeIds = res.attributes.map(a => a.attributeId);
+
             dispatch(updateCategories(transformByParentStack(categories, selectedCategory, (list, index) => {
                 list[index] = {
                     ...list[index],
