@@ -4,10 +4,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import Spinner from "@/components/ui/spinner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Variation } from "@/types/domains/variation";
+import { VariationUpdationPayload } from "@/types/domains/variation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Minus, Plus } from "lucide-react";
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { ControllerFieldState, ControllerRenderProps, useForm, UseFormStateReturn } from "react-hook-form";
 import { z } from "zod";
 
@@ -15,58 +15,66 @@ const variationSchema = z.object({
     name: z.string().nonempty("Variation name is required."),
     variationOptions: z.array(z.object({
         id: z.number().optional(),
+        key: z.number(),
         name: z.string().nonempty("Variation option name is required.")
-    })).min(1)
+    })).min(1, "There must be at least one variation option.")
 });
+
+const defaultFieldValues = {
+    name: "",
+    variationOptions: [{
+        key: 0,
+        name: ""
+    }]
+};
 
 type FieldValues = z.infer<typeof variationSchema>;
 
-export default function AddVariationForm({
+export default function VariationForm({
     variation,
     loading,
     onSubmit
 }: {
-    variation: Variation,
+    variation: VariationUpdationPayload,
     loading: boolean,
-    onSubmit: (data: Variation) => void
+    onSubmit: (data: VariationUpdationPayload) => void
 } | {
     variation?: undefined,
     loading: boolean,
     onSubmit: (data: FieldValues) => void
 }) {
+    const firstRender = useRef(true);
+    const defaultValues = useMemo(() => variation ? {
+        name: variation.name,
+        variationOptions: variation.variationOptions.map((opt, i) => ({
+            id: opt.variationOptionId,
+            key: i,
+            name: opt.name
+        }))
+    }: defaultFieldValues, [variation]);
+
     const variationForm = useForm<FieldValues>({
-        mode: "onSubmit",
         resolver: zodResolver(variationSchema),
-        defaultValues: {
-            name: "",
-            variationOptions: [{
-                name: ""
-            }]
-        }
+        defaultValues
     });
 
     useEffect(() => {
-        if (!variation) return;
+        if (!firstRender.current)
+            return variationForm.reset(defaultValues);
 
-        variationForm.reset({
-            name: variation.name,
-            variationOptions: variation.variationOptions.map(opt => ({
-                id: opt.variationOptionId,
-                name: opt.name
-            }))
-        });
-    }, [variation]);
+        firstRender.current = false;
+    }, [defaultValues]);
 
-    const renderVariationOptionField = useCallback(({ field: optionNameField }) => (
+    const renderVariationOptionField = useCallback(({ field }) => (
         <FormItem className="w-full">
             <FormControl>
                 <Input placeholder="Enter variation option name"
-                    {...optionNameField}
+                    {...field}
                 />
             </FormControl>
             <FormMessage />
         </FormItem>
-    ), []) as (({ field, fieldState, formState, }: {
+    ), []) as ((params: {
         field: ControllerRenderProps<FieldValues, `variationOptions.${number}.name`>;
         fieldState: ControllerFieldState;
         formState: UseFormStateReturn<FieldValues>;
@@ -76,15 +84,16 @@ export default function AddVariationForm({
         <form className="space-y-6" onSubmit={variationForm.handleSubmit(data => {
             if (variation)
                 onSubmit({
-                    variationId: variation.variationId,
                     name: data.name,
                     variationOptions: data.variationOptions.map(opt => ({
-                        variationOptionId: opt.id!,
+                        variationOptionId: opt.id,
                         name: opt.name
                     }))
                 });
             else
                 onSubmit(data);
+
+            variationForm.reset();
         })}>
             <div className="space-y-4">
                 <FormField
@@ -112,8 +121,8 @@ export default function AddVariationForm({
                             <FormLabel>Variation Options</FormLabel>
                             <FormControl>
                                 <div className="space-y-2">
-                                    <div className="space-y-2 max-h-64 overflow-y-auto thin-scrollbar">
-                                        {field.value.map((_, i) => <div key={i} className="flex gap-1">
+                                    <div className="space-y-2 border rounded-md h-64 p-2.5 overflow-y-auto thin-scrollbar">
+                                        {field.value.map((opt, i) => <div key={opt.key} className="flex gap-2">
                                             <FormField
                                                 control={variationForm.control}
                                                 name={`variationOptions.${i}.name`}
@@ -124,7 +133,7 @@ export default function AddVariationForm({
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
                                                         <div className="h-min">
-                                                            <Button variant="ghost" disabled>
+                                                            <Button variant="outline" disabled>
                                                                 <Minus />
                                                             </Button>
                                                         </div>
@@ -133,7 +142,8 @@ export default function AddVariationForm({
                                                         <p>At least one option must be there</p>
                                                     </TooltipContent>
                                                 </Tooltip> :
-                                                <Button variant="ghost"
+                                                <Button variant="outline"
+                                                    type="button"
                                                     disabled={field.disabled || field.value.length === 1}
                                                     onClick={() => {
                                                         const currentValue = variationForm.getValues("variationOptions");
@@ -146,10 +156,16 @@ export default function AddVariationForm({
                                             }
                                         </div>)}
                                     </div>
-                                    <Button variant="ghost"
+                                    <FormMessage />
+                                    <Button variant="outline"
+                                        type="button"
                                         disabled={field.disabled}
                                         className="w-full justify-start gap-1"
-                                        onClick={() => field.onChange([...variationForm.getValues("variationOptions"), { name: "" }])}
+                                        onClick={() => {
+                                            const currentValue = variationForm.getValues("variationOptions");
+                                            const key = currentValue.length ? currentValue[currentValue.length - 1]?.key + 1 : 1;
+                                            field.onChange([...currentValue, { key, name: "" }]);
+                                        }}
                                     >
                                         <Plus className="w-4 h-4 text-gray-600" />
                                         <div className="font-medium text-sm text-gray-600">Add Variation</div>
@@ -160,7 +176,7 @@ export default function AddVariationForm({
                     }}
                 />
             </div>
-            <Button
+            <Button disabled={loading || !variationForm.formState.isDirty}
                 variant="default"
                 type="submit" size="sm"
                 className="w-full"

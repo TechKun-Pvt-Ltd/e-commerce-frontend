@@ -1,18 +1,56 @@
 "use client"
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import VariationItem from '../components/VariationItem';
 import { Plus } from 'lucide-react';
-import { useAppSelector } from '@/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import VariationItemsSkeleton from './components/VariationItemsSkeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import AddVariationForm from './components/AddVariationForm';
-import { Variation } from '@/types/domains/variation';
+import VariationForm from './components/VariationForm';
+import { Variation, VariationUpdationPayload } from '@/types/domains/variation';
+import * as variationServices from '@/services/variation';
+import useDataFetch from '@/hooks/use-data-fetch';
+import { updateVariations } from '@/store/slices/variationSlice';
+import { Button } from '@/components/ui/button';
+import Spinner from '@/components/ui/spinner';
 
 export default function VariationSettingsPage() {
+    const dispatch = useAppDispatch();
     const { items, loading, error } = useAppSelector(state => state.variations);
     const addVariationRef = React.useRef<{ open(): void, close(): void }>(null);
     const editVariationRef = React.useRef<{ open(): void, close(): void }>(null);
+    const deleteDialogRef = React.useRef<{ open(): void, close(): void }>(null);
     const [selectedVariation, setSelectedVariation] = useState<Variation | null>(null);
+    const [deletionTarget, setDeletionTarget] = useState<Variation | null>(null);
+    const addVariation = useDataFetch(variationServices.createVariation, {
+        onResponseReceived: useCallback((res: Variation) => {
+            dispatch(updateVariations([...items, res]));
+            addVariationRef.current?.close();
+        }, [items])
+    });
+    const editVariation = useDataFetch(variationServices.updateVariation, {
+        onResponseReceived: useCallback((res: Variation) => {
+            dispatch(updateVariations(items.map(item => item.variationId === res.variationId? res : item)));
+            setSelectedVariation(null);
+            editVariationRef.current?.close();
+        }, [items])
+    });
+    const deleteVariation = useDataFetch(variationServices.deleteVariation, {
+        onResponseReceived: useCallback(() => {
+            dispatch(updateVariations(items.filter(item => item.variationId !== deletionTarget!.variationId)));
+            setDeletionTarget(null);
+            deleteDialogRef.current?.close();
+        }, [items, deletionTarget])
+    });
+
+    const onEdit = useCallback((variation: Variation) => {
+        setSelectedVariation(variation);
+        editVariationRef.current?.open();
+    }, []);
+
+    const onDelete = useCallback((variation: Variation) => {
+        setDeletionTarget(variation);
+        deleteDialogRef.current?.open();
+    }, []);
 
     return <>
         <div className="h-full space-y-8 flex flex-col">
@@ -22,8 +60,8 @@ export default function VariationSettingsPage() {
                     <VariationItemsSkeleton /> :
                     (!error && items.length) && items.map(item => <VariationItem key={item.variationId}
                         variation={item}
-                        onEdit={() => {setSelectedVariation(item); editVariationRef.current?.open();}}
-                        onDelete={() => { }}
+                        onEdit={onEdit}
+                        onDelete={onDelete}
                     />)
                 }
                 <div className="rounded-md cursor-pointer h-9 hover:bg-accent px-3.5 flex items-center gap-2 text-gray-600"
@@ -40,9 +78,14 @@ export default function VariationSettingsPage() {
                 <DialogHeader>
                     <DialogTitle>Add Variation</DialogTitle>
                 </DialogHeader>
-                <AddVariationForm
-                    loading={false}
-                    onSubmit={data => { }}
+                <VariationForm
+                    loading={addVariation.isLoading}
+                    onSubmit={data => addVariation.request({
+                        name: data.name,
+                        variationOptions: data.variationOptions.map(item => ({
+                            name: item.name
+                        }))
+                    })}
                 />
             </DialogContent>
         </Dialog>
@@ -52,11 +95,29 @@ export default function VariationSettingsPage() {
                 <DialogHeader>
                     <DialogTitle>Edit Variation</DialogTitle>
                 </DialogHeader>
-                <AddVariationForm
+                <VariationForm
                     variation={selectedVariation!}
-                    loading={false}
-                    onSubmit={(data: Variation) => { }}
+                    loading={editVariation.isLoading}
+                    onSubmit={(data: VariationUpdationPayload) => editVariation.request(selectedVariation!.variationId, data)}
                 />
+            </DialogContent>
+        </Dialog>
+
+        <Dialog ref={deleteDialogRef}>
+            <DialogContent aria-describedby="">
+                <DialogHeader>
+                    <DialogTitle>Delete Variation</DialogTitle>
+                </DialogHeader>
+                <div>Are you sure you want to delete this variation? It will delete all its associations too.</div>
+                <div className="grid grid-cols-2 gap-2">
+                    <Button variant="secondary" onClick={() => deleteDialogRef.current?.close()}>No</Button>
+                    <Button onClick={() => {
+                        deleteVariation.request(deletionTarget!.variationId);
+                    }}>
+                        {deleteVariation.isLoading && <Spinner />}
+                        Yes
+                    </Button>
+                </div>
             </DialogContent>
         </Dialog>
     </>;

@@ -7,12 +7,13 @@ import { TooltipTrigger } from "@radix-ui/react-tooltip";
 import { Tooltip, TooltipContent } from "@/components/ui/tooltip";
 
 
-export default function VariationItem({ variation, onEdit, onDelete }: {
+function VariationItem({ variation, onEdit, onDelete }: {
     variation: Variation;
-    onEdit: () => void;
-    onDelete: (id: number) => void;
+    onEdit: (variation: Variation) => void;
+    onDelete: (variation: Variation) => void;
 }) {
     const [collapsed, setCollapsed] = useState(false);
+    console.log("VariationItemRender");
 
     const nodeTitleEl = (
         <span className="font-medium text-gray-800 overflow-hidden whitespace-nowrap overflow-ellipsis">
@@ -49,7 +50,7 @@ export default function VariationItem({ variation, onEdit, onDelete }: {
                 <Button variant="ghost"
                     size={"none" as Parameters<typeof Button>[0]["size"]}
                     className="px-2 h-6 text-sm"
-                    onClick={onEdit}
+                    onClick={() => onEdit(variation)}
                 >
                     <Pen style={{ width: '0.85rem', height: '0.85rem' }} className="text-gray-600" />
                     <span className="text-gray-600">Edit</span>
@@ -57,7 +58,7 @@ export default function VariationItem({ variation, onEdit, onDelete }: {
                 <Button variant="ghost"
                     size={"none" as Parameters<typeof Button>[0]["size"]}
                     className="px-1 h-6"
-                    onClick={() => onDelete(variation.variationId)}
+                    onClick={() => onDelete(variation)}
                 >
                     <Trash className="w-4 h-4 text-gray-600" />
                 </Button>
@@ -77,3 +78,5 @@ export default function VariationItem({ variation, onEdit, onDelete }: {
         </div>}
     </div>;
 };
+
+export default React.memo(VariationItem);
