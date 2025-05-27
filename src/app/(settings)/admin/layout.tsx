@@ -47,9 +47,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
 
     useEffect(() => {
-        if (!loading && !(authenticated && (user?.roleName === UserRole.ADMIN || user?.roleName === UserRole.PLATFORM_ADMIN))) {
+        if (loading) return;
+        if (!(authenticated && (user?.roleName === UserRole.ADMIN || user?.roleName === UserRole.PLATFORM_ADMIN))) {
             toast('You are not authorized!', { icon: null, richColors: true });
             router.push('/auth/login');
+        } else {
+            const expiresAt = localStorage.getItem("expiresAt");
+            if (expiresAt === null)
+                return;
+            const expiresIn = parseInt(expiresAt) - Date.now();
+            setTimeout(() => {
+                toast('Your session has expired!', { icon: null, richColors: true });
+                dispatch(logout());
+            }, expiresIn);
         }
     }, [loading, authenticated]);
 

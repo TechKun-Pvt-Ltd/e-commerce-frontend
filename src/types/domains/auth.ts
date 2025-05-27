@@ -36,6 +36,7 @@ export interface ResetPasswordPayload {
 export interface TokenPayload {
     message: string;
     token: string;
+    expiresAt: number;
     user: UserEssentials;
 }
 

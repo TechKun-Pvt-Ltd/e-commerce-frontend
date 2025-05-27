@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import * as authServices from "@/services/auth";
 import * as userServices from "@/services/user";
-import { LoginPayload, UserEssentials } from '@/types/domains/auth';
+import { LoginPayload, TokenPayload, UserEssentials } from '@/types/domains/auth';
 import { UserUpdatePayload } from '@/types/domains/user';
 
 interface AuthState {
@@ -18,9 +18,9 @@ const initialState: AuthState = {
     error: null,
 };
 
-export const login = createAsyncThunk(
+export const login = createAsyncThunk<TokenPayload, LoginPayload, { rejectValue: string }>(
     'auth/login',
-    async (credentials: LoginPayload, { rejectWithValue }) => {
+    async (credentials, { rejectWithValue }) => {
         try {
             const response = await authServices.login(credentials);
             if (response.success)
@@ -100,7 +100,7 @@ const authSlice = createSlice({
             .addCase(login.rejected, (state, action) => {
                 state.loading = false;
                 state.authenticated = false;
-                state.error = action.payload as string;
+                state.error = action.payload ?? null;
             })
             .addCase(getMyInformation.pending, (state) => {
                 state.loading = true;

@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { login } from '@/store/slices/authSlice';
 import { toast } from 'sonner';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { TokenPayload } from '@/types/domains/auth';
 
 const loginSchema = z.object({
     email: z.string().email('Invalid email address'),
@@ -42,6 +43,7 @@ export default function LoginPage() {
         try {
             const result = await dispatch(login(values));
             if (result.meta.requestStatus === 'fulfilled') {
+                localStorage.setItem("expiresAt", String((result.payload as TokenPayload).expiresAt));
                 router.push('/');
             } else {
                 form.setError('root', {
