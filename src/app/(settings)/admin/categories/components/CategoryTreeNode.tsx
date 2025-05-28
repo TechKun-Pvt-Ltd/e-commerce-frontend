@@ -37,7 +37,7 @@ const CategoryTreeNode = React.memo(({
         </Button>
     );
 
-    return (<div className="py-1.5">
+    return (<div>
         <div className="border rounded-md h-9 bg-background pr-2.5 transition-colors duration-500 flex items-center justify-between"
             onMouseEnter={() => {
                 if (editButtonRef.current)
@@ -90,7 +90,7 @@ const CategoryTreeNode = React.memo(({
             </div>
         </div>
 
-        {node.subcategories.length > 0 && <div hidden={collapsed} className="ml-5 mt-1 pl-4 border-l border-gray-300">
+        {node.subcategories.length > 0 && <div hidden={collapsed} className="ml-5 mt-1 pl-4 py-1.5 border-l border-gray-300 space-y-2">
             {node.subcategories.map((child) => (
                 <CategoryTreeNode
                     key={child.categoryId}

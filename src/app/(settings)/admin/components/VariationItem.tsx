@@ -20,7 +20,7 @@ function VariationItem({ variation, onEdit, onDelete }: {
         </span>
     );
 
-    return <div className="py-1">
+    return <div>
         <div className="border rounded-md h-9 bg-background pr-2.5 transition-colors duration-500 flex items-center justify-between">
             <div className="pl-2.5 min-w-0 flex items-center gap-1.5">
                 {variation.variationOptions.length === 0 ?
@@ -64,13 +64,11 @@ function VariationItem({ variation, onEdit, onDelete }: {
             </div>
         </div>
 
-        {!!variation.variationOptions.length && <div hidden={collapsed} className="ml-5 mt-1.5 pl-4 border-l border-gray-300">
+        {!!variation.variationOptions.length && <div hidden={collapsed} className="ml-5 mt-1 pl-4 py-1.5 border-l border-gray-300 space-y-2">
             {variation.variationOptions.map(option => (
-                <div className="py-1" key={option.variationOptionId}>
-                    <div className="border rounded-md h-9 bg-background pr-2.5 transition-colors duration-500 flex items-center justify-between">
-                        <div className="pl-3.5 font-medium text-gray-800 overflow-hidden whitespace-nowrap overflow-ellipsis">
-                            {option.name}
-                        </div>
+                <div key={option.variationOptionId} className="border rounded-md h-9 bg-background pr-2.5 transition-colors duration-500 flex items-center justify-between">
+                    <div className="pl-3.5 font-medium text-gray-800 overflow-hidden whitespace-nowrap overflow-ellipsis">
+                        {option.name}
                     </div>
                 </div>
             ))}

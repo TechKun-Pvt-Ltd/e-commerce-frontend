@@ -7,7 +7,7 @@ import { CategoryDetails, CategoryDTO, CategoryTree } from "@/types/domains/cate
 import AddCategoryForm from "./components/AddCategoryForm";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Folder, Plus } from "lucide-react";
+import { Plus, SquarePen } from "lucide-react";
 import EditCategoryForm from "./components/EditCategoryForm";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { updateCategories } from "@/store/slices/categorySlice";
@@ -155,10 +155,10 @@ export default function AdminCategoryPage() {
         <div className="h-full space-y-8 flex flex-col">
             <h1 className="text-3xl font-bold text-gray-900">Categories</h1>
             <div className="flex-1 flex gap-4">
-                <div className="flex-[7] min-w-0">
+                <div className="flex-[7] min-w-0 py-2 space-y-2">
                     {loading ?
                         <CategoryTreeSkeleton />:
-                        (!error && categories.length) && categories.map(cat => (
+                        (!error && categories.length) ? categories.map(cat => (
                             <CategoryTreeNode
                                 key={cat.categoryId}
                                 node={cat}
@@ -166,7 +166,10 @@ export default function AdminCategoryPage() {
                                 onAddSubcategory={onAddCategory}
                                 onDeleteCategory={onDeleteCategory}
                             />
-                        ))
+                        )) :
+                        <div className="border rounded-md h-9 bg-background px-3.5 flex items-center text-gray-400">
+                            No categories created! Click the button below to create one now.
+                        </div>
                     }
                     <div className="rounded-md cursor-pointer h-9 hover:bg-accent px-3.5 flex items-center gap-2 text-gray-600"
                         onClick={() => {
@@ -190,7 +193,7 @@ export default function AdminCategoryPage() {
                                 )}
                             />:
                             <div className="min-h-64 flex flex-col items-center justify-center gap-2 text-gray-500">
-                                <Folder className="w-8 h-8" />
+                                <SquarePen className="w-8 h-8" />
                                 <div className="text-lg text-center">Select a Category</div>
                             </div>
                         }
@@ -231,13 +234,18 @@ export default function AdminCategoryPage() {
                 </DialogHeader>
                 <div>Are you sure you want to delete this category? It will delete all of its subcategories too.</div>
                 <div className="grid grid-cols-2 gap-2">
-                    <Button variant="secondary" onClick={() => deleteDialogRef.current?.close()}>No</Button>
-                    <Button onClick={() => {
-                        if (!deletionTarget)
-                            return;
+                    <Button disabled={deleteCategory.isLoading}
+                        variant="secondary" onClick={() => deleteDialogRef.current?.close()}>No</Button>
+                    <Button disabled={deleteCategory.isLoading}
+                        onClick={() => {
+                            if (!deletionTarget)
+                                return;
+                            if (deletionTarget.categoryId === selectedCategory?.categoryId)
+                                setSelectedCategory(null);
 
-                        deleteCategory.request(deletionTarget.categoryId);
-                    }}>
+                            deleteCategory.request(deletionTarget.categoryId);
+                        }}
+                    >
                         {deleteCategory.isLoading && <Spinner />}
                         Yes
                     </Button>

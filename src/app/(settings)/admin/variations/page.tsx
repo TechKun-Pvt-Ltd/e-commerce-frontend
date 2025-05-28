@@ -55,14 +55,17 @@ export default function VariationSettingsPage() {
     return <>
         <div className="h-full space-y-8 flex flex-col">
             <h1 className="text-3xl font-bold text-gray-900">Variations</h1>
-            <div className="max-w-md">
+            <div className="max-w-md py-2 space-y-2">
                 {loading ?
                     <VariationItemsSkeleton /> :
-                    (!error && items.length) && items.map(item => <VariationItem key={item.variationId}
+                    (!error && items.length) ? items.map(item => <VariationItem key={item.variationId}
                         variation={item}
                         onEdit={onEdit}
                         onDelete={onDelete}
-                    />)
+                    />):
+                    <div className="border rounded-md h-9 bg-background px-3.5 flex items-center text-gray-400">
+                        No variations created! Click the button below to create one now.
+                    </div>
                 }
                 <div className="rounded-md cursor-pointer h-9 hover:bg-accent px-3.5 flex items-center gap-2 text-gray-600"
                     onClick={() => addVariationRef.current?.open()}

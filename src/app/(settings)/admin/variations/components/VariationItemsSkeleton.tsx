@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function VariationItemsSkeleton() {
     return (
-        <div className="py-1.5">
+        <div className="py-1">
             <div className="border rounded-md h-9 bg-background pr-2.5 transition-colors duration-500 flex items-center justify-between">
                 <div className="pl-2.5 min-w-0 flex items-center gap-1">
                     <Skeleton className="w-4 h-4" />
