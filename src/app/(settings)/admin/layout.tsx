@@ -32,6 +32,11 @@ const items = [
         title: "Variations",
         url: "/admin/variations",
         icon: LifeBuoy
+    },
+    {
+        title: "Attributes",
+        url: "/admin/attributes",
+        icon: LifeBuoy
     }
 ];
 
