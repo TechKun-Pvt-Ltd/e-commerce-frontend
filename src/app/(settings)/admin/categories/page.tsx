@@ -18,8 +18,7 @@ import Spinner from "@/components/ui/spinner";
 import { createSelector } from "@reduxjs/toolkit";
 import { RootState } from "@/store/store";
 import { ServiceResponse } from "@/types/api";
-import { useRouter } from "next/navigation";
-import { useTopLoader } from "nextjs-toploader";
+import { useRouter } from "nextjs-toploader/app";
 
 type CategoryData = React.ComponentProps<typeof EditCategoryForm>["category"] & {};
 
@@ -52,7 +51,6 @@ export default function AdminCategoryPage() {
         categories, variations, attributes,
         loading, error
     } = useAppSelector(unionSelector);
-    const loader = useTopLoader();
     const router = useRouter();
 
     const createCategory = useDataFetch(categoryServices.createCategory, {
@@ -156,11 +154,9 @@ export default function AdminCategoryPage() {
     }, []);
 
     const goToVariationSettings = useCallback(() => {
-        loader.start();
         router.push(`/admin/variations`);
     }, [router]);
     const goToAttributeSettings = useCallback(() => {
-        loader.start();
         router.push(`/admin/attributes`);
     }, [router]);
 

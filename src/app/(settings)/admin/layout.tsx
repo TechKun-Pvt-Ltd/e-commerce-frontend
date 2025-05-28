@@ -8,7 +8,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { LifeBuoy, LogOut, MoreVerticalIcon } from "lucide-react"
+import { Tags, LogOut, MoreVerticalIcon, Shapes, SlidersHorizontal } from "lucide-react"
 import Link from "next/link";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -21,22 +21,23 @@ import { useRouter, usePathname } from "next/navigation";
 import { toast } from "sonner";
 import { NAVBAR_HEIGHT } from "@/lib/constants";
 import { UserRole } from "@/types/domains/user";
+import Spinner from "@/components/ui/spinner";
 
 const items = [
     {
         title: "Categories",
         url: "/admin/categories",
-        icon: LifeBuoy
+        icon: Tags  // Tags icon represents categories/taxonomy
     },
     {
         title: "Variations",
         url: "/admin/variations",
-        icon: LifeBuoy
+        icon: SlidersHorizontal  // Layers icon represents different variations/versions
     },
     {
         title: "Attributes",
         url: "/admin/attributes",
-        icon: LifeBuoy
+        icon: Shapes  // Sliders icon represents adjustable attributes/properties
     }
 ];
 
@@ -80,7 +81,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                     className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                                 >
                                     <Avatar className="h-8 w-8 rounded-lg">
-                                        <AvatarFallback className="rounded-lg bg-gradient-to-r from-gray-800 to-black text-white">{user?.fullName?.[0] || "U"}</AvatarFallback>
+                                        <AvatarFallback className="rounded-lg bg-gradient-to-r from-gray-800 to-black text-white">
+                                            {loading? <Spinner className="size-4" />: authenticated && user? user.fullName[0] : "!"}
+                                        </AvatarFallback>
                                     </Avatar>
                                     <div className="grid flex-1 text-left text-sm leading-tight">
                                         <span className="truncate font-medium">{user?.fullName}</span>

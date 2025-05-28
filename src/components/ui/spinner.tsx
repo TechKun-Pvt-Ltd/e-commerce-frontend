@@ -1,8 +1,9 @@
+import { cn } from '@/lib/utils';
 import React from 'react';
 
-export default function Spinner() {
+export default function Spinner({className = ""}: {className?: string}) {
     return <svg
-        className="w-12 h-12 animate-spin"
+        className={cn("w-12 h-12 animate-spin", className)}
         viewBox="25 25 50 50"
     >
         <circle
