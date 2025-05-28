@@ -75,13 +75,17 @@ export default function EditCategoryForm({
     loading = false,
     variations,
     attributes,
-    onSubmit
+    onSubmit,
+    manageVariations,
+    manageAttributes
 }: {
     category: CategoryData | null;
     loading?: boolean;
     variations: Variation[];
     attributes: Attribute[];
     onSubmit: (data: Partial<Omit<CategoryData, 'categoryId' | 'parentCategory'>>) => void
+    manageVariations: () => void;
+    manageAttributes: () => void;
 }) {
     const form = useForm<z.infer<typeof categorySchema>>({
         resolver: zodResolver(categorySchema),
@@ -143,6 +147,7 @@ export default function EditCategoryForm({
                                     <FormMultiSelect
                                         {...field}
                                         items={variations.map(v => ({ id: v.variationId, name: v.name }))}
+                                        onFooterClick={manageVariations}
                                     />
                                 </FormControl>
                                 <FormMessage />
@@ -160,6 +165,7 @@ export default function EditCategoryForm({
                                     <FormMultiSelect
                                         {...field}
                                         items={attributes.map(a => ({ id: a.attributeId, name: a.name }))}
+                                        onFooterClick={manageAttributes}
                                     />
                                 </FormControl>
                                 <FormMessage />

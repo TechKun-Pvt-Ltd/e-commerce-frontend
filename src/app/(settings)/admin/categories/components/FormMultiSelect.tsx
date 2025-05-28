@@ -16,7 +16,8 @@ const FormMultiSelect: React.FC<{
     disabled?: boolean;
     name: string;
     items: Item[];
-}> = ({ name, onChange, value, items, disabled }) => {
+    onFooterClick?: () => void;
+}> = ({ name, onChange, value, items, disabled, onFooterClick }) => {
     const selectedItems = items
         .filter(item => {
             const optionState = value[item.id];
@@ -56,7 +57,7 @@ const FormMultiSelect: React.FC<{
                         />;
                     })}
                 </MultiSelectMenu>
-                <MultiSelectFooter>
+                <MultiSelectFooter onClick={onFooterClick}>
                     <Settings className="w-4 h-4" />
                     <span className="text-sm">Manage {name.toLowerCase()}</span>
                 </MultiSelectFooter>

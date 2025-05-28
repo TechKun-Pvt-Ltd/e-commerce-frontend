@@ -63,14 +63,16 @@ const getDefaultValue = (category: CategoryData | null, variations: Variation[],
 };
 
 export default function AddCategoryForm({
-    parentCategory, variations, attributes,
-    loading, onAdd
+    parentCategory, variations, attributes, loading,
+    onAdd, manageVariations, manageAttributes
 }: {
     parentCategory?: CategoryData | null;
     variations: Variation[];
     attributes: Attribute[];
     loading: boolean;
     onAdd: (data: CategoryData) => void;
+    manageVariations: () => void;
+    manageAttributes: () => void;
 }) {
     const form = useForm<z.infer<typeof categorySchema>>({
         resolver: zodResolver(categorySchema),
@@ -125,6 +127,7 @@ export default function AddCategoryForm({
                                 <FormControl>
                                     <FormMultiSelect {...field}
                                         items={variations.map(v => ({ id: v.variationId, name: v.name }))}
+                                        onFooterClick={manageVariations}
                                     />
                                 </FormControl>
                                 <FormMessage />
@@ -141,6 +144,7 @@ export default function AddCategoryForm({
                                 <FormControl>
                                     <FormMultiSelect {...field}
                                         items={attributes.map(a => ({ id: a.attributeId, name: a.name }))}
+                                        onFooterClick={manageAttributes}
                                     />
                                 </FormControl>
                                 <FormMessage />

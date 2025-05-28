@@ -18,6 +18,8 @@ import Spinner from "@/components/ui/spinner";
 import { createSelector } from "@reduxjs/toolkit";
 import { RootState } from "@/store/store";
 import { ServiceResponse } from "@/types/api";
+import { useRouter } from "next/navigation";
+import { useTopLoader } from "nextjs-toploader";
 
 type CategoryData = React.ComponentProps<typeof EditCategoryForm>["category"] & {};
 
@@ -50,6 +52,8 @@ export default function AdminCategoryPage() {
         categories, variations, attributes,
         loading, error
     } = useAppSelector(unionSelector);
+    const loader = useTopLoader();
+    const router = useRouter();
 
     const createCategory = useDataFetch(categoryServices.createCategory, {
         onResponseReceived: useCallback((res: ServiceResponse<typeof categoryServices.createCategory>) => {
@@ -151,6 +155,15 @@ export default function AdminCategoryPage() {
         deleteDialogRef.current?.open();
     }, []);
 
+    const goToVariationSettings = useCallback(() => {
+        loader.start();
+        router.push(`/admin/variations`);
+    }, [router]);
+    const goToAttributeSettings = useCallback(() => {
+        loader.start();
+        router.push(`/admin/attributes`);
+    }, [router]);
+
     return (<>
         <div className="h-full space-y-8 flex flex-col">
             <h1 className="text-3xl font-bold text-gray-900">Categories</h1>
@@ -191,6 +204,8 @@ export default function AdminCategoryPage() {
                                 onSubmit={data => selectedCategory && updateCategory.request(
                                     selectedCategory?.categoryId, data
                                 )}
+                                manageVariations={goToVariationSettings}
+                                manageAttributes={goToAttributeSettings}
                             />:
                             <div className="min-h-64 flex flex-col items-center justify-center gap-2 text-gray-500">
                                 <SquarePen className="w-8 h-8" />
@@ -223,6 +238,8 @@ export default function AdminCategoryPage() {
 
                         createCategory.request(payload);
                     }}
+                    manageVariations={goToVariationSettings}
+                    manageAttributes={goToAttributeSettings}
                 />
             </DialogContent>
         </Dialog>
