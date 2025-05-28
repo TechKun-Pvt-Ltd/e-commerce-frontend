@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import { Metadata } from "next";
 import ReduxProvider from './ReduxProvider';
 import { AppGateway } from './AppGateway';
+import NextTopLoader from 'nextjs-toploader';
 
 export const metadata: Metadata = {
     title: "E-Commerce Store",
@@ -19,6 +20,16 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body className={`${inter.className} overflow-x-hidden`} style={{width: '100vw'}}>
+                <NextTopLoader 
+                    color="#000"
+                    initialPosition={0.08}
+                    crawlSpeed={200}
+                    height={3}
+                    crawl={true}
+                    showSpinner={true}
+                    easing="ease"
+                    speed={200}
+                />
                 <ReduxProvider>
                     <AppGateway>
                         {children}
