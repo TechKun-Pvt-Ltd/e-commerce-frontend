@@ -1,6 +1,6 @@
 "use client"
 import React, { useCallback, useState } from 'react';
-import VariationItem from '../components/VariationItem';
+import VariationItem from './components/VariationItem';
 import { Plus } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import VariationItemsSkeleton from './components/VariationItemsSkeleton';

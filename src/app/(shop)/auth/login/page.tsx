@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'nextjs-toploader/app';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -26,7 +26,7 @@ export default function LoginPage() {
 
     useEffect(() => {
         if (!loading && authenticated) {
-            toast.success('You are already logged in!', {icon: null, richColors: true});
+            toast.success('You are logged in!', {icon: null, richColors: true});
             router.push('/');
         }
     }, [loading, authenticated]);

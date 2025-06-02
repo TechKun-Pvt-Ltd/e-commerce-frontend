@@ -8,7 +8,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Tags, LogOut, MoreVerticalIcon, Shapes, SlidersHorizontal } from "lucide-react"
+import { Tags, LogOut, MoreVerticalIcon, Shapes, SlidersHorizontal, Package } from "lucide-react"
 import Link from "next/link";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -17,13 +17,25 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { logout } from "@/store/slices/authSlice";
 import { Separator } from "@/components/ui/separator";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { useRouter } from "nextjs-toploader/app";
 import { toast } from "sonner";
 import { NAVBAR_HEIGHT } from "@/lib/constants";
 import { UserRole } from "@/types/domains/user";
 import Spinner from "@/components/ui/spinner";
 
 const items = [
+    {
+        title: "Products",
+        url: "/admin/products",
+        icon: Package,  // Package icon represents products/items
+        children: [
+            {
+                title: "New Product",
+                url: "/admin/products/new"
+            }
+        ]
+    },
     {
         title: "Categories",
         url: "/admin/categories",
@@ -47,8 +59,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const router = useRouter();
     const pathname = usePathname();
 
-    const currentPathTitle = useMemo(
-        () => items.find(item => item.url === pathname)?.title,
+    const breadcrumbItems = useMemo(
+        () => {
+            const breadcrumbItems: {
+                title: string,
+                url: string,
+            }[] = [];
+            const activeItem = items.find(item => pathname.includes(item.url));
+            if (!activeItem) return breadcrumbItems;
+
+            breadcrumbItems.push(activeItem);
+            const childItem = activeItem.children?.find(child => pathname.includes(child.url));
+            if (childItem)
+                breadcrumbItems.push(childItem);
+
+            return breadcrumbItems;
+        },
         [pathname]
     );
 
@@ -65,6 +91,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             setTimeout(() => {
                 toast('Your session has expired!', { icon: null, richColors: true });
                 dispatch(logout());
+                router.push('/auth/login');
             }, expiresIn);
         }
     }, [loading, authenticated]);
@@ -110,7 +137,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <SidebarMenu>
                     {items.map(item => (
                         <SidebarMenuItem key={item.title}>
-                            <SidebarMenuButton asChild>
+                            <SidebarMenuButton tooltip={item.title} asChild>
                                 <Link href={item.url}>
                                     <item.icon />
                                     <span>{item.title}</span>
@@ -144,9 +171,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             <BreadcrumbLink href="/admin/categories">Admin Settings</BreadcrumbLink>
                         </BreadcrumbItem>
                         <BreadcrumbSeparator />
-                        <BreadcrumbItem>
-                            <BreadcrumbPage>{currentPathTitle}</BreadcrumbPage>
-                        </BreadcrumbItem>
+                        {breadcrumbItems.map((item, i) => <BreadcrumbItem key={item.url}>
+                            {i === breadcrumbItems.length - 1 ? <BreadcrumbPage>{item.title}</BreadcrumbPage>:
+                                <BreadcrumbLink href={item.url}>{item.title}</BreadcrumbLink>}
+                        </BreadcrumbItem>)}
                     </BreadcrumbList>
                 </Breadcrumb>
             </div>
