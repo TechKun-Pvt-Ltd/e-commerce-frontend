@@ -62,8 +62,18 @@ export interface ProductPayload {
     description: string;
     starred: boolean;
     categoryId: number;
-    variants: ProductVariant[];
-    attributes: ProductAttribute[];
+    variants: {
+        productVariantId: number;
+        sku: string;
+        quantityInStock: number;
+        price: number;
+        disabled: boolean;
+        variationOptionIds: number[];
+    }[];
+    attributes: {
+        attributeId: number;
+        value: string;
+    }[];
 }
 
 export interface ProductPreview {

@@ -208,7 +208,7 @@ export default function CategoriesBar() {
                             <DropdownMenuSub key={category.path}>
                                 <DropdownMenuSubTrigger>{category.name}</DropdownMenuSubTrigger>
                                 <DropdownMenuSubContent>
-                                    {category.subcategories.map((sub) => renderCategoryDropdown(sub))}
+                                    {category.subcategories.map(renderCategoryDropdown)}
                                 </DropdownMenuSubContent>
                             </DropdownMenuSub>
                         ))}
