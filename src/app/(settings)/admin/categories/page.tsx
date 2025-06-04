@@ -15,29 +15,13 @@ import CategoryTreeSkeleton from "./components/CategoryTreeSkeleton";
 import useDataFetch from "@/hooks/use-data-fetch";
 import * as categoryServices from "@/services/category";
 import Spinner from "@/components/ui/spinner";
-import { createSelector } from "@reduxjs/toolkit";
-import { RootState } from "@/store/store";
 import { ServiceResponse } from "@/types/api";
 import { useRouter } from "nextjs-toploader/app";
+import { categoriesUnionSelector } from "@/store/selectors";
 
 type CategoryData = React.ComponentProps<typeof EditCategoryForm>["category"] & {};
 
 const categoryDetailsMap = new Map<number, CategoryData>();
-
-const unionSelector = createSelector(
-    [
-        (state: RootState) => state.categories,
-        (state: RootState) => state.variations,
-        (state: RootState) => state.attributes
-    ],
-    (categories, variations, attributes) => ({
-        categories: categories.items,
-        variations: variations.items,
-        attributes: attributes.items,
-        loading: categories.loading || variations.loading || attributes.loading,
-        error: categories.error || variations.error || attributes.error
-    })
-);
 
 export default function AdminCategoryPage() {
     const addDialogRef = React.useRef<{ open: () => void, close: () => void }>(null);
@@ -50,7 +34,7 @@ export default function AdminCategoryPage() {
     const {
         categories, variations, attributes,
         loading, error
-    } = useAppSelector(unionSelector);
+    } = useAppSelector(categoriesUnionSelector);
     const router = useRouter();
 
     const createCategory = useDataFetch(categoryServices.createCategory, {
