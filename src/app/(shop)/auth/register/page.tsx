@@ -32,7 +32,7 @@ export default function RegisterPage() {
     const [error, setError] = useState<string | null>(null);
 
     const { request, isLoading } = useDataFetch(registerService, {
-        onResponseReceived: () => {
+        onSuccess: () => {
             router.push('/auth/login?registered=true');
         }
     });

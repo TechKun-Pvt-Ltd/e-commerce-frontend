@@ -38,7 +38,7 @@ export default function AdminCategoryPage() {
     const router = useRouter();
 
     const createCategory = useDataFetch(categoryServices.createCategory, {
-        onResponseReceived: useCallback((res: ServiceResponse<typeof categoryServices.createCategory>) => {
+        onSuccess: useCallback((res: ServiceResponse<typeof categoryServices.createCategory>) => {
             const parent = res.parentCategory;
             categoryDetailsMap.set(res.categoryId, {
                 categoryId: res.categoryId,
@@ -74,7 +74,7 @@ export default function AdminCategoryPage() {
         }, [categories, targetParent])
     });
     const updateCategory = useDataFetch(categoryServices.updateCategory, {
-        onResponseReceived: useCallback((res: ServiceResponse<typeof categoryServices.updateCategory>) => {
+        onSuccess: useCallback((res: ServiceResponse<typeof categoryServices.updateCategory>) => {
             if (!selectedCategory)
                 return;
 
@@ -93,11 +93,11 @@ export default function AdminCategoryPage() {
         }, [categories, selectedCategory])
     });
     const getCategory = useDataFetch(categoryServices.getCategoryById, {
-        onResponseReceived: registerCategoryDetails
+        onSuccess: registerCategoryDetails
     });
 
     const deleteCategory = useDataFetch(categoryServices.deleteCategory, {
-        onResponseReceived: useCallback(() => {
+        onSuccess: useCallback(() => {
             if (!deletionTarget)
                 return;
 

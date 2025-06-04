@@ -20,19 +20,19 @@ export default function AttributeSettingsPage() {
     const addDialogRef = React.useRef<{ open(): void, close(): void }>(null);
     const deleteDialogRef = React.useRef<{ open(): void, close(): void }>(null);
     const createAttribute = useDataFetch(attributeServices.createAttribute, {
-        onResponseReceived: useCallback((res: Attribute) => {
+        onSuccess: useCallback((res: Attribute) => {
             dispatch(updateAttributes([...items, res]));
             addDialogRef.current?.close();
         }, [items])
     });
     const updateAttribute = useDataFetch(attributeServices.updateAttribute, {
-        onResponseReceived: useCallback((res: Attribute) => {
+        onSuccess: useCallback((res: Attribute) => {
             dispatch(updateAttributes(items.map(item => item.attributeId === res.attributeId ? res : item)));
             setSelectedAttribute(null);
         }, [items])
     });
     const deleteAttribute = useDataFetch(attributeServices.deleteAttribute, {
-        onResponseReceived: useCallback(() => {
+        onSuccess: useCallback(() => {
             dispatch(updateAttributes(items.filter(item => item.attributeId !== deletionTarget!.attributeId)));
             setDeletionTarget(null);
             deleteDialogRef.current?.close();

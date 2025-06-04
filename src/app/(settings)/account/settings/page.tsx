@@ -53,13 +53,13 @@ export default function AccountSettings() {
     const dispatch = useAppDispatch();
     const { user, loading, authenticated } = useAppSelector(state => state.auth);
     const passwordChange = useDataFetch(changePassword, {
-        onResponseReceived() {
+        onSuccess() {
             toast.success("Password updated successfully");
             dispatch(logout());
         }
     });
     const accountDelete = useDataFetch(deleteAccount, {
-        onResponseReceived() {
+        onSuccess() {
             toast.success("Your account has been successfully deleted!");
         }
     });

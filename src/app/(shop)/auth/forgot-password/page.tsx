@@ -21,7 +21,7 @@ export default function ForgotPasswordPage() {
     const [isEmailSent, setIsEmailSent] = useState(false);
 
     const { request, isLoading } = useDataFetch(forgotPassword, {
-        onResponseReceived: () => {
+        onSuccess: () => {
             setIsEmailSent(true);
         }
     });

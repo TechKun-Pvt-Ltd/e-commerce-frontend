@@ -22,20 +22,20 @@ export default function VariationSettingsPage() {
     const [selectedVariation, setSelectedVariation] = useState<Variation | null>(null);
     const [deletionTarget, setDeletionTarget] = useState<Variation | null>(null);
     const addVariation = useDataFetch(variationServices.createVariation, {
-        onResponseReceived: useCallback((res: Variation) => {
+        onSuccess: useCallback((res: Variation) => {
             dispatch(updateVariations([...items, res]));
             addVariationRef.current?.close();
         }, [items])
     });
     const editVariation = useDataFetch(variationServices.updateVariation, {
-        onResponseReceived: useCallback((res: Variation) => {
+        onSuccess: useCallback((res: Variation) => {
             dispatch(updateVariations(items.map(item => item.variationId === res.variationId? res : item)));
             setSelectedVariation(null);
             editVariationRef.current?.close();
         }, [items])
     });
     const deleteVariation = useDataFetch(variationServices.deleteVariation, {
-        onResponseReceived: useCallback(() => {
+        onSuccess: useCallback(() => {
             dispatch(updateVariations(items.filter(item => item.variationId !== deletionTarget!.variationId)));
             setDeletionTarget(null);
             deleteDialogRef.current?.close();

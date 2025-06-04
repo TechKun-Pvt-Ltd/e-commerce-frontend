@@ -10,7 +10,7 @@ type DataFetchState<T> = {
 
 const useDataFetch = <T, R>(apiFunc: ServiceFunction<T, R>, options?: {
     defaultValue?: R,
-    onResponseReceived?: (res: R) => void
+    onSuccess?: (res: R) => void
 }): {
     request: (...args: T extends any[]? T : [T]) => Promise<void>,
 } & DataFetchState<R> => {
@@ -31,8 +31,8 @@ const useDataFetch = <T, R>(apiFunc: ServiceFunction<T, R>, options?: {
                 toast.error(result.error, {richColors: true});
             } else {
                 response = result.data;
-                if (options?.onResponseReceived)
-                    options.onResponseReceived(result.data);
+                if (options?.onSuccess)
+                    options.onSuccess(result.data);
             }
         } catch (e) {
             hasError = true;
@@ -45,7 +45,7 @@ const useDataFetch = <T, R>(apiFunc: ServiceFunction<T, R>, options?: {
             hasError,
             isLoading: false
         });
-    }, [options?.onResponseReceived]);
+    }, [options?.onSuccess]);
 
     return useMemo(() => ({ request, ...dataFetchState }), [request, dataFetchState]);
 };
