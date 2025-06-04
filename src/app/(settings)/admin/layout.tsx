@@ -32,7 +32,7 @@ const items = [
         children: [
             {
                 title: "New Product",
-                url: "/admin/products/new"
+                url: "/admin/products/add-product"
             }
         ]
     },
@@ -65,11 +65,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 title: string,
                 url: string,
             }[] = [];
-            const activeItem = items.find(item => pathname.includes(item.url));
+            const activeItem = items.find(item => pathname.startsWith(item.url));
             if (!activeItem) return breadcrumbItems;
 
             breadcrumbItems.push(activeItem);
-            const childItem = activeItem.children?.find(child => pathname.includes(child.url));
+            const childItem = activeItem.children?.find(child => pathname.startsWith(child.url));
             if (childItem)
                 breadcrumbItems.push(childItem);
 
@@ -171,10 +171,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             <BreadcrumbLink href="/admin/categories">Admin Settings</BreadcrumbLink>
                         </BreadcrumbItem>
                         <BreadcrumbSeparator />
-                        {breadcrumbItems.map((item, i) => <BreadcrumbItem key={item.url}>
-                            {i === breadcrumbItems.length - 1 ? <BreadcrumbPage>{item.title}</BreadcrumbPage>:
-                                <BreadcrumbLink href={item.url}>{item.title}</BreadcrumbLink>}
-                        </BreadcrumbItem>)}
+                        {breadcrumbItems.map((item, i) => i === breadcrumbItems.length - 1 ?
+                            <BreadcrumbItem key={item.url}>
+                                <BreadcrumbPage>{item.title}</BreadcrumbPage>
+                            </BreadcrumbItem>:
+                            <React.Fragment key={item.url}>
+                                <BreadcrumbItem>
+                                    <BreadcrumbLink href={item.url}>{item.title}</BreadcrumbLink>
+                                </BreadcrumbItem>
+                                <BreadcrumbSeparator />
+                            </React.Fragment>
+                        )}
                     </BreadcrumbList>
                 </Breadcrumb>
             </div>
