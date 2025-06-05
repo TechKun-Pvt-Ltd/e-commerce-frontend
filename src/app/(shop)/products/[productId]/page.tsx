@@ -444,18 +444,32 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
 
             const newVariationMap = (product?.variants || [])
                 .reduce((newVarMap, currentVariant) => {
-                    const variantOptionsIncluded = currentVariant.variationOptions
-                        .map(opt => [opt.variationOptionId, optionsIncluded[opt.variationOptionId]] as [number, boolean]);
-                    if (variantOptionsIncluded.every(([, included]) => included)) {
+                    const variantOptionsIncluded: { [varOptId: number]: boolean } = {};
+                    let i = 0;
+                    let acc = true;
+                    while (i < currentVariant.variationOptions.length) {
+                        const opt = currentVariant.variationOptions[i];
+                        variantOptionsIncluded[opt.variationOptionId] = acc;
+                        acc = acc && optionsIncluded[opt.variationOptionId];
+                        i++;
+                    }
+                    i--;
+                    acc = true;
+                    while (i >= 0) {
+                        const opt = currentVariant.variationOptions[i];
+                        variantOptionsIncluded[opt.variationOptionId] = variantOptionsIncluded[opt.variationOptionId] && acc;
+                        acc = acc && optionsIncluded[opt.variationOptionId];
+                        i--;
+                    }
+
+                    if (acc) {
                         newPriceRange[0] = Math.min(newPriceRange[0], currentVariant.price);
                         newPriceRange[1] = Math.max(newPriceRange[1], currentVariant.price);
                     }
 
                     currentVariant.variationOptions
                         .forEach(opt => {
-                            if (!variantOptionsIncluded.every(([varOptId, included]) =>
-                                opt.variationOptionId === varOptId || included
-                            ))
+                            if (!variantOptionsIncluded[opt.variationOptionId])
                                 return;
 
                             const variation = newVarMap[opt.variationId] = opt.variationId in newVarMap ?
