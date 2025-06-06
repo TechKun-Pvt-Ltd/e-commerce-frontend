@@ -97,7 +97,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }, [loading, authenticated]);
 
     return <SidebarProvider className="" style={{ height: `calc(100vh - ${NAVBAR_HEIGHT})`, minHeight: 0 }}>
-        <Sidebar collapsible="icon" style={{"--sidebar": "white", height: `calc(100vh - ${NAVBAR_HEIGHT})`, insetBlock: NAVBAR_HEIGHT} as any}>
+        <Sidebar collapsible="icon" style={{height: `calc(100vh - ${NAVBAR_HEIGHT})`, insetBlock: NAVBAR_HEIGHT} as any}>
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>

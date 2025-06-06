@@ -60,7 +60,7 @@ export default function AttributeSettingsPage() {
                                     {item.name}
                                 </span>
                                 ·
-                                <span className="text-gray-600">{item.type}</span>
+                                <span className="text-muted-foreground">{item.type}</span>
                             </div>
                             <div className="flex gap-2">
                                 <Button variant="ghost"

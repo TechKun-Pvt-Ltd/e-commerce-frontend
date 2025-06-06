@@ -63,7 +63,7 @@ export default function MyAccountLayout({ children }: { children: React.ReactNod
     }, [loading, authenticated]);
 
     return <SidebarProvider className="">
-        <Sidebar collapsible="icon" style={{"--sidebar": "white", height: `calc(100vh - ${NAVBAR_HEIGHT})`, insetBlock: NAVBAR_HEIGHT} as any}>
+        <Sidebar collapsible="icon" style={{height: `calc(100vh - ${NAVBAR_HEIGHT})`, insetBlock: NAVBAR_HEIGHT} as any}>
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
