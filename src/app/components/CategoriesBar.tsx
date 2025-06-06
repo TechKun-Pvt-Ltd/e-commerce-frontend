@@ -5,8 +5,7 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
+    DropdownMenuPortal,
     DropdownMenuSub,
     DropdownMenuSubContent,
     DropdownMenuSubTrigger,
@@ -154,24 +153,25 @@ const categoryTree: CategoryTree[] = [
     },
 ];
 
-
 function renderCategoryDropdown(category: CategoryTree) {
-    if (category.subcategories.length === 0) {
-        return (
-            <DropdownMenuItem asChild key={category.path}>
-                <Link href={`/category/${category.categoryId}`}>{category.name}</Link>
-            </DropdownMenuItem>
-        )
-    }
+    if (category.subcategories.length === 0)
+        return <DropdownMenuItem key={category.path}>
+            <Link href={`/category/${category.categoryId}`}>{category.name}</Link>
+        </DropdownMenuItem>;
 
-    return (
-        <DropdownMenuSub key={category.path}>
-            <DropdownMenuSubTrigger>{category.name}</DropdownMenuSubTrigger>
-            <DropdownMenuSubContent>
-                {category.subcategories.map((sub) => renderCategoryDropdown(sub))}
-            </DropdownMenuSubContent>
+    return <div className="flex" key={category.path}>
+        <DropdownMenuItem className="flex-1">
+            <Link href={`/category/${category.categoryId}`}>{category.name}</Link>
+        </DropdownMenuItem>
+        <DropdownMenuSub>
+            <DropdownMenuSubTrigger />
+            <DropdownMenuPortal>
+                <DropdownMenuSubContent>
+                    {category.subcategories.map(renderCategoryDropdown)}
+                </DropdownMenuSubContent>
+            </DropdownMenuPortal>
         </DropdownMenuSub>
-    )
+    </div>
 };
 
 
@@ -185,16 +185,19 @@ export default function CategoriesBar() {
     return (
         <div className="w-full border-b bg-background px-4">
         <div className="mx-auto w-max max-w-full overflow-x-auto p-2 flex gap-4" style={{scrollbarWidth: 'none'}}>
-            {visibleCategories.map((category) => (
-                <DropdownMenu key={category.path}>
+            {visibleCategories.map((category) => (<div key={category.path} className="flex items-center">
+                <DropdownMenu>
+                    <button className="rounded-l-md px-3 py-2 hover:bg-secondary font-medium text-sm">
+                        <Link href={`/category/${category.categoryId}`}>{category.name}</Link>
+                    </button>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost">
-                            {category.name}
-                            <ChevronDown />
-                        </Button>
+                        <button className="rounded-r-md px-1.5 py-2 hover:bg-secondary">
+                            <ChevronDown className="size-4" />
+                        </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start">{category.subcategories.map(renderCategoryDropdown)}</DropdownMenuContent>
                 </DropdownMenu>
+                </div>
             ))}
             {overflowCategories.length > 0 && (
                 <DropdownMenu>

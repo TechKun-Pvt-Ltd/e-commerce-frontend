@@ -63,7 +63,7 @@ export interface ProductPayload {
     starred: boolean;
     categoryId: number;
     variants: {
-        productVariantId: number;
+        productVariantId?: number;
         sku: string;
         quantityInStock: number;
         price: number;
