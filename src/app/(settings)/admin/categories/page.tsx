@@ -43,6 +43,7 @@ export default function AdminCategoryPage() {
             categoryDetailsMap.set(res.categoryId, {
                 categoryId: res.categoryId,
                 name: res.name,
+                code: res.code,
                 parentCategory: parent ? categoryDetailsMap.get(parent?.categoryId): undefined,
                 variationIds: res.variations.map(v => v.variationId),
                 attributeIds: res.attributes.map(a => a.attributeId),
@@ -80,6 +81,7 @@ export default function AdminCategoryPage() {
 
             const categoryDetails = categoryDetailsMap.get(selectedCategory.categoryId)!;
             categoryDetails.name = res.name;
+            categoryDetails.code = res.code;
             categoryDetails.variationIds = res.variations.map(v => v.variationId);
             categoryDetails.attributeIds = res.attributes.map(a => a.attributeId);
 
@@ -357,6 +359,7 @@ function registerCategoryDetails(categoryDetails: CategoryDetails): CategoryData
     const details = {
         categoryId: categoryId,
         name: categoryDetails.name,
+        code: categoryDetails.code,
         parentCategory: categoryDetails.parentCategory ?
             registerCategoryDetails(categoryDetails.parentCategory):
             undefined,

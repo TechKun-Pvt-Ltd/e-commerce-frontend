@@ -4,6 +4,7 @@ import { Variation } from "./variation";
 export interface Category {
     categoryId: number;
     name: string;
+    code: string;
     parentCategory?: Category;
     variations: Variation[];
     attributes: Attribute[];
@@ -19,6 +20,7 @@ export interface CategoryTree {
 export interface CategoryDetails {
     categoryId: number;
     name: string;
+    code: string;
     parentCategory?: CategoryDetails;
     variations: VariationDTO[];
     attributes: Attribute[];
@@ -31,6 +33,7 @@ export interface VariationDTO {
 
 export interface CategoryDTO {
     name: string;
+    code: string;
     parentCategoryId?: number;
     variationIds: number[];
     attributeIds: number[];

@@ -10,10 +10,12 @@ import { Variation } from "@/types/domains/variation";
 import { Attribute } from "@/types/domains/attribute";
 import Spinner from "@/components/ui/spinner";
 import FormMultiSelect from "./FormMultiSelect";
+import { extractConsonants } from "@/lib/utils";
 
 interface CategoryData {
     categoryId: number;
     name: string;
+    code: string;
     parentCategory?: CategoryData;
     variationIds: number[];
     attributeIds: number[];
@@ -25,7 +27,8 @@ type OptionState = typeof optionStates[number];
 const recordSchema = z.record(z.string().transform(k => Number(k)), z.enum(optionStates));
 
 const categorySchema = z.object({
-    name: z.string().trim().nonempty("Category name is required"),
+    name: z.string().trim().nonempty("Category name is required."),
+    code: z.string().trim().nonempty("Category code is required."),
     variations: recordSchema,
     attributes: recordSchema
 });
@@ -65,6 +68,7 @@ const getDefaultValue = (category: CategoryData | null, variations: Variation[],
 
     return {
         name: category?.name || "",
+        code: category?.code || "",
         variations: variationItemStates,
         attributes: attributeItemStates
     }
@@ -91,6 +95,7 @@ export default function EditCategoryForm({
         resolver: zodResolver(categorySchema),
         defaultValues: {
             name: "",
+            code: "",
             variations: {},
             attributes: {}
         }
@@ -107,6 +112,8 @@ export default function EditCategoryForm({
                 const dirtyFields = form.formState.dirtyFields;
                 if (dirtyFields.name)
                     submitData.name = data.name;
+                if (dirtyFields.code)
+                    submitData.code = data.code;
                 if (dirtyFields.variations)
                     submitData.variationIds = Object.entries(data.variations)
                        .filter(([, v]) => v === "present")
@@ -128,6 +135,28 @@ export default function EditCategoryForm({
                                 <FormLabel>Name</FormLabel>
                                 <FormControl>
                                     <Input placeholder="Enter category name"
+                                        {...field}
+                                        onChange={e => {
+                                            const newValue = e.target.value;
+                                            field.onChange(newValue);
+                                            form.setValue("code", extractConsonants(newValue).toUpperCase(), { shouldDirty: true });
+                                        }}
+                                        onBlur={() => field.onChange(field.value.trim())}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="code"
+                        disabled={loading}
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Code</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Enter category code"
                                         {...field}
                                         onBlur={() => field.onChange(field.value.trim())}
                                     />

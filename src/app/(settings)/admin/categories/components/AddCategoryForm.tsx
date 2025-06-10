@@ -15,6 +15,7 @@ import FormMultiSelect from "./FormMultiSelect";
 
 interface CategoryData {
     name: string;
+    code: string;
     parentCategory?: CategoryData;
     variationIds: number[];
     attributeIds: number[];
@@ -26,7 +27,8 @@ type OptionState = typeof optionStates[number];
 const recordSchema = z.record(z.string().transform(k => Number(k)), z.enum(optionStates));
 
 const categorySchema = z.object({
-    name: z.string().nonempty("Category name is required"),
+    name: z.string().nonempty("Category name is required."),
+    code: z.string().nonempty("Category code is required."),
     variations: recordSchema,
     attributes: recordSchema
 });
@@ -78,6 +80,7 @@ export default function AddCategoryForm({
         resolver: zodResolver(categorySchema),
         defaultValues: {
             name: "",
+            code: "",
             variations: {},
             attributes: {}
         }
@@ -92,6 +95,7 @@ export default function AddCategoryForm({
             <form className="space-y-6" onSubmit={form.handleSubmit(data => {
                 onAdd({
                     name: data.name,
+                    code: data.code,
                     variationIds: Object.entries(data.variations)
                         .filter(([, v]) => v === "present")
                         .map(([k]) => Number(k)),
@@ -110,6 +114,22 @@ export default function AddCategoryForm({
                                 <FormLabel>Name</FormLabel>
                                 <FormControl>
                                     <Input placeholder="Enter category name"
+                                        {...field}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="code"
+                        disabled={loading}
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Code</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Enter category code"
                                         {...field}
                                     />
                                 </FormControl>
