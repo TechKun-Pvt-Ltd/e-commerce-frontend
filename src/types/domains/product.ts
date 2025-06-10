@@ -1,11 +1,11 @@
 import { SortOption } from "../api";
 import { Attribute } from "./attribute";
-import { VariationOption } from "./variation";
 
 export interface Product {
     productId: number;
     categoryId: number;
     title: string;
+    code: string;
     description: string;
     dateAdded: string;
     starred: boolean;
@@ -46,6 +46,7 @@ export interface ProductDetails {
     productId: number;
     images: ProductImage[];
     title: string;
+    code: string;
     categoryId: number;
     variants: ProductVariant[];
     description: string;
@@ -59,6 +60,7 @@ export interface ProductPatchPayload {
 
 export interface ProductPayload {
     title: string;
+    code: string;
     description: string;
     starred: boolean;
     categoryId: number;
@@ -85,6 +87,7 @@ export interface ProductPreview {
     imageUrl: string;
     price: number;
     title: string;
+    code: string;
     rating: number;
     starred: boolean;
 }
