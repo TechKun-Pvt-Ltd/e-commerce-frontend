@@ -7,12 +7,14 @@ export interface Variation {
 export interface VariationOption {
     variationOptionId: number;
     name: string;
+    code: string;
 }
 
 export interface VariationCreationPayload {
     name: string;
     variationOptions: {
         name: string;
+        code: string;
     }[];
 }
 
@@ -21,5 +23,6 @@ export interface VariationUpdationPayload {
     variationOptions: {
         variationOptionId?: number;
         name: string;
+        code: string;
     }[];
 }

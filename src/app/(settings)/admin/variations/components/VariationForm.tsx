@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import Spinner from "@/components/ui/spinner";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { VariationUpdationPayload } from "@/types/domains/variation";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,7 +17,8 @@ const variationSchema = z.object({
     variationOptions: z.array(z.object({
         id: z.number().optional(),
         key: z.number(),
-        name: z.string().nonempty("Variation option name is required.")
+        name: z.string().nonempty("Variation option name is required."),
+        code: z.string().nonempty("Variation option code is required.")
     })).min(1, "There must be at least one variation option.")
 });
 
@@ -24,7 +26,8 @@ const defaultFieldValues = {
     name: "",
     variationOptions: [{
         key: 0,
-        name: ""
+        name: "",
+        code: ""
     }]
 };
 
@@ -49,7 +52,8 @@ export default function VariationForm({
         variationOptions: variation.variationOptions.map((opt, i) => ({
             id: opt.variationOptionId,
             key: i,
-            name: opt.name
+            name: opt.name,
+            code: opt.code
         }))
     }: defaultFieldValues, [variation]);
 
@@ -65,17 +69,32 @@ export default function VariationForm({
         firstRender.current = false;
     }, [defaultValues]);
 
-    const renderVariationOptionField = useCallback(({ field }) => (
-        <FormItem className="w-full">
+    const renderVariationOptionNameField = useCallback(({ field }) => (
+        <FormItem>
             <FormControl>
-                <Input placeholder="Enter variation option name"
+                <input className="w-full" placeholder="Enter variation option name"
                     {...field}
                 />
             </FormControl>
-            <FormMessage />
+            <FormMessage className="w-full whitespace-normal" />
         </FormItem>
     ), []) as ((params: {
         field: ControllerRenderProps<FieldValues, `variationOptions.${number}.name`>;
+        fieldState: ControllerFieldState;
+        formState: UseFormStateReturn<FieldValues>;
+    }) => React.ReactElement);
+
+    const renderVariationOptionCodeField = useCallback(({ field }) => (
+        <FormItem>
+            <FormControl>
+                <input className="w-full" placeholder="Enter variation option code"
+                    {...field}
+                />
+            </FormControl>
+            <FormMessage className="w-full whitespace-normal" />
+        </FormItem>
+    ), []) as ((params: {
+        field: ControllerRenderProps<FieldValues, `variationOptions.${number}.code`>;
         fieldState: ControllerFieldState;
         formState: UseFormStateReturn<FieldValues>;
     }) => React.ReactElement);
@@ -87,7 +106,8 @@ export default function VariationForm({
                     name: data.name,
                     variationOptions: data.variationOptions.map(opt => ({
                         variationOptionId: opt.id,
-                        name: opt.name
+                        name: opt.name,
+                        code: opt.code
                     }))
                 });
             else
@@ -119,40 +139,66 @@ export default function VariationForm({
                             <FormLabel>Variation Options</FormLabel>
                             <FormControl>
                                 <div className="space-y-2">
-                                    <div className="space-y-2 border rounded-md h-64 p-2.5 overflow-y-auto thin-scrollbar">
-                                        {field.value.map((opt, i) => <div key={opt.key} className="flex gap-2">
-                                            <FormField
-                                                control={variationForm.control}
-                                                name={`variationOptions.${i}.name`}
-                                                disabled={field.disabled}
-                                                render={renderVariationOptionField}
-                                            />
-                                            {field.value.length === 1 ?
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <div className="h-min">
-                                                            <Button variant="outline" disabled>
+                                    <div
+                                        data-slot="table-container"
+                                        className="relative w-full h-64 overflow-auto"
+                                    >
+                                        <Table className="border-separate border-spacing-0">
+                                            <TableHeader className="sticky top-0">
+                                                <TableRow>
+                                                    <TableHead className="border-y border-x rounded-tl-md bg-background">Name</TableHead>
+                                                    <TableHead className="border-y border-r bg-background">Code</TableHead>
+                                                    <TableHead className="border-y border-r rounded-tr-md bg-background" />
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {field.value.map((opt, i) => <TableRow key={opt.key}>
+                                                    <TableCell className={`border-b border-x ${i === field.value.length - 1 ? "rounded-bl-md": ""}`}>
+                                                        <FormField
+                                                            control={variationForm.control}
+                                                            name={`variationOptions.${i}.name`}
+                                                            disabled={field.disabled}
+                                                            render={renderVariationOptionNameField}
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell className="border-b border-r">
+                                                        <FormField
+                                                            control={variationForm.control}
+                                                            name={`variationOptions.${i}.code`}
+                                                            disabled={field.disabled}
+                                                            render={renderVariationOptionCodeField}
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell className={`border-b border-r ${i === field.value.length - 1 ? "rounded-br-md": ""}`}>
+                                                        {field.value.length === 1 ?
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    <div className="h-min">
+                                                                        <Button variant="ghost" disabled>
+                                                                            <Minus />
+                                                                        </Button>
+                                                                    </div>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>
+                                                                    <p>At least one option must be there</p>
+                                                                </TooltipContent>
+                                                            </Tooltip> :
+                                                            <Button variant="ghost"
+                                                                type="button"
+                                                                disabled={field.disabled || field.value.length === 1}
+                                                                onClick={() => {
+                                                                    const currentValue = variationForm.getValues("variationOptions");
+                                                                    currentValue.splice(i, 1);
+                                                                    field.onChange([...currentValue]);
+                                                                }}
+                                                            >
                                                                 <Minus />
                                                             </Button>
-                                                        </div>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        <p>At least one option must be there</p>
-                                                    </TooltipContent>
-                                                </Tooltip> :
-                                                <Button variant="outline"
-                                                    type="button"
-                                                    disabled={field.disabled || field.value.length === 1}
-                                                    onClick={() => {
-                                                        const currentValue = variationForm.getValues("variationOptions");
-                                                        currentValue.splice(i, 1);
-                                                        field.onChange([...currentValue]);
-                                                    }}
-                                                >
-                                                    <Minus />
-                                                </Button>
-                                            }
-                                        </div>)}
+                                                        }
+                                                    </TableCell>
+                                                </TableRow>)}
+                                            </TableBody>
+                                        </Table>
                                     </div>
                                     <FormMessage />
                                     <Button variant="outline"
@@ -162,7 +208,7 @@ export default function VariationForm({
                                         onClick={() => {
                                             const currentValue = variationForm.getValues("variationOptions");
                                             const key = currentValue.length ? currentValue[currentValue.length - 1]?.key + 1 : 1;
-                                            field.onChange([...currentValue, { key, name: "" }]);
+                                            field.onChange([...currentValue, { key, name: "", code: "" }]);
                                         }}
                                     >
                                         <Plus className="w-4 h-4 text-gray-600" />

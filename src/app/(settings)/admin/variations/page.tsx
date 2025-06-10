@@ -86,7 +86,8 @@ export default function VariationSettingsPage() {
                     onSubmit={data => addVariation.request({
                         name: data.name,
                         variationOptions: data.variationOptions.map(item => ({
-                            name: item.name
+                            name: item.name,
+                            code: item.code
                         }))
                     })}
                 />
