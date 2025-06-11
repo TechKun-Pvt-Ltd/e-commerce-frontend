@@ -5,21 +5,24 @@ import { Input } from "@/components/ui/input";
 import Spinner from "@/components/ui/spinner";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { extractConsonants } from "@/lib/utils";
 import { VariationUpdationPayload } from "@/types/domains/variation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Minus, Plus } from "lucide-react";
-import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import React, { RefObject, useCallback, useEffect, useMemo, useRef } from "react";
 import { ControllerFieldState, ControllerRenderProps, useForm, UseFormStateReturn } from "react-hook-form";
 import { z } from "zod";
 
 const variationSchema = z.object({
     name: z.string().nonempty("Variation name is required."),
-    variationOptions: z.array(z.object({
-        id: z.number().optional(),
-        key: z.number(),
-        name: z.string().nonempty("Variation option name is required."),
-        code: z.string().nonempty("Variation option code is required.")
-    })).min(1, "There must be at least one variation option.")
+    variationOptions: z.array(
+        z.object({
+            id: z.number().optional(),
+            key: z.number(),
+            name: z.string().nonempty("Variation option name is required."),
+            code: z.string().nonempty("Variation option code is required.")
+        })
+    ).min(1, "There must be at least one variation option.")
 });
 
 const defaultFieldValues = {
@@ -74,6 +77,19 @@ export default function VariationForm({
             <FormControl>
                 <input className="w-full" placeholder="Enter variation option name"
                     {...field}
+                    onChange={e => {
+                        const newValue = e.target.value;
+                        field.onChange(newValue);
+                        variationForm.setValue(
+                            field.name.replace(".name", ".code") as `variationOptions.${number}.code`,
+                            extractConsonants(newValue).toUpperCase(),
+                            { shouldDirty: true }
+                        );
+                    }}
+                    onBlur={e => {
+                        field.onBlur();
+                        field.onChange(e.target.value.trim());
+                    }}
                 />
             </FormControl>
             <FormMessage className="w-full whitespace-normal" />
@@ -89,6 +105,11 @@ export default function VariationForm({
             <FormControl>
                 <input className="w-full" placeholder="Enter variation option code"
                     {...field}
+                    onChange={e => field.onChange(e.target.value.toUpperCase())}
+                    onBlur={e => {
+                        field.onBlur();
+                        field.onChange(e.target.value.trim());
+                    }}
                 />
             </FormControl>
             <FormMessage className="w-full whitespace-normal" />
@@ -101,6 +122,23 @@ export default function VariationForm({
 
     return <Form {...variationForm}>
         <form className="space-y-6" onSubmit={variationForm.handleSubmit(data => {
+            const erroneousIndices: number[] = [];
+            const codeSet = new Set<string>();
+            data.variationOptions.forEach((opt, i) => {
+                if (codeSet.has(opt.code)) {
+                    erroneousIndices.push(i);
+                } else {
+                    codeSet.add(opt.code);
+                }
+            });
+            for (const i of erroneousIndices) { 
+                variationForm.setError(`variationOptions.${i}.code`, {
+                    message: "Code must be unique."
+                });
+            }
+            if (erroneousIndices.length)
+                return;
+
             if (variation)
                 onSubmit({
                     name: data.name,

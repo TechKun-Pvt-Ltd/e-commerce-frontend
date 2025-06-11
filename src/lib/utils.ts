@@ -8,7 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 export function extractConsonants(text: string): string {
   const vowels = 'aeiouAEIOU';
   const consonants = [...text].filter(char =>
-    /[a-zA-Z]/.test(char) && !vowels.includes(char)
+    /[0-9a-zA-Z]/.test(char) && !vowels.includes(char)
   );
   return consonants.join('');
 }
