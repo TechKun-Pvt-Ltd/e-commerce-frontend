@@ -1,4 +1,4 @@
-import { ServiceFunction } from "@/types/api";
+import { ApiResponse, ServiceFunction } from "@/types/api";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -8,10 +8,15 @@ type DataFetchState<T> = {
     isLoading: boolean,
 };
 
+type RequestSuccessHandler<R> = {
+    apiResponsePromise: ApiResponse<R>,
+    onSuccess: (callback: (res: R) => void) => RequestSuccessHandler<R>
+}
+
 const useDataFetch = <T, R>(apiFunc: ServiceFunction<T, R>, options?: {
     defaultValue?: R,
 }): {
-    request: (...args: T extends any[]? T : [T]) => { onSuccess: (callback: (res: R) => void) => void },
+    request: (...args: T extends any[]? T : [T]) => RequestSuccessHandler<R>,
 } & DataFetchState<R> => {
     const [dataFetchState, setDataFetchState] = useState<DataFetchState<R>>({
         response: options?.defaultValue,
@@ -46,9 +51,9 @@ const useDataFetch = <T, R>(apiFunc: ServiceFunction<T, R>, options?: {
         });
 
         return {
-            apiResultPromise: promise,
+            apiResponsePromise: promise,
             onSuccess(callback: (res: R) => void) {
-                this.apiResultPromise = this.apiResultPromise.then(res => {
+                this.apiResponsePromise = this.apiResponsePromise.then(res => {
                     res.success && callback(res.data);
                     return res;
                 });
