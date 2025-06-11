@@ -52,17 +52,8 @@ const deleteAccountSchema = z.object({
 export default function AccountSettings() {
     const dispatch = useAppDispatch();
     const { user, loading, authenticated } = useAppSelector(state => state.auth);
-    const passwordChange = useDataFetch(changePassword, {
-        onSuccess() {
-            toast.success("Password updated successfully");
-            dispatch(logout());
-        }
-    });
-    const accountDelete = useDataFetch(deleteAccount, {
-        onSuccess() {
-            toast.success("Your account has been successfully deleted!");
-        }
-    });
+    const passwordChange = useDataFetch(changePassword);
+    const accountDelete = useDataFetch(deleteAccount);
 
     const accountInfoForm = useForm<z.infer<typeof accountInfoSchema>>({
         resolver: zodResolver(accountInfoSchema),
@@ -110,16 +101,21 @@ export default function AccountSettings() {
             toast.error(res.payload as string);
     };
 
-    const onPasswordSubmit = async (values: z.infer<typeof changePasswordSchema>) => {
-        await passwordChange.request({
+    const onPasswordSubmit = (values: z.infer<typeof changePasswordSchema>) => {
+        passwordChange.request({
             currentPassword: values.currentPassword,
             newPassword: values.newPassword
+        }).onSuccess(() => {
+            toast.success("Password updated successfully");
+            passwordForm.reset();
+            dispatch(logout());
         });
-        passwordForm.reset();
     };
 
-    const handleDeleteAccount = async (values: z.infer<typeof deleteAccountSchema>) => {
-        accountDelete.request(values);
+    const handleDeleteAccount = (values: z.infer<typeof deleteAccountSchema>) => {
+        accountDelete.request(values).onSuccess(() => {
+            toast.success("Your account has been successfully deleted!");
+        });
     };
 
     useEffect(() => {

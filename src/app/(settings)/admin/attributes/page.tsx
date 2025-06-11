@@ -19,25 +19,9 @@ export default function AttributeSettingsPage() {
     const [deletionTarget, setDeletionTarget] = useState<Attribute | null>(null);
     const addDialogRef = React.useRef<{ open(): void, close(): void }>(null);
     const deleteDialogRef = React.useRef<{ open(): void, close(): void }>(null);
-    const createAttribute = useDataFetch(attributeServices.createAttribute, {
-        onSuccess: useCallback((res: Attribute) => {
-            dispatch(updateAttributes([...items, res]));
-            addDialogRef.current?.close();
-        }, [items])
-    });
-    const updateAttribute = useDataFetch(attributeServices.updateAttribute, {
-        onSuccess: useCallback((res: Attribute) => {
-            dispatch(updateAttributes(items.map(item => item.attributeId === res.attributeId ? res : item)));
-            setSelectedAttribute(null);
-        }, [items])
-    });
-    const deleteAttribute = useDataFetch(attributeServices.deleteAttribute, {
-        onSuccess: useCallback(() => {
-            dispatch(updateAttributes(items.filter(item => item.attributeId !== deletionTarget!.attributeId)));
-            setDeletionTarget(null);
-            deleteDialogRef.current?.close();
-        }, [items, deletionTarget])
-    });
+    const createAttribute = useDataFetch(attributeServices.createAttribute);
+    const updateAttribute = useDataFetch(attributeServices.updateAttribute);
+    const deleteAttribute = useDataFetch(attributeServices.deleteAttribute);
 
     return (<>
         <div className="h-full space-y-8 flex flex-col">
@@ -104,8 +88,12 @@ export default function AttributeSettingsPage() {
                             <AttributeForm loading={updateAttribute.isLoading}
                                 attribute={selectedAttribute}
                                 onSubmit={data => updateAttribute.request(
-                                    selectedAttribute?.attributeId, data
-                                )}
+                                        selectedAttribute?.attributeId, data
+                                    ).onSuccess(res => {
+                                        dispatch(updateAttributes(items.map(item => item.attributeId === res.attributeId ? res : item)));
+                                        setSelectedAttribute(null);
+                                    })
+                                }
                             />:
                             <div className="min-h-64 flex flex-col items-center justify-center gap-2 text-gray-500">
                                 <SquarePen className="w-8 h-8" />
@@ -124,7 +112,10 @@ export default function AttributeSettingsPage() {
                 </DialogHeader>
                 <AttributeForm
                     loading={createAttribute.isLoading}
-                    onSubmit={data => createAttribute.request(data)}
+                    onSubmit={data => createAttribute.request(data).onSuccess(res => {
+                        dispatch(updateAttributes([...items, res]));
+                        addDialogRef.current?.close();
+                    })}
                 />
             </DialogContent>
         </Dialog>
@@ -149,7 +140,11 @@ export default function AttributeSettingsPage() {
                             if (deletionTarget.attributeId === selectedAttribute?.attributeId)
                                 setSelectedAttribute(null);
 
-                            deleteAttribute.request(deletionTarget.attributeId);
+                            deleteAttribute.request(deletionTarget.attributeId).onSuccess(() => {
+                                dispatch(updateAttributes(items.filter(item => item.attributeId !== deletionTarget!.attributeId)));
+                                setDeletionTarget(null);
+                                deleteDialogRef.current?.close();
+                            });
                         }}
                     >
                         {deleteAttribute.isLoading && <Spinner />}

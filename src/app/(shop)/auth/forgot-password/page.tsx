@@ -20,11 +20,7 @@ export default function ForgotPasswordPage() {
     const router = useRouter();
     const [isEmailSent, setIsEmailSent] = useState(false);
 
-    const { request, isLoading } = useDataFetch(forgotPassword, {
-        onSuccess: () => {
-            setIsEmailSent(true);
-        }
-    });
+    const { request, isLoading } = useDataFetch(forgotPassword);
 
     const form = useForm<z.infer<typeof forgotPasswordSchema>>({
         resolver: zodResolver(forgotPasswordSchema),
@@ -33,9 +29,11 @@ export default function ForgotPasswordPage() {
         }
     });
 
-    const onSubmit = async (values: z.infer<typeof forgotPasswordSchema>) => {
+    const onSubmit = (values: z.infer<typeof forgotPasswordSchema>) => {
         try {
-            await request(values);
+            request(values).onSuccess(() => {
+                setIsEmailSent(true);
+            });
         } catch (error) {
             form.setError('email', {
                 type: 'manual',

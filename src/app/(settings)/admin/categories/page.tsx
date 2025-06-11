@@ -37,86 +37,71 @@ export default function AdminCategoryPage() {
     } = useAppSelector(categoriesUnionSelector);
     const router = useRouter();
 
-    const createCategory = useDataFetch(categoryServices.createCategory, {
-        onSuccess: useCallback((res: ServiceResponse<typeof categoryServices.createCategory>) => {
-            const parent = res.parentCategory;
-            categoryDetailsMap.set(res.categoryId, {
+    const createCategory = useDataFetch(categoryServices.createCategory);
+    const updateCategory = useDataFetch(categoryServices.updateCategory);
+    const getCategory = useDataFetch(categoryServices.getCategoryById);
+    const deleteCategory = useDataFetch(categoryServices.deleteCategory);
+    
+    const onCreateCategorySuccess = useCallback((res: ServiceResponse<typeof categoryServices.createCategory>) => {
+        const parent = res.parentCategory;
+        categoryDetailsMap.set(res.categoryId, {
+            categoryId: res.categoryId,
+            name: res.name,
+            code: res.code,
+            parentCategory: parent ? categoryDetailsMap.get(parent?.categoryId): undefined,
+            variationIds: res.variations.map(v => v.variationId),
+            attributeIds: res.attributes.map(a => a.attributeId),
+        });
+        if (!targetParent) {
+            dispatch(updateCategories([...categories, {
                 categoryId: res.categoryId,
                 name: res.name,
-                code: res.code,
-                parentCategory: parent ? categoryDetailsMap.get(parent?.categoryId): undefined,
-                variationIds: res.variations.map(v => v.variationId),
-                attributeIds: res.attributes.map(a => a.attributeId),
-            });
-            if (!targetParent) {
-                dispatch(updateCategories([...categories, {
+                path: `${categories.length}`,
+                subcategories: []
+            }]));
+            addDialogRef.current?.close();
+            return;
+        }
+        dispatch(updateCategories(
+            transformByParentStack(categories, targetParent, (list, index) => {
+                const node = list[index];
+                node.subcategories.push({
                     categoryId: res.categoryId,
                     name: res.name,
-                    path: `${categories.length}`,
+                    path: `${node.path}.${node.subcategories.length}`,
                     subcategories: []
-                }]));
-                addDialogRef.current?.close();
-                return;
-            }
-            dispatch(updateCategories(
-                transformByParentStack(categories, targetParent, (list, index) => {
-                    const node = list[index];
-                    node.subcategories.push({
-                        categoryId: res.categoryId,
-                        name: res.name,
-                        path: `${node.path}.${node.subcategories.length}`,
-                        subcategories: []
-                    });
-                })
-            ));
+                });
+            })
+        ));
 
-            setTargetParent(null);
-            addDialogRef.current?.close();
-        }, [categories, targetParent])
-    });
-    const updateCategory = useDataFetch(categoryServices.updateCategory, {
-        onSuccess: useCallback((res: ServiceResponse<typeof categoryServices.updateCategory>) => {
-            if (!selectedCategory)
-                return;
+        setTargetParent(null);
+        addDialogRef.current?.close();
+    }, [categories, targetParent]);
+    const onUpdateCategorySuccess = useCallback((res: ServiceResponse<typeof categoryServices.updateCategory>) => {
+        if (!selectedCategory)
+            return;
 
-            const categoryDetails = categoryDetailsMap.get(selectedCategory.categoryId)!;
-            categoryDetails.name = res.name;
-            categoryDetails.code = res.code;
-            categoryDetails.variationIds = res.variations.map(v => v.variationId);
-            categoryDetails.attributeIds = res.attributes.map(a => a.attributeId);
+        const categoryDetails = categoryDetailsMap.get(selectedCategory.categoryId)!;
+        categoryDetails.name = res.name;
+        categoryDetails.code = res.code;
+        categoryDetails.variationIds = res.variations.map(v => v.variationId);
+        categoryDetails.attributeIds = res.attributes.map(a => a.attributeId);
 
-            dispatch(updateCategories(transformByParentStack(categories, selectedCategory, (list, index) => {
-                list[index] = {
-                    ...list[index],
-                    name: res.name
-                };
-            })));
-            setSelectedCategory(null);
-        }, [categories, selectedCategory])
-    });
-    const getCategory = useDataFetch(categoryServices.getCategoryById, {
-        onSuccess: registerCategoryDetails
-    });
-
-    const deleteCategory = useDataFetch(categoryServices.deleteCategory, {
-        onSuccess: useCallback(() => {
-            if (!deletionTarget)
-                return;
-
-            dispatch(updateCategories(removeCategoryByPath(categories, deletionTarget.path)));
-
-            setDeletionTarget(null);
-            deleteDialogRef.current?.close();
-        }, [categories, deletionTarget])
-    });
-
+        dispatch(updateCategories(transformByParentStack(categories, selectedCategory, (list, index) => {
+            list[index] = {
+                ...list[index],
+                name: res.name
+            };
+        })));
+        setSelectedCategory(null);
+    }, [categories, selectedCategory]);
     const onSelectCategory = useCallback((id: number) => {
         if (categoryDetailsMap.has(id))
             setSelectedCategory(categoryDetailsMap.get(id)!);
         else
-            getCategory.request(id).then(() => (
-                setSelectedCategory(categoryDetailsMap.get(id)!)
-            ));
+            getCategory.request(id).onSuccess(res =>
+                setSelectedCategory(registerCategoryDetails(res))
+            );
     }, [getCategory.request]);
 
     const onAddCategory = useCallback((node: CategoryTree) => {
@@ -125,8 +110,8 @@ export default function AdminCategoryPage() {
             setSelectedCategory(details);
             setTargetParent(details);
         } else {
-            getCategory.request(node.categoryId).then(() => {
-                const details = categoryDetailsMap.get(node.categoryId)!;
+            getCategory.request(node.categoryId).onSuccess(res => {
+                const details = registerCategoryDetails(res);
                 setSelectedCategory(details);
                 setTargetParent(details);
             });
@@ -185,7 +170,7 @@ export default function AdminCategoryPage() {
                                 attributes={attributes}
                                 onSubmit={data => selectedCategory && updateCategory.request(
                                     selectedCategory?.categoryId, data
-                                )}
+                                ).onSuccess(onUpdateCategorySuccess)}
                                 manageVariations={goToVariationSettings}
                                 manageAttributes={goToAttributeSettings}
                             />:
@@ -218,7 +203,7 @@ export default function AdminCategoryPage() {
                         if (targetParent)
                             payload.parentCategoryId = targetParent.categoryId;
 
-                        createCategory.request(payload);
+                        createCategory.request(payload).onSuccess(onCreateCategorySuccess);
                     }}
                     manageVariations={goToVariationSettings}
                     manageAttributes={goToAttributeSettings}
@@ -242,7 +227,15 @@ export default function AdminCategoryPage() {
                             if (deletionTarget.categoryId === selectedCategory?.categoryId)
                                 setSelectedCategory(null);
 
-                            deleteCategory.request(deletionTarget.categoryId);
+                            deleteCategory.request(deletionTarget.categoryId).onSuccess(() => {
+                                if (!deletionTarget)
+                                    return;
+                    
+                                dispatch(updateCategories(removeCategoryByPath(categories, deletionTarget.path)));
+                    
+                                setDeletionTarget(null);
+                                deleteDialogRef.current?.close();
+                            });
                         }}
                     >
                         {deleteCategory.isLoading && <Spinner />}

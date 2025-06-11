@@ -31,11 +31,7 @@ export default function RegisterPage() {
     const router = useRouter();
     const [error, setError] = useState<string | null>(null);
 
-    const { request, isLoading } = useDataFetch(registerService, {
-        onSuccess: () => {
-            router.push('/auth/login?registered=true');
-        }
-    });
+    const { request, isLoading } = useDataFetch(registerService);
 
     const form = useForm<z.infer<typeof registerSchema>>({
         resolver: zodResolver(registerSchema),
@@ -54,7 +50,7 @@ export default function RegisterPage() {
         }
     });
 
-    const onSubmit = async (values: z.infer<typeof registerSchema>) => {
+    const onSubmit = (values: z.infer<typeof registerSchema>) => {
         setError(null);
         try {
             const payload: RegistrationPayload = {
@@ -62,10 +58,12 @@ export default function RegisterPage() {
                 roleId: 3, // Customer role
                 address: {
                     ...values.address,
-                    addressId: 0 // New address
+                    pincode: Number(values.address.zipCode)
                 }
             };
-            await request(payload);
+            request(payload).onSuccess(() => {
+                router.push('/auth/login?registered=true');
+            });
         } catch (err) {
             setError('Registration failed. Please try again.');
         }

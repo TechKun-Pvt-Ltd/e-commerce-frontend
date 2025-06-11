@@ -21,26 +21,9 @@ export default function VariationSettingsPage() {
     const deleteDialogRef = React.useRef<{ open(): void, close(): void }>(null);
     const [selectedVariation, setSelectedVariation] = useState<Variation | null>(null);
     const [deletionTarget, setDeletionTarget] = useState<Variation | null>(null);
-    const addVariation = useDataFetch(variationServices.createVariation, {
-        onSuccess: useCallback((res: Variation) => {
-            dispatch(updateVariations([...items, res]));
-            addVariationRef.current?.close();
-        }, [items])
-    });
-    const editVariation = useDataFetch(variationServices.updateVariation, {
-        onSuccess: useCallback((res: Variation) => {
-            dispatch(updateVariations(items.map(item => item.variationId === res.variationId? res : item)));
-            setSelectedVariation(null);
-            editVariationRef.current?.close();
-        }, [items])
-    });
-    const deleteVariation = useDataFetch(variationServices.deleteVariation, {
-        onSuccess: useCallback(() => {
-            dispatch(updateVariations(items.filter(item => item.variationId !== deletionTarget!.variationId)));
-            setDeletionTarget(null);
-            deleteDialogRef.current?.close();
-        }, [items, deletionTarget])
-    });
+    const addVariation = useDataFetch(variationServices.createVariation);
+    const editVariation = useDataFetch(variationServices.updateVariation);
+    const deleteVariation = useDataFetch(variationServices.deleteVariation);
 
     const onEdit = useCallback((variation: Variation) => {
         setSelectedVariation(variation);
@@ -84,12 +67,16 @@ export default function VariationSettingsPage() {
                 <VariationForm
                     loading={addVariation.isLoading}
                     onSubmit={data => addVariation.request({
-                        name: data.name,
-                        variationOptions: data.variationOptions.map(item => ({
-                            name: item.name,
-                            code: item.code
-                        }))
-                    })}
+                            name: data.name,
+                            variationOptions: data.variationOptions.map(item => ({
+                                name: item.name,
+                                code: item.code
+                            }))
+                        }).onSuccess(res => {
+                            dispatch(updateVariations([...items, res]));
+                            addVariationRef.current?.close();
+                        })
+                    }
                 />
             </DialogContent>
         </Dialog>
@@ -102,7 +89,14 @@ export default function VariationSettingsPage() {
                 <VariationForm
                     variation={selectedVariation!}
                     loading={editVariation.isLoading}
-                    onSubmit={(data: VariationUpdationPayload) => editVariation.request(selectedVariation!.variationId, data)}
+                    onSubmit={(data: VariationUpdationPayload) => editVariation
+                        .request(selectedVariation!.variationId, data)
+                        .onSuccess(res => {
+                            dispatch(updateVariations(items.map(item => item.variationId === res.variationId? res : item)));
+                            setSelectedVariation(null);
+                            editVariationRef.current?.close();
+                        })
+                    }
                 />
             </DialogContent>
         </Dialog>
@@ -116,7 +110,12 @@ export default function VariationSettingsPage() {
                 <div className="grid grid-cols-2 gap-2">
                     <Button variant="secondary" onClick={() => deleteDialogRef.current?.close()}>No</Button>
                     <Button onClick={() => {
-                        deleteVariation.request(deletionTarget!.variationId);
+                        deleteVariation.request(deletionTarget!.variationId)
+                            .onSuccess(() => {
+                                dispatch(updateVariations(items.filter(item => item.variationId !== deletionTarget!.variationId)));
+                                setDeletionTarget(null);
+                                deleteDialogRef.current?.close();
+                            });
                     }}>
                         {deleteVariation.isLoading && <Spinner />}
                         Yes

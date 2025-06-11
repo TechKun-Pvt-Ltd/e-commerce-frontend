@@ -10,9 +10,8 @@ type DataFetchState<T> = {
 
 const useDataFetch = <T, R>(apiFunc: ServiceFunction<T, R>, options?: {
     defaultValue?: R,
-    onSuccess?: (res: R) => void
 }): {
-    request: (...args: T extends any[]? T : [T]) => Promise<void>,
+    request: (...args: T extends any[]? T : [T]) => { onSuccess: (callback: (res: R) => void) => void },
 } & DataFetchState<R> => {
     const [dataFetchState, setDataFetchState] = useState<DataFetchState<R>>({
         response: options?.defaultValue,
@@ -20,35 +19,45 @@ const useDataFetch = <T, R>(apiFunc: ServiceFunction<T, R>, options?: {
         isLoading: false
     });
 
-    const request = useCallback(async (...args: T extends any[] ? T : [T]) => {
-        let hasError = false;
-        let response = options?.defaultValue;
+    const request = useCallback((...args: T extends any[] ? T : [T]) => {
         setDataFetchState(prev => ({...prev, hasError: false, isLoading: true}));
-        try {
-            const result = await apiFunc(...args);
-            if (!result.success) {
+        const promise = apiFunc(...args).then(result => {
+            let hasError = false;
+            let response = options?.defaultValue;
+            try {
+                if (!result.success) {
+                    hasError = true;
+                    toast.error(result.error, {richColors: true});
+                } else {
+                    response = result.data;
+                }
+            } catch (e) {
                 hasError = true;
-                toast.error(result.error, {richColors: true});
-            } else {
-                response = result.data;
-                if (options?.onSuccess)
-                    options.onSuccess(result.data);
+                if (e instanceof Error)
+                    toast.error(e.message);
             }
-        } catch (e) {
-            hasError = true;
-            if (e instanceof Error)
-                toast.error(e.message);
-        }
 
-        setDataFetchState({
-            response,
-            hasError,
-            isLoading: false
+            setDataFetchState({
+                response,
+                hasError,
+                isLoading: false
+            });
+            return result;
         });
-    }, [options?.onSuccess]);
 
-    return useMemo(() => ({ request, ...dataFetchState }), [request, dataFetchState]);
+        return {
+            apiResultPromise: promise,
+            onSuccess(callback: (res: R) => void) {
+                this.apiResultPromise = this.apiResultPromise.then(res => {
+                    res.success && callback(res.data);
+                    return res;
+                });
+                return this;
+            }
+        }
+    }, []);
+
+    return useMemo(() => ({ request, ...dataFetchState }), [dataFetchState]);
 };
 
 export default useDataFetch;
-

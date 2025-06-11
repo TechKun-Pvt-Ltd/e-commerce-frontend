@@ -96,14 +96,8 @@ export default function AddProductPage() {
             attributes: []
         }
     });
-    const createProduct = useDataFetch(productServices.createProduct, {
-        onSuccess: () => {
-            productForm.reset();
-        }
-    });
-    const getCategoryDetails = useDataFetch(getCategoryById, {
-        onSuccess: registerCategoryDetails
-    });
+    const createProduct = useDataFetch(productServices.createProduct);
+    const getCategoryDetails = useDataFetch(getCategoryById);
     const { categories, variations, attributes, loading, error } = useAppSelector(categoriesUnionSelector);
     const indexedVariations = useMemo(() => variations.reduce((acc, variation) => {
         acc[variation.variationId] = variation;
@@ -132,23 +126,21 @@ export default function AddProductPage() {
         }
         return Array.from(categoryVariationIdSet).sort();
     }, [selectedCategoryDetails]);
-    const productCode = productForm.watch("code");
     const productVariants = productForm.watch("variants");
     const productAttributes = productForm.watch("attributes");
 
-    const updateVariantsAndAttributes = useCallback((categoryId: number) => {
-        const categoryDetails = categoryDetailsMap.get(categoryId)!;
+    const updateVariantsAndAttributes = useCallback((categoryDetails: CategoryData) => {
         const variants = getVariantsFromVariations(
             getCategoryVariations(categoryDetails).map(vId => indexedVariations[vId])
         );
-        variants.forEach(v => v.sku = `${categoryDetails.code}-${productCode}-${v.variationOptionIds.map(optId => indexedVariationOptions[optId].code).join("-")}`)
+        variants.forEach(v => v.sku = `${categoryDetails.code}-${productForm.watch("code")}-${v.variationOptionIds.map(optId => indexedVariationOptions[optId].code).join("-")}`)
         productForm.setValue('variants', variants);
         productForm.setValue('attributes', getCategoryAttributes(categoryDetails)
             .map(aId => ({
                 attributeId: aId, value: ""
             }))
         );
-    }, [productForm, indexedVariations]);
+    }, [productForm, indexedVariations, indexedVariationOptions]);
 
     return <div className="h-full space-y-8 flex flex-col">
         <h1 className="text-3xl font-bold text-gray-900">Add Product</h1>
@@ -160,6 +152,8 @@ export default function AddProductPage() {
                             createProduct.request({
                                 ...data,
                                 attributes: data.attributes.filter(attr => attr.value)
+                            }).onSuccess(() => {
+                                productForm.reset();
                             });
                         })} className="space-y-8">
                             <div className="space-y-6">
@@ -263,11 +257,11 @@ export default function AddProductPage() {
 
                                                                 if (categoryDetailsMap.has(id)) {
                                                                     field.onChange(id);
-                                                                    updateVariantsAndAttributes(id);
+                                                                    updateVariantsAndAttributes(categoryDetailsMap.get(id)!);
                                                                 } else {
-                                                                    getCategoryDetails.request(id).then(() => {
+                                                                    getCategoryDetails.request(id).onSuccess(res => {
                                                                         field.onChange(id);
-                                                                        updateVariantsAndAttributes(id);
+                                                                        updateVariantsAndAttributes(registerCategoryDetails(res));
                                                                     });
                                                                 }
                                                             }))}
