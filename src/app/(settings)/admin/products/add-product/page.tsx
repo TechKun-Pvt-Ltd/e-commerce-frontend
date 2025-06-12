@@ -25,6 +25,7 @@ import { Separator } from "@/components/ui/separator";
 import { AttributeType } from "@/types/domains/attribute";
 import { extractConsonants } from "@/lib/utils";
 import Spinner from "@/components/ui/spinner";
+import { useRouter } from "nextjs-toploader/app";
 
 const productFormSchema = z.object({
     title: z.string().nonempty("Title is required."),
@@ -85,6 +86,7 @@ function renderCategoryDropdown(category: CategoryTree, onSelect: (id: number) =
 };
 
 export default function AddProductPage() {
+    const router = useRouter();
     const productForm = useForm({
         resolver: zodResolver(productFormSchema),
         defaultValues: {
@@ -129,6 +131,15 @@ export default function AddProductPage() {
     const productVariants = productForm.watch("variants");
     const productAttributes = productForm.watch("attributes");
 
+    const updateSkus = useCallback((productCode: string) => (
+        productVariants.forEach((v, i) => (
+            productForm.setValue(
+                `variants.${i}.sku`,
+                `${selectedCategoryDetails?.code || ''}-${productCode}-${v.variationOptionIds.map(optId => indexedVariationOptions[optId].code).join('-')}`
+            )
+        ))
+    ), [productVariants, productForm, selectedCategoryDetails, indexedVariationOptions]);
+
     const updateVariantsAndAttributes = useCallback((categoryDetails: CategoryData) => {
         const variants = getVariantsFromVariations(
             getCategoryVariations(categoryDetails).map(vId => indexedVariations[vId])
@@ -154,6 +165,7 @@ export default function AddProductPage() {
                                 attributes: data.attributes.filter(attr => attr.value)
                             }).onSuccess(() => {
                                 productForm.reset();
+                                router.replace("/admin/products");
                             });
                         })} className="space-y-8">
                             <div className="space-y-6">
@@ -170,14 +182,13 @@ export default function AddProductPage() {
                                                         onChange={e => {
                                                             const newValue = e.target.value;
                                                             field.onChange(newValue);
-                                                            productForm.setValue("code", extractConsonants(newValue).toUpperCase());
+                                                            productForm.setValue("code", extractConsonants(newValue).toUpperCase(), { shouldDirty: true });
                                                         }}
                                                         onBlur={e => {
-                                                            const newValue = e.target.value;
-                                                            productForm.setValue("variants", productVariants.map(v => ({
-                                                                ...v,
-                                                                sku: `${selectedCategoryDetails?.code}-${extractConsonants(newValue).toUpperCase()}-${v.variationOptionIds.map(optId => indexedVariationOptions[optId].code).join("-")}`
-                                                            })));
+                                                            field.onBlur();
+                                                            const trimmedValue = e.target.value.trim();
+                                                            field.onChange(trimmedValue);
+                                                            updateSkus(extractConsonants(trimmedValue).toUpperCase());
                                                         }}
                                                     />
                                                 </FormControl>
@@ -192,7 +203,13 @@ export default function AddProductPage() {
                                             <FormItem className="flex-1">
                                                 <FormLabel>Product Code</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="Enter product code" {...field} />
+                                                    <Input placeholder="Enter product code" {...field}
+                                                        onBlur={e => {
+                                                            field.onBlur();
+                                                            const formatted = e.target.value.trim().toUpperCase().replace(/\s+/g, '-');
+                                                            field.onChange(formatted);
+                                                            updateSkus(formatted);
+                                                        }}/>
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
