@@ -9,20 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useRouter } from "nextjs-toploader/app";
 import ProductForm from "../components/ProductForm";
 
-export default function AddProductPage(
-    // { searchParams }: { searchParams: Usable<{ sequenceNumber: string }> }
-) {
-    // const { sequenceNumber } = React.use(searchParams);
-    // if (!sequenceNumber)
-    //     return <Dialog open>
-    //         <DialogContent closeIcon={false}>
-    //             <DialogTitle>Error</DialogTitle>
-    //             <DialogDescription>The sequence number parameter must not be empty.</DialogDescription>
-    //         </DialogContent>
-    //     </Dialog>;
-
-    // const seqNo = sequenceNumber.padStart(6, "0");
-
+export default function AddProductPage() {
     const router = useRouter();
     const createProduct = useDataFetch(productServices.createProduct);
     const getCategoryDetails = useDataFetch(getCategoryById);
