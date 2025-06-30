@@ -7,7 +7,9 @@ export default function StoreLayout({children}: {children: React.ReactNode}) {
     return (<>
         <Header />
         <CategoriesBar />
-        {children}
+        <main>
+            {children}
+        </main>
         <Footer />
     </>);
 }

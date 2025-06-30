@@ -1,9 +1,10 @@
 "use client";
 import { ProductPreview } from "@/types/domains/product";
-import { Star, Heart, MoreVertical } from "lucide-react";
+import { Star, MoreVertical } from "lucide-react";
 import React from "react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import Link from "next/link";
 
 const productPreviews: ProductPreview[] = [
     {
@@ -46,7 +47,10 @@ const productPreviews: ProductPreview[] = [
 
 export default function ProductsPage() {
     return <div className="space-y-8">
-        <h1 className="text-3xl font-bold text-gray-900">Products</h1>
+        <div className="flex justify-between items-center">
+            <h1 className="text-3xl font-bold text-gray-900">Products</h1>
+            <Link href="/admin/products/add-product"><Button variant="default">Add Product</Button></Link>
+        </div>
         <div className="py-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {productPreviews.map((product, index) => <div key={index} className="flex items-center space-x-4">
                 <div

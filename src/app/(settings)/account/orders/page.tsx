@@ -15,7 +15,7 @@ export default function OrderHistory() {
         return <div className="text-center text-blue-500 text-2xl p-10">Loading...</div>;
     }
 
-    if (orders.hasError || !orders.response?.length) {
+    if (orders.hasError || !orders.data?.length) {
         return <div className="text-center text-red-500 text-2xl p-10">{"No data."}</div>;
     }
 
@@ -27,7 +27,7 @@ export default function OrderHistory() {
 
             <div className="bg-white/50 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                 <div className="p-6">
-                    <OrderList orders={orders.response} />
+                    <OrderList orders={orders.data} />
                 </div>
             </div>
         </div>

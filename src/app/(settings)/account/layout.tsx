@@ -125,7 +125,7 @@ export default function MyAccountLayout({ children }: { children: React.ReactNod
                 </SidebarMenu>
             </SidebarFooter>
         </Sidebar>
-        <main className="h-full flex-1 bg-gray-50">
+        <main className="self-stretch flex-1 bg-gray-50">
             <div className="flex items-center gap-2 px-4 py-2">
                 <SidebarTrigger />
                 <Separator orientation="vertical" className="mr-2" style={{height: '1rem'}} />

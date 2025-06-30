@@ -42,14 +42,14 @@ const productFormSchema = z.object({
             disabled: z.boolean(),
             variationOptionIds: z.array(z.number()).min(1, "At least one variation option is required.")
         })
-    ).min(1, "At least one variant is required."),
+    ),
     attributes: z.array(
         z.object({
             attributeId: z.number(),
             value: z.string()
         })
     )
-});
+}).refine(data => data.variants.length > 0, { message: "At least one variant is required." });
 
 type ProductFormData = z.infer<typeof productFormSchema>;
 
@@ -85,8 +85,24 @@ function renderCategoryDropdown(category: CategoryTree, onSelect: (id: number) =
     </div>
 };
 
-export default function AddProductPage() {
+export default function AddProductPage(
+    // { searchParams }: { searchParams: Usable<{ sequenceNumber: string }> }
+) {
+    // const { sequenceNumber } = React.use(searchParams);
+    // if (!sequenceNumber)
+    //     return <Dialog open>
+    //         <DialogContent closeIcon={false}>
+    //             <DialogTitle>Error</DialogTitle>
+    //             <DialogDescription>The sequence number parameter must not be empty.</DialogDescription>
+    //         </DialogContent>
+    //     </Dialog>;
+
+    // const seqNo = sequenceNumber.padStart(6, "0");
+
     const router = useRouter();
+    const createProduct = useDataFetch(productServices.createProduct);
+    const getCategoryDetails = useDataFetch(getCategoryById);
+    const { categories, variations, attributes, loading, error } = useAppSelector(categoriesUnionSelector);
     const productForm = useForm({
         resolver: zodResolver(productFormSchema),
         defaultValues: {
@@ -98,9 +114,6 @@ export default function AddProductPage() {
             attributes: []
         }
     });
-    const createProduct = useDataFetch(productServices.createProduct);
-    const getCategoryDetails = useDataFetch(getCategoryById);
-    const { categories, variations, attributes, loading, error } = useAppSelector(categoriesUnionSelector);
     const indexedVariations = useMemo(() => variations.reduce((acc, variation) => {
         acc[variation.variationId] = variation;
         return acc;
@@ -209,7 +222,7 @@ export default function AddProductPage() {
                                                             const formatted = e.target.value.trim().toUpperCase().replace(/\s+/g, '-');
                                                             field.onChange(formatted);
                                                             updateSkus(formatted);
-                                                        }}/>
+                                                        }} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -452,6 +465,12 @@ export default function AddProductPage() {
                                     />
                                 ))}
                             </div>
+
+                            {productForm.formState.errors.root && (
+                                <div className="text-sm font-medium text-destructive">
+                                    {productForm.formState.errors.root.message}
+                                </div>
+                            )}
 
                             <Button type="submit" disabled={createProduct.isLoading}>
                                 {createProduct.isLoading && <Spinner />}
