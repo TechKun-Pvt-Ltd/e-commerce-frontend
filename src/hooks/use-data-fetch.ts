@@ -8,16 +8,18 @@ type DataFetchState<T> = {
     isLoading: boolean,
 };
 
-type ResponseHandler<R> = {
+export type ResponseHandler<R> = {
     apiResponsePromise: ApiResponse<R>,
     onSuccess: (callback: (res: R) => void) => ResponseHandler<R>,
     onError: (callback: (message: string) => void) => ResponseHandler<R>
 };
 
+export type RequestFunction<T, R> = (...args: T extends any[]? T : [T]) => ResponseHandler<R>;
+
 const useDataFetch = <T, R>(apiFunc: ServiceFunction<T, R>, options?: {
     defaultValue?: R,
 }): {
-    request: (...args: T extends any[]? T : [T]) => ResponseHandler<R>,
+    request: RequestFunction<T, R>,
 } & DataFetchState<R> => {
     const [dataFetchState, setDataFetchState] = useState<DataFetchState<R>>({
         data: options?.defaultValue,
