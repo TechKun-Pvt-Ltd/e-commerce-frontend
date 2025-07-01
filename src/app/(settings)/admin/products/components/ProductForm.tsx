@@ -20,6 +20,7 @@ import { Attribute, AttributeType } from "@/types/domains/attribute";
 import { extractConsonants } from "@/lib/utils";
 import Spinner from "@/components/ui/spinner";
 import { RequestFunction } from "@/hooks/use-data-fetch";
+import CategoriesDropdown from "@/app/components/CategoriesDropdown";
 
 const productFormSchema = z.object({
     title: z.string().nonempty("Title is required."),
@@ -226,49 +227,25 @@ export default function ProductForm({ categories, variations, attributes, loadin
                         name="categoryId"
                         disabled={loading || categoriesLoading}
                         render={({ field }) => {
-                            const selectedCategory = getParentStack(categoryDetailsMap.get(field.value));
-
                             return <FormItem className="min-w-xs">
                                 <FormLabel>Category</FormLabel>
                                 <FormControl>
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button disabled={field.disabled}
-                                                variant={"outline"}
-                                                className={`border w-full px-3 py-1.5 justify-between ${selectedCategory ? "" : "text-muted-foreground"}`}
-                                                style={{ height: "auto" }}
-                                            >
-                                                {selectedCategory ?
-                                                    <div className="text-left">
-                                                        <div className="mb-1">{selectedCategory.name}</div>
-                                                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                                            {selectedCategory.parentStack.map((cat, i) => <React.Fragment key={cat.categoryId}>
-                                                                {cat.name}
-                                                                {i + 1 !== selectedCategory.parentStack.length && <ChevronRight className="size-3" />}
-                                                            </React.Fragment>)}
-                                                        </div>
-                                                    </div> :
-                                                    "Select a category"}
-                                                <ChevronsUpDown className="opacity-50" />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="start">
-                                            {categories.map(cat => renderCategoryDropdown(cat, id => {
-                                                if (id === field.value)
-                                                    return;
-
-                                                if (categoryDetailsMap.has(id)) {
+                                    <CategoriesDropdown
+                                        categories={categories}
+                                        disabled={field.disabled}
+                                        selectedCategoryDetails={categoryDetailsMap.get(field.value)}
+                                        onSelect={id => {
+                                            if (categoryDetailsMap.has(id)) {
+                                                field.onChange(id);
+                                                updateVariantsAndAttributes(categoryDetailsMap.get(id)!);
+                                            } else {
+                                                fetchCategoryDetails(id).onSuccess(res => {
                                                     field.onChange(id);
-                                                    updateVariantsAndAttributes(categoryDetailsMap.get(id)!);
-                                                } else {
-                                                    fetchCategoryDetails(id).onSuccess(res => {
-                                                        field.onChange(id);
-                                                        updateVariantsAndAttributes(registerCategoryDetails(res));
-                                                    });
-                                                }
-                                            }))}
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
+                                                    updateVariantsAndAttributes(registerCategoryDetails(res));
+                                                });
+                                            }
+                                        }}
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>;
@@ -450,34 +427,6 @@ export default function ProductForm({ categories, variations, attributes, loadin
             </Button>
         </form>
     </Form>
-};
-
-function getParentStack(categoryDetails: CategoryData | undefined): {
-    name: string;
-    parentStack: {
-        categoryId: number;
-        name: string;
-    }[];
-} | undefined {
-    if (!categoryDetails)
-        return undefined;
-
-    let current: CategoryData | undefined = categoryDetails;
-    const parentStack: {
-        categoryId: number;
-        name: string;
-    }[] = [];
-    while (current) {
-        parentStack.splice(0, 0, {
-            categoryId: current.categoryId,
-            name: current.name
-        });
-        current = current.parentCategory;
-    }
-    return {
-        name: categoryDetails.name,
-        parentStack
-    }
 };
 
 function registerCategoryDetails(categoryDetails: CategoryDetails): CategoryData {
