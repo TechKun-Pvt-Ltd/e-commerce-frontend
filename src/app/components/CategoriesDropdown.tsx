@@ -50,7 +50,7 @@ export default function CategoriesDropdown({ disabled = false, categories, selec
         <DropdownMenuTrigger asChild>
             <Button disabled={disabled}
                 variant={"outline"}
-                className={`border w-full px-3 py-1.5 justify-between ${selectedCategory ? "" : "text-muted-foreground"}`}
+                className={`border px-3 py-1.5 justify-between ${selectedCategory ? "" : "text-muted-foreground"}`}
                 style={{ height: "auto" }}
             >
                 {selectedCategory ?

@@ -1,13 +1,15 @@
 "use client";
 import { ProductPreview } from "@/types/domains/product";
 import { Star, MoreVertical } from "lucide-react";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
 import useDataFetch from "@/hooks/use-data-fetch";
 import { getAllProducts } from "@/services/product";
 import * as productServices from "@/services/product";
+import CategoriesDropdown, { CategoryDropdownNode } from "@/app/components/CategoriesDropdown";
+import { useAppSelector } from "@/store/hooks";
 // const productPreviews: ProductPreview[] = [
 //     {
 //         productId: 1001,
@@ -50,15 +52,21 @@ import * as productServices from "@/services/product";
 
 export default function ProductsPage() {
 
+    const {items: categories, loading: categoriesLoading}=useAppSelector(state=> state.categories)
+    const [selectedCategory, setSelectedCategory] = useState<CategoryDropdownNode>();
     const productsData = useDataFetch(productServices.getAllProducts);
+
     useEffect(() => {
-        productsData.request({});
-    }, []);
+        productsData.request({categoryId: selectedCategory?.categoryId});
+    }, [selectedCategory]);
 
     return <div className="space-y-8">
         <div className="flex justify-between items-center">
             <h1 className="text-3xl font-bold text-gray-900">Products</h1>
+            <div className="flex justify-between items-center gap-4">
+            <CategoriesDropdown selectedCategoryNode={selectedCategory} onSelect={setSelectedCategory} disabled={categoriesLoading} categories={categories} />
             <Link href="/admin/products/product-form"><Button variant="default">Add Product</Button></Link>
+            </div>
         </div>
         <div className="py-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {productsData.data?.map((product, index) => <div key={index} className="flex items-center space-x-4">
