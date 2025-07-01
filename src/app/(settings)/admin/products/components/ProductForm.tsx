@@ -10,9 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuPortal, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { CategoryDetails, CategoryTree } from "@/types/domains/category";
-import { ChevronRight, ChevronsUpDown } from "lucide-react";
 import { Variation, VariationOption } from "@/types/domains/variation";
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
@@ -58,27 +56,6 @@ interface CategoryData {
 }
 
 const categoryDetailsMap = new Map<number, CategoryData>();
-
-function renderCategoryDropdown(category: CategoryTree, onSelect: (id: number) => void) {
-    if (category.subcategories.length === 0)
-        return <DropdownMenuItem key={category.path} onClick={() => onSelect(category.categoryId)}>
-            {category.name}
-        </DropdownMenuItem>;
-
-    return <div className="flex" key={category.path}>
-        <DropdownMenuItem className="flex-1" onClick={() => onSelect(category.categoryId)}>
-            {category.name}
-        </DropdownMenuItem>
-        <DropdownMenuSub>
-            <DropdownMenuSubTrigger />
-            <DropdownMenuPortal>
-                <DropdownMenuSubContent>
-                    {category.subcategories.map(sub => renderCategoryDropdown(sub, onSelect))}
-                </DropdownMenuSubContent>
-            </DropdownMenuPortal>
-        </DropdownMenuSub>
-    </div>
-};
 
 export default function ProductForm({ categories, variations, attributes, loading, categoriesLoading, fetchCategoryDetails, onSubmit }: {
     categories: CategoryTree[];
