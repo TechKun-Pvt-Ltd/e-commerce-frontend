@@ -8,25 +8,30 @@ import React from "react";
 interface CategoryData {
     categoryId: number;
     name: string;
-    code: string;
     parentCategory: CategoryData | undefined;
 };
 
-function renderCategoryDropdown(category: CategoryTree, onSelect: (id: number) => void) {
+function renderCategoryDropdown(category: CategoryTree, parentCategory: CategoryData | undefined, onSelect: (id: CategoryData) => void) {
+    const categoryNodeItem: CategoryData = {
+        categoryId: category.categoryId,
+        name: category.name,
+        parentCategory
+    };
+
     if (category.subcategories.length === 0)
-        return <DropdownMenuItem key={category.path} onClick={() => onSelect(category.categoryId)}>
+        return <DropdownMenuItem key={category.path} onClick={() => onSelect(categoryNodeItem)}>
             {category.name}
         </DropdownMenuItem>;
 
     return <div className="flex" key={category.path}>
-        <DropdownMenuItem className="flex-1" onClick={() => onSelect(category.categoryId)}>
+        <DropdownMenuItem className="flex-1" onClick={() => onSelect(categoryNodeItem)}>
             {category.name}
         </DropdownMenuItem>
         <DropdownMenuSub>
             <DropdownMenuSubTrigger />
             <DropdownMenuPortal>
                 <DropdownMenuSubContent>
-                    {category.subcategories.map(sub => renderCategoryDropdown(sub, onSelect))}
+                    {category.subcategories.map(sub => renderCategoryDropdown(sub, categoryNodeItem, onSelect))}
                 </DropdownMenuSubContent>
             </DropdownMenuPortal>
         </DropdownMenuSub>
@@ -37,7 +42,7 @@ export default function CategoriesDropdown({ disabled = false, categories, selec
     disabled?: boolean;
     categories: CategoryTree[];
     selectedCategoryDetails: CategoryData | undefined;
-    onSelect: (id: number) => void;
+    onSelect: (id: CategoryData) => void;
 }) {
     const selectedCategory = getParentStack(selectedCategoryDetails);
 
@@ -63,11 +68,11 @@ export default function CategoriesDropdown({ disabled = false, categories, selec
             </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
-            {categories.map(cat => renderCategoryDropdown(cat, id => {
-                if (id === selectedCategoryDetails?.categoryId)
+            {categories.map(cat => renderCategoryDropdown(cat, undefined, node => {
+                if (node.categoryId === selectedCategoryDetails?.categoryId)
                     return;
 
-                onSelect(id);
+                onSelect(node);
             }))}
         </DropdownMenuContent>
     </DropdownMenu>

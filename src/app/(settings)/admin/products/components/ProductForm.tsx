@@ -211,13 +211,13 @@ export default function ProductForm({ categories, variations, attributes, loadin
                                         categories={categories}
                                         disabled={field.disabled}
                                         selectedCategoryDetails={categoryDetailsMap.get(field.value)}
-                                        onSelect={id => {
-                                            if (categoryDetailsMap.has(id)) {
-                                                field.onChange(id);
-                                                updateVariantsAndAttributes(categoryDetailsMap.get(id)!);
+                                        onSelect={node => {
+                                            if (categoryDetailsMap.has(node.categoryId)) {
+                                                field.onChange(node.categoryId);
+                                                updateVariantsAndAttributes(categoryDetailsMap.get(node.categoryId)!);
                                             } else {
-                                                fetchCategoryDetails(id).onSuccess(res => {
-                                                    field.onChange(id);
+                                                fetchCategoryDetails(node.categoryId).onSuccess(res => {
+                                                    field.onChange(node.categoryId);
                                                     updateVariantsAndAttributes(registerCategoryDetails(res));
                                                 });
                                             }
