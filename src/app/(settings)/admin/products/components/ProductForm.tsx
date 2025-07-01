@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuPortal, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { CategoryDetails, CategoryTree } from "@/types/domains/category";
 import { ChevronRight, ChevronsUpDown } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Variation, VariationOption } from "@/types/domains/variation";
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
@@ -400,7 +399,7 @@ export default function ProductForm({ categories, variations, attributes, loadin
                             </TableBody>
                         </Table>
                     </div> :
-                        <div className="text-sm text-muted-foreground">Select a category to get variants.</div>}
+                    <div className="text-sm text-muted-foreground">Select a category to get variants.</div>}
                 </div>
 
                 {productAttributes.map((attr, index) => (
