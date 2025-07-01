@@ -5,14 +5,14 @@ import { CategoryTree } from "@/types/domains/category";
 import { ChevronRight, ChevronsUpDown } from "lucide-react";
 import React from "react";
 
-interface CategoryData {
+export interface CategoryDropdownNode {
     categoryId: number;
     name: string;
-    parentCategory: CategoryData | undefined;
+    parentCategory: CategoryDropdownNode | undefined;
 };
 
-function renderCategoryDropdown(category: CategoryTree, parentCategory: CategoryData | undefined, onSelect: (id: CategoryData) => void) {
-    const categoryNodeItem: CategoryData = {
+function renderCategoryDropdown(category: CategoryTree, parentCategory: CategoryDropdownNode | undefined, onSelect: (id: CategoryDropdownNode) => void) {
+    const categoryNodeItem: CategoryDropdownNode = {
         categoryId: category.categoryId,
         name: category.name,
         parentCategory
@@ -38,13 +38,13 @@ function renderCategoryDropdown(category: CategoryTree, parentCategory: Category
     </div>
 };
 
-export default function CategoriesDropdown({ disabled = false, categories, selectedCategoryDetails, onSelect }: {
+export default function CategoriesDropdown({ disabled = false, categories, selectedCategoryNode, onSelect }: {
     disabled?: boolean;
     categories: CategoryTree[];
-    selectedCategoryDetails: CategoryData | undefined;
-    onSelect: (id: CategoryData) => void;
+    selectedCategoryNode: CategoryDropdownNode | undefined;
+    onSelect: (id: CategoryDropdownNode) => void;
 }) {
-    const selectedCategory = getParentStack(selectedCategoryDetails);
+    const selectedCategory = getParentStack(selectedCategoryNode);
 
     return <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -69,7 +69,7 @@ export default function CategoriesDropdown({ disabled = false, categories, selec
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
             {categories.map(cat => renderCategoryDropdown(cat, undefined, node => {
-                if (node.categoryId === selectedCategoryDetails?.categoryId)
+                if (node.categoryId === selectedCategoryNode?.categoryId)
                     return;
 
                 onSelect(node);
@@ -78,7 +78,7 @@ export default function CategoriesDropdown({ disabled = false, categories, selec
     </DropdownMenu>
 };
 
-function getParentStack(categoryDetails: CategoryData | undefined): {
+function getParentStack(categoryDetails: CategoryDropdownNode | undefined): {
     name: string;
     parentStack: {
         categoryId: number;
@@ -88,7 +88,7 @@ function getParentStack(categoryDetails: CategoryData | undefined): {
     if (!categoryDetails)
         return undefined;
 
-    let current: CategoryData | undefined = categoryDetails;
+    let current: CategoryDropdownNode | undefined = categoryDetails;
     const parentStack: {
         categoryId: number;
         name: string;

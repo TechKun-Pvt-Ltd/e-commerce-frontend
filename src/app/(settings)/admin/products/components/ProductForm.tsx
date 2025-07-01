@@ -210,7 +210,7 @@ export default function ProductForm({ categories, variations, attributes, loadin
                                     <CategoriesDropdown
                                         categories={categories}
                                         disabled={field.disabled}
-                                        selectedCategoryDetails={categoryDetailsMap.get(field.value)}
+                                        selectedCategoryNode={categoryDetailsMap.get(field.value)}
                                         onSelect={node => {
                                             if (categoryDetailsMap.has(node.categoryId)) {
                                                 field.onChange(node.categoryId);
