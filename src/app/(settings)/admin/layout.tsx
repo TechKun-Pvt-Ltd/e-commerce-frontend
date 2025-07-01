@@ -32,7 +32,7 @@ const items = [
         children: [
             {
                 title: "New Product",
-                url: "/admin/products/add-product"
+                url: "/admin/products/product-form"
             }
         ]
     },
