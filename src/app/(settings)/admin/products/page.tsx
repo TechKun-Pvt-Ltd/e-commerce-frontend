@@ -1,58 +1,68 @@
 "use client";
 import { ProductPreview } from "@/types/domains/product";
 import { Star, MoreVertical } from "lucide-react";
-import React from "react";
+import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
+import useDataFetch from "@/hooks/use-data-fetch";
+import { getAllProducts } from "@/services/product";
+import * as productServices from "@/services/product";
+// const productPreviews: ProductPreview[] = [
+//     {
+//         productId: 1001,
+//         productVariantId: 2001,
+//         categoryId: 101, // Electronics
+//         dateAdded: new Date("2023-10-01"),
+//         quantityInStock: 50,
+//         imageUrl: "https://img.freepik.com/premium-photo/young-woman-order-purchase-product-internet-using-laptop-blithe_31965-289001.jpg?w=996",
+//         price: 299.99,
+//         title: "Smartphone X",
+//         rating: 4.5,
+//         starred: true
+//     },
+//     {
+//         productId: 1002,
+//         productVariantId: 2002,
+//         categoryId: 101, // Electronics
+//         dateAdded: new Date("2023-09-15"),
+//         quantityInStock: 30,
+//         imageUrl: "https://img.freepik.com/premium-photo/young-woman-order-purchase-product-internet-using-laptop-blithe_31965-289001.jpg?w=996",
+//         price: 499.99,
+//         title: "Laptop Pro",
+//         rating: 4.7,
+//         starred: false
+//     },
+//     {
+//         productId: 1003,
+//         productVariantId: 2003,
+//         categoryId: 101, // Electronics
+//         dateAdded: new Date("2023-08-20"),
+//         quantityInStock: 20,
+//         imageUrl: "https://img.freepik.com/premium-photo/young-woman-order-purchase-product-internet-using-laptop-blithe_31965-289001.jpg?w=996",
+//         price: 199.99,
+//         title: "Wireless Headphones",
+//         rating: 4.3,
+//         starred: true
+//     }
+// ];
 
-const productPreviews: ProductPreview[] = [
-    {
-        productId: 1001,
-        productVariantId: 2001,
-        categoryId: 101, // Electronics
-        dateAdded: new Date("2023-10-01"),
-        quantityInStock: 50,
-        imageUrl: "https://img.freepik.com/premium-photo/young-woman-order-purchase-product-internet-using-laptop-blithe_31965-289001.jpg?w=996",
-        price: 299.99,
-        title: "Smartphone X",
-        rating: 4.5,
-        starred: true
-    },
-    {
-        productId: 1002,
-        productVariantId: 2002,
-        categoryId: 101, // Electronics
-        dateAdded: new Date("2023-09-15"),
-        quantityInStock: 30,
-        imageUrl: "https://img.freepik.com/premium-photo/young-woman-order-purchase-product-internet-using-laptop-blithe_31965-289001.jpg?w=996",
-        price: 499.99,
-        title: "Laptop Pro",
-        rating: 4.7,
-        starred: false
-    },
-    {
-        productId: 1003,
-        productVariantId: 2003,
-        categoryId: 101, // Electronics
-        dateAdded: new Date("2023-08-20"),
-        quantityInStock: 20,
-        imageUrl: "https://img.freepik.com/premium-photo/young-woman-order-purchase-product-internet-using-laptop-blithe_31965-289001.jpg?w=996",
-        price: 199.99,
-        title: "Wireless Headphones",
-        rating: 4.3,
-        starred: true
-    }
-];
 
 export default function ProductsPage() {
+
+    const productsData = useDataFetch(productServices.getAllProducts);
+    useEffect(() => {
+        productsData.request({});
+    }, []);
+
     return <div className="space-y-8">
         <div className="flex justify-between items-center">
             <h1 className="text-3xl font-bold text-gray-900">Products</h1>
-            <Link href="/admin/products/add-product"><Button variant="default">Add Product</Button></Link>
+            <Link href="/admin/products/product-form"><Button variant="default">Add Product</Button></Link>
         </div>
         <div className="py-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {productPreviews.map((product, index) => <div key={index} className="flex items-center space-x-4">
+            {productsData.data?.map((product, index) => <div key={index} className="flex items-center space-x-4">
+
                 <div
                     key={product.productId}
                     className="rounded-md border overflow-hidden shadow-sm hover:shadow-md transition relative"
