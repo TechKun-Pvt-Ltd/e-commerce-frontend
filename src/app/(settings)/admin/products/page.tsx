@@ -70,7 +70,7 @@ export default function ProductsPage() {
         </div>
         <div className="py-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {productsData.data?.map((product, index) => <div key={index} className="flex items-center space-x-4">
-                <Link  href={`/admin/products/${product.title}`}>
+                <Link  href={`/admin/products/${product.productId}`}>
                 <div
                     key={product.productId}
                     className="rounded-md border overflow-hidden shadow-sm hover:shadow-md transition relative"
