@@ -48,8 +48,10 @@ export interface ProductDetails {
     title: string;
     code: string;
     categoryId: number;
-    variants: ProductVariant[];
+    variants: (Omit<ProductVariant, 'variationOptions'> & {variantProperties : {[variationId: number] : {variationOptionId: number , name: string}}})[];
     description: string;
+    attributes: ProductAttribute[];
+    starred: boolean;
 }
 
 export interface ProductPatchPayload {
