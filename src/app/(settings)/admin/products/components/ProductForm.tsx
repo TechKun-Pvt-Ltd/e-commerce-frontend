@@ -58,7 +58,7 @@ interface CategoryData {
 
 const categoryDetailsMap = new Map<number, CategoryData>();
 
-export default function ProductForm({ mode="create", product, categories, variations, attributes, loading, categoriesLoading, fetchCategoryDetails, onSubmit }: {
+export default function ProductForm({ mode = "create", product, categories, variations, attributes, loading, categoriesLoading, fetchCategoryDetails, onSubmit }: {
     mode?: "create" | "update";
     product?: ProductDetails;
     categories: CategoryTree[];
@@ -90,7 +90,7 @@ export default function ProductForm({ mode="create", product, categories, variat
                     title: product.title,
                     code: product.code,
                     description: product.description,
-                    starred: product.starred,
+                    starred: product.starred?? false,
                     categoryId: product.categoryId,
                     variants: product.variants.map(v => ({
                         ...v,
@@ -101,7 +101,6 @@ export default function ProductForm({ mode="create", product, categories, variat
             });
             return;
         }
-
         firstRender.current = false;
     }, [product]);
     const indexedVariations = useMemo(() => variations.reduce((acc, variation) => {
@@ -427,7 +426,7 @@ export default function ProductForm({ mode="create", product, categories, variat
 
             <Button type="submit" disabled={loading}>
                 {loading && <Spinner />}
-                {mode === "update"? "Update Product" : "Create Product"}
+                {mode === "update" ? "Update Product" : "Create Product"}
             </Button>
         </form>
     </Form>
