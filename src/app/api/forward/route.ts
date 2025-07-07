@@ -30,6 +30,15 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // Handle 204 No Content status code explicitly without a body
+  if (res.status === 204) {
+    return new NextResponse(null, {
+      status: res.status,
+      statusText: res.statusText,
+      headers,
+    });
+  }
+  
   return new NextResponse(JSON.stringify(res.data), {
     status: res.status,
     statusText: res.statusText,

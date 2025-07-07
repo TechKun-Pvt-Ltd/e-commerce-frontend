@@ -60,11 +60,8 @@ export function PromotionForm({ mode = "create", loading, onSubmit }: {
         <Button variant="outline">Create Promotion</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
+        <DialogHeader className="mb-4">
           <DialogTitle>{mode === "create" ? "Create Promotion" : "Edit Promotion"}</DialogTitle>
-          <DialogDescription>
-            {mode === "create" ? "Create a new promotion here." : "Make changes to this promotion."} Click save when you're done.
-          </DialogDescription>
         </DialogHeader>
         <div className="space-y-6">
           <div className="flex flex-col md:flex-row gap-6 md:gap-4">
@@ -249,7 +246,10 @@ export function PromotionForm({ mode = "create", loading, onSubmit }: {
                     />
                   </FormControl>
                   <div className="mt-2 text-sm text-muted-foreground">
-                    Selected Categories: {field.value.length > 0 ? field.value.join(', ') : 'None'}
+                    Selected Categories: {field.value.length > 0 ? field.value.map(id => {
+                      const category = categories.find(cat => cat.categoryId === id);
+                      return category ? category.name : id;
+                    }).join(', ') : 'None'}
                   </div>
                   {field.value.length > 0 && (
                     <Button

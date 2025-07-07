@@ -1,44 +1,53 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import { Trash2 } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import useDataFetch from "@/hooks/use-data-fetch";
 import * as productServices from "@/services/promotion";
-import CategoriesDropdown, { CategoryDropdownNode } from "@/app/components/CategoriesDropdown";
-import { useAppSelector } from "@/store/hooks";
-import { Dialog, DialogTrigger } from "@radix-ui/react-dialog";
 import { PromotionForm } from "./component/PromotionForm";
 import { PromotionDetails, PromotionDTO } from "@/types/domains/promotion";
 import { toast } from "sonner";
-import router from "next/router";
+import * as promotionServices from "@/services/promotion";
 
 export default function ProductsPage() {
-
-    const { items: categories, loading: categoriesLoading } = useAppSelector(state => state.categories)
-    const [selectedCategory, setSelectedCategory] = useState<CategoryDropdownNode>();
     const promotionData = useDataFetch(productServices.getAllPromotions);
-    const createPromotion = useDataFetch(productServices.createPromotion);
+    const createPromotion = useDataFetch(promotionServices.createPromotion);
+    const deletePromotion = useDataFetch(promotionServices.deletePromotion);
 
     useEffect(() => {
         promotionData.request();
     }, []);
-
+    console.log(promotionData.data)
+    const deletePromotionHandler = (promotionId: number) => {
+        try {
+            deletePromotion.request(promotionId).onSuccess(() => {
+                toast.success("Promotion deleted successfully");
+                promotionData.request(); // Refresh the list
+            }).onError(() => {
+                toast.error("Failed to delete promotion: Server error");
+            });
+        } catch (err) {
+            toast.error("Failed to delete promotion: Unexpected error");
+        }
+    };
     return <div className="space-y-8">
         <div className="flex justify-between items-center">
             <h1 className="text-3xl font-bold text-gray-900">Promotions</h1>
             <div className="flex justify-between items-center gap-4">
-                <CategoriesDropdown selectedCategoryNode={selectedCategory} onSelect={setSelectedCategory} disabled={categoriesLoading} categories={categories} />
-                {/* <Link href="/admin/products/promotion-form"><Button variant="default">Edit Promotion</Button></Link> */}
                 <Dialog>
                     <PromotionForm
                         mode="create"
                         loading={createPromotion.isLoading}
                         onSubmit={data => {
                             createPromotion.request(data as PromotionDTO).onSuccess(() => {
-                                  router.replace("/admin/promotions");
+                                toast.success("Promotion created successfully");
+                                promotionData.request(); // Refresh the list
                             }).onError(() => {
                                 toast.error("Create promotion failed");
                             });
-                         }}
+                        }}
                     />
                 </Dialog>
             </div>
@@ -65,8 +74,35 @@ export default function ProductsPage() {
                             <span>Min Order: {promotion.minimumOrderValue || 'N/A'}</span>
                             <span className="text-muted-foreground"> • Max Uses: {promotion.maxUses || 'Unlimited'}</span>
                         </div>
-                        <div className="text-xs text-muted-foreground">
+                        <div className="text-xs text-muted-foreground mb-2">
+                            <span>Categories: {promotion.categories?.map(cat => cat.name).join(', ') || 'N/A'}</span>
+                        </div>
+                        <div className="text-xs text-muted-foreground flex justify-between items-center">
                             <span>Usage/Customer: {promotion.usagePerCustomer || 'Unlimited'}</span>
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <button className="text-red-500 hover:text-red-700 cursor-pointer">
+                                        <Trash2 size={16} />
+                                    </button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Delete Promotion</DialogTitle>
+                                        <DialogDescription>
+                                            Are you sure you want to delete this promotion? This action cannot be undone.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <DialogFooter className="mt-4">
+                                        <Button variant="outline" className="cursor-pointer" onClick={() => { }}>Cancel</Button>
+                                        <Button
+                                            variant="destructive"
+                                            onClick={(e) => deletePromotionHandler(promotion.promotionId)}
+                                        >
+                                            Delete
+                                        </Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
                         </div>
                     </div>
                 </div>
