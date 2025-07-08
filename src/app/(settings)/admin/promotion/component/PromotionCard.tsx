@@ -1,8 +1,9 @@
 import React from "react";
-import { Trash2 } from "lucide-react";
+import { Trash2, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { PromotionDetails } from "@/types/domains/promotion";
+import { cn } from "@/lib/utils";
 
 interface PromotionCardProps {
   promotion: PromotionDetails;
@@ -14,6 +15,7 @@ interface PromotionCardProps {
   promotionData: { request: () => void };
   toast: { success: (message: string) => void; error: (message: string) => void };
   PromotionForm: React.ComponentType<any>;
+  index?: number;
 }
 
 export const PromotionCard: React.FC<PromotionCardProps> = ({
@@ -22,103 +24,112 @@ export const PromotionCard: React.FC<PromotionCardProps> = ({
   updatePromotion,
   promotionData,
   toast,
-  PromotionForm
+  PromotionForm,
+  index
 }) => {
+ const cardColors = [
+  "bg-purple-200/60",
+  "bg-orange-200/60", 
+  "bg-emerald-200/60",
+  "bg-red-200/60",
+  "bg-blue-200/60"
+];
+  const bgGradient = index !== undefined ? cardColors[index % cardColors.length] : (promotion.promotionType === 'PERCENTAGE' ? 'from-emerald-600 to-emerald-800' : 'from-blue-600 to-blue-800');
+
+  const formatDiscount = () => {
+    return promotion.promotionType === 'PERCENTAGE' 
+      ? `${promotion.discountValue}% OFF` 
+      : `₹${promotion.discountValue} OFF`;
+  };
+
+  const formatDate = (date: string | Date | null | undefined) => {
+    if (!date) return 'N/A';
+    const d = date instanceof Date ? date : new Date(date);
+    return d.toLocaleDateString('en-IN');
+  };
+
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-lg hover:shadow-xl transition-all duration-300 w-full cursor-pointer min-h-48 flex flex-col bg-gradient-to-b from-white to-gray-50">
-          <div className="flex items-start justify-between gap-4 mb-2">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between mb-2">
-                <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                  promotion.promotionType === 'PERCENTAGE' 
-                    ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' 
-                    : 'bg-blue-100 text-blue-700 border border-blue-200'
-                }`}>
-                  {promotion.promotionType === 'PERCENTAGE' ? 'Percentage' : 'Flat'}
-                </span>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <button
-                      className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200 opacity-70 hover:opacity-100 cursor-pointer"
-                      title="Delete promotion"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Delete Promotion</DialogTitle>
-                      <DialogDescription>
-                        Are you sure you want to delete this promotion? This action cannot be undone.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter className="mt-4">
-                      <Button variant="outline" className="cursor-pointer" onClick={() => { }}>Cancel</Button>
-                      <Button
-                        variant="destructive"
-                      onClick={(e) => {
-                          e.stopPropagation();
-                          deletePromotionHandler(promotion.promotionId);
-                        }}
-                      >
-                        Delete
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
+        <div className="relative group transition-all duration-300 w-full cursor-pointer">
+          {/* Main Card */}
+          <div className={cn(
+            "relative rounded-t-md p-6 bg-gradient-to-br shadow-lg overflow-hidden text-black",
+            bgGradient
+          )}>
+            {/* Background Pattern */}
+            <div className="absolute inset-0 opacity-15">
+              <div className="absolute top-4 right-4 text-6xl font-bold transform rotate-12">
+                %
               </div>
-
-              <h3 className="text-base font-bold text-gray-900 mb-1 leading-tight line-clamp-2">
-                {promotion.description}
-              </h3>
-
-              <div className="flex items-center gap-2 mb-1 p-1 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-100">
-                <div className="text-base font-bold text-green-600">
-                  {promotion.promotionType === 'PERCENTAGE' ? `${promotion.discountValue}%` : `₹${promotion.discountValue}`}
-                </div>
-                <span className="text-[10px] text-green-700 font-medium">
-                  {promotion.promotionType === 'PERCENTAGE' ? 'Discount' : 'Flat'}
-                </span>
-              </div>
-
-              <div className="text-[10px] text-blue-800 font-semibold mb-1">
-                Valid: {promotion.validFrom ? (promotion.validFrom instanceof Date ? promotion.validFrom.toLocaleDateString('en-IN') : new Date(promotion.validFrom).toLocaleDateString('en-IN')) : 'N/A'} - {promotion.validTill ? (promotion.validTill instanceof Date ? promotion.validTill.toLocaleDateString('en-IN') : new Date(promotion.validTill).toLocaleDateString('en-IN')) : 'N/A'}
-              </div>
-
-              <div className="text-[10px] text-gray-600 mb-0.5 font-medium">Categories:</div>
-              <div className="flex flex-wrap gap-1 mt-auto">
-                {promotion.categories?.map((category) => (
-                  <span
-                    key={category.categoryId}
-                    className="px-1.5 py-0.5 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full text-[9px] font-medium hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-sm"
-                  >
-                    {category.name}
-                  </span>
-                )) || <span className="text-[10px] text-gray-500">N/A</span>}
+              <div className="absolute bottom-4 left-4 text-4xl font-bold transform -rotate-12">
+                %
               </div>
             </div>
 
-            {/* Right Section - Stats */}
-            <div className="flex flex-col gap-1 min-w-0">
-              <div className="bg-orange-50 p-1.5 rounded-lg border border-orange-100">
-                <p className="text-[9px] text-orange-600 font-medium mb-0.5">Min Order</p>
-                <p className="text-xs font-bold text-orange-800">₹{promotion.minimumOrderValue?.toLocaleString() || 'N/A'}</p>
-              </div>
-              
-              <div className="bg-purple-50 p-1.5 rounded-lg border border-purple-100">
-                <p className="text-[9px] text-purple-600 font-medium mb-0.5">Max Uses</p>
-                <p className="text-xs font-bold text-purple-800">{promotion.maxUses?.toLocaleString() || 'Unlimited'}</p>
-              </div>
+            {/* Header */}
+            <div className="relative flex justify-between items-start mb-4">
+              <span className="px-3 py-1 rounded-full text-sm font-medium bg-white/50 backdrop-blur-sm">
+                {promotion.promotionType === 'PERCENTAGE' ? 'Percentage' : 'Flat Discount'}
+              </span>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <button
+                    className="p-1 rounded-full hover:bg-white/20 transition-colors text-black cursor-pointer"
+                    title="Delete promotion"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Trash2 size={20} />
+                  </button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Delete Promotion</DialogTitle>
+                    <DialogDescription>
+                      Are you sure you want to delete this promotion? This action cannot be undone.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter className="mt-4">
+                    <Button variant="outline" className="cursor-pointer" onClick={() => { }}>Cancel</Button>
+                    <Button
+                      variant="destructive"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deletePromotionHandler(promotion.promotionId);
+                      }}
+                    >
+                      Delete
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
 
-              <div className="bg-indigo-50 p-1.5 rounded-lg border border-indigo-100">
-                <p className="text-[9px] text-indigo-600 font-medium mb-0.5">Per Customer</p>
-                <p className="text-xs font-bold text-indigo-800">{promotion.usagePerCustomer || 'Unlimited'}</p>
+            {/* Discount */}
+            <div className="relative mb-3">
+              <h2 className="text-4xl font-bold">
+                {formatDiscount()}
+              </h2>
+              <span className="text-sm font-medium bg-white/50 backdrop-blur-sm px-2 py-1 rounded mt-2 inline-block">
+                Min Order: ₹{promotion.minimumOrderValue}
+              </span>
+            </div>
+          </div>
+
+          {/* Bottom Section */}
+          <div className="bg-white rounded-b-md p-4 border-x border-b border-gray-200">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="font-semibold text-gray-800 mb-1">{promotion.description}</h3>
+                <p className="text-xs text-gray-500">Valid till {formatDate(promotion.validTill)}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm font-medium text-gray-600">{promotion.maxUses} max uses</p>
+                <p className="text-xs text-gray-500">{promotion.usagePerCustomer} per customer</p>
               </div>
             </div>
           </div>
+
         </div>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">

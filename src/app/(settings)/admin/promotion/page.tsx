@@ -50,7 +50,7 @@ export default function ProductsPage() {
                 </Dialog>
             </div>
         </div>
-        <div className="py-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="py-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {(promotionData.data as PromotionDetails[])?.map((promotion, index) => (
                 <PromotionCard
                     key={index}
@@ -60,6 +60,7 @@ export default function ProductsPage() {
                     promotionData={promotionData}
                     toast={toast}
                     PromotionForm={PromotionForm}
+                    index={index}
                 />
             ))}
         </div>
