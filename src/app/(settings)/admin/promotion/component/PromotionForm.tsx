@@ -58,7 +58,7 @@ export function PromotionForm({ mode = "create", loading, onSubmit, promotion, s
     onSubmit(data);
   };
   const [selectedCategory, setSelectedCategory] = useState<CategoryDropdownNode>();
-  
+
   const formContent = (
     <>
       <DialogHeader className="mb-4">
@@ -246,32 +246,31 @@ export function PromotionForm({ mode = "create", loading, onSubmit, promotion, s
                     disabled={loading || categoriesLoading}
                   />
                 </FormControl>
-                <div className="mt-2 text-sm text-muted-foreground">
+                <div className="mt-2 text-sm text-muted-foreground flex justify-between items-center">
                   Selected Categories: {field.value.length > 0 ? field.value.map(id => {
                     const category = categories.find((cat: any) => cat.categoryId === id);
                     return category ? category.name : id;
                   }).join(', ') : 'None'}
+                  {field.value.length > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        field.onChange([]);
+                        setSelectedCategory(undefined);
+                      }}
+                    >
+                      Clear All
+                    </Button>
+                  )}
                 </div>
-                {field.value.length > 0 && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="mt-2"
-                    onClick={() => {
-                      field.onChange([]);
-                      setSelectedCategory(undefined);
-                    }}
-                  >
-                    Clear All
-                  </Button>
-                )}
                 <FormMessage />
               </FormItem>
             );
           }}
         />
       </div>
-      <DialogFooter className="mt-6">
+      <DialogFooter className="mt-4">
         <DialogClose asChild>
           <Button variant="outline">Cancel</Button>
         </DialogClose>
