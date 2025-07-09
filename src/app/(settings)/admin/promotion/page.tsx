@@ -18,6 +18,7 @@ export default function ProductsPage() {
     useEffect(() => {
         promotionData.request();
     }, []);
+    
     const deletePromotionHandler = (promotionId: number) => {
         try {
             deletePromotion.request(promotionId).onSuccess(() => {

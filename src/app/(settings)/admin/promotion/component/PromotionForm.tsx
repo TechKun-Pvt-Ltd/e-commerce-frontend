@@ -285,7 +285,7 @@ export function PromotionForm({ mode = "create", loading, onSubmit, promotion, s
     <Form {...form}>
       {showTrigger && (
         <DialogTrigger asChild>
-          <Button variant="outline">Create Promotion</Button>
+          <Button variant="default">Create Promotion</Button>
         </DialogTrigger>
       )}
       {useDialogContent ? (

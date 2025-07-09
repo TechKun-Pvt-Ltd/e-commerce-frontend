@@ -1,5 +1,5 @@
 import React from "react";
-import { Trash2, MoreHorizontal } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { PromotionDetails } from "@/types/domains/promotion";
@@ -54,28 +54,36 @@ export const PromotionCard: React.FC<PromotionCardProps> = ({
         <div className="relative group transition-all duration-300 w-full cursor-pointer">
           {/* Main Card */}
           <div className={cn(
-            "relative rounded-t-md p-6 bg-gradient-to-br shadow-lg overflow-hidden text-black",
+            "relative rounded-t-md p-6 bg-gradient-to-br  overflow-hidden text-black",
             bgGradient
           )}>
             {/* Background Pattern */}
-            <div className="absolute inset-0 opacity-15">
+            {/* <div className="absolute inset-0 opacity-15">
               <div className="absolute top-4 right-4 text-6xl font-bold transform rotate-12">
                 %
               </div>
               <div className="absolute bottom-4 left-4 text-4xl font-bold transform -rotate-12">
                 %
               </div>
-            </div>
+            </div> */}
 
             {/* Header */}
-            <div className="relative flex justify-between items-start mb-4">
-              <span className="px-3 py-1 rounded-full text-sm font-medium bg-white/50 backdrop-blur-sm">
+            <div className="relative flex justify-between items-start">
+              {/* <span className="px-3 py-1 rounded-full text-sm font-medium bg-white/50 backdrop-blur-sm">
                 {promotion.promotionType === 'PERCENTAGE' ? 'Percentage' : 'Flat Discount'}
+              </span> */}
+               <div className="relative mb-3">
+              <h2 className="text-4xl font-bold">
+                {formatDiscount()}
+              </h2>
+              <span className="text-sm font-medium bg-white/50 backdrop-blur-sm  px-2 py-1 rounded mt-5 inline-block">
+                Min Order: ₹{promotion.minimumOrderValue}
               </span>
+            </div>
               <Dialog>
                 <DialogTrigger asChild>
                   <button
-                    className="p-1 rounded-full hover:bg-white/20 transition-colors text-black cursor-pointer"
+                    className="p-2  rounded-full text-sm font-medium bg-white/50 backdrop-blur-sm cursor-pointer"
                     title="Delete promotion"
                     onClick={(e) => e.stopPropagation()}
                   >
@@ -104,16 +112,7 @@ export const PromotionCard: React.FC<PromotionCardProps> = ({
                 </DialogContent>
               </Dialog>
             </div>
-
-            {/* Discount */}
-            <div className="relative mb-3">
-              <h2 className="text-4xl font-bold">
-                {formatDiscount()}
-              </h2>
-              <span className="text-sm font-medium bg-white/50 backdrop-blur-sm px-2 py-1 rounded mt-2 inline-block">
-                Min Order: ₹{promotion.minimumOrderValue}
-              </span>
-            </div>
+           
           </div>
 
           {/* Bottom Section */}

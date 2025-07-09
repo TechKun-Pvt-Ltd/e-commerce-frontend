@@ -8,7 +8,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Tags, LogOut, MoreVerticalIcon, Shapes, SlidersHorizontal, Package, Percent } from "lucide-react"
+import { Tags, LogOut, MoreVerticalIcon, Shapes, SlidersHorizontal, Package, Percent, ShipWheelIcon, Truck } from "lucide-react"
 import Link from "next/link";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -55,6 +55,11 @@ const items = [
         title: "Promotions",
         url: "/admin/promotion",
         icon: Percent  // Sliders icon represents adjustable promotion/properties
+    },
+    {
+        title: "Shipping Methods",
+        url: "/admin/shipping",
+        icon: Truck  // Sliders icon represents adjustable Shipping-Method/properties
     }
 ];
 
