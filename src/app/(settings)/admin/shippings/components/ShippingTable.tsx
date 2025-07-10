@@ -24,7 +24,6 @@ export default function ShippingTable({
   onToggleStatus
 }: ShippingTableProps) {
 
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState<number | null>(null);
   const handleEdit = (shipping: ShippingMethod) => {
     if (onEdit) {
       onEdit(shipping);
