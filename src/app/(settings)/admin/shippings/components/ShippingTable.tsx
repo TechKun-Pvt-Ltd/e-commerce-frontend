@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Edit, Trash2, Package, MapPin, DollarSign } from "lucide-react";
 import { ShippingMethod } from "@/types/domains/shipping_method";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useState } from "react";
 
 
 interface ShippingTableProps {
@@ -15,24 +17,20 @@ interface ShippingTableProps {
   onToggleStatus?: (shippingMethodId: number) => void;
 }
 
-export default function ShippingTable({ 
-  shippingData, 
-  onEdit, 
-  onDelete, 
-  onToggleStatus 
+export default function ShippingTable({
+  shippingData,
+  onEdit,
+  onDelete,
+  onToggleStatus
 }: ShippingTableProps) {
 
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState<number | null>(null);
   const handleEdit = (shipping: ShippingMethod) => {
     if (onEdit) {
       onEdit(shipping);
     }
   };
 
-  const handleDelete = (shippingMethodId: number) => {
-    if (onDelete) {
-      onDelete(shippingMethodId);
-    }
-  };
 
   const toggleStatus = (shippingMethodId: number) => {
     if (onToggleStatus) {
@@ -86,9 +84,9 @@ export default function ShippingTable({
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2"> 
+                      <div className="flex items-center gap-2">
                         <Switch
-                        className="cursor-pointer"
+                          className="cursor-pointer"
                           checked={shipping.disabled}
                           onCheckedChange={() => toggleStatus(shipping.shippingMethodId)}
                         />
@@ -103,14 +101,39 @@ export default function ShippingTable({
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDelete(shipping.shippingMethodId)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-red-600 hover:text-red-700"
+                              title="Delete shipping method"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </DialogTrigger>
+
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Delete Shipping Method</DialogTitle>
+                              <DialogDescription>
+                                Are you sure you want to delete "{shipping.service}"? This action cannot be undone.
+                              </DialogDescription>
+                            </DialogHeader>
+
+                            <DialogFooter className="mt-4">
+                              <DialogClose asChild>
+                                <Button variant="outline">Cancel</Button>
+                              </DialogClose>
+                              <Button
+                                variant="destructive"
+                                onClick={() => onDelete?.(shipping.shippingMethodId)}
+                              >
+                                Delete
+                              </Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
                       </div>
                     </TableCell>
                   </TableRow>

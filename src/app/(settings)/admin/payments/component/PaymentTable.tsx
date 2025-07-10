@@ -22,7 +22,6 @@ export function PaymentTable({
   onToggleStatus 
 }: PaymentTableProps) {
   
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState<number | null>(null);
   
   const handleEdit = (payment: PaymentMethod) => {
     if (onEdit) {
@@ -30,12 +29,7 @@ export function PaymentTable({
     }
   };
 
-  const handleDelete = (paymentMethodId: number) => {
-    if (onDelete) {
-      onDelete(paymentMethodId);
-      setDeleteDialogOpen(null); // Close dialog after delete
-    }
-  };
+
 
   const toggleStatus = (paymentMethodId: number) => {
     if (onToggleStatus) {
@@ -106,24 +100,18 @@ export function PaymentTable({
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Dialog 
-                          open={deleteDialogOpen === payment.paymentMethodId} 
-                          onOpenChange={(open) => setDeleteDialogOpen(open ? payment.paymentMethodId : null)}
-                        >
+                       <Dialog>
                           <DialogTrigger asChild>
                             <Button
                               variant="outline"
                               size="sm"
                               className="text-red-600 hover:text-red-700"
-                              title="Delete payment method"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setDeleteDialogOpen(payment.paymentMethodId);
-                              }}
+                              title="Delete shipping method"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </DialogTrigger>
+
                           <DialogContent>
                             <DialogHeader>
                               <DialogTitle>Delete Payment Method</DialogTitle>
@@ -131,24 +119,21 @@ export function PaymentTable({
                                 Are you sure you want to delete "{payment.paymentType}"? This action cannot be undone.
                               </DialogDescription>
                             </DialogHeader>
+
                             <DialogFooter className="mt-4">
                               <DialogClose asChild>
-                                <Button variant="outline" className="cursor-pointer">
-                                  Cancel
-                                </Button>
+                                <Button variant="outline">Cancel</Button>
                               </DialogClose>
                               <Button
                                 variant="destructive"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDelete(payment.paymentMethodId);
-                                }}
+                                onClick={() => onDelete?.(payment.paymentMethodId)}
                               >
                                 Delete
                               </Button>
                             </DialogFooter>
                           </DialogContent>
                         </Dialog>
+
                       </div>
                     </TableCell>
                   </TableRow>
