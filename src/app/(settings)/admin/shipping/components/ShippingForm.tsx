@@ -90,8 +90,8 @@ export function ShippingForm({
       <DialogHeader className="mb-4">
         <DialogTitle>{mode === "create" ? "Create Shipping Service" : "Edit Shipping Service"}</DialogTitle>
         <DialogDescription>
-          {mode === "create" 
-            ? "Add a new shipping method for your store" 
+          {mode === "create"
+            ? "Add a new shipping method for your store"
             : "Update the shipping method details"
           }
         </DialogDescription>
@@ -110,7 +110,7 @@ export function ShippingForm({
             </FormItem>
           )}
         />
-        
+
         <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -175,7 +175,8 @@ export function ShippingForm({
               </div>
               <FormControl>
                 <Switch
-                  checked={field.value}
+                  className="cursor-pointer"
+                  checked={field.value === true}
                   onCheckedChange={(checked) => field.onChange(checked)}
                 />
               </FormControl>
@@ -187,9 +188,9 @@ export function ShippingForm({
         <DialogClose asChild>
           <Button variant="outline">Cancel</Button>
         </DialogClose>
-        <Button 
-          type="submit" 
-          onClick={form.handleSubmit(handleFormSubmit)} 
+        <Button
+          type="submit"
+          onClick={form.handleSubmit(handleFormSubmit)}
           disabled={loading}
         >
           {loading ? "Processing..." : mode === "create" ? "Create Service" : "Update Service"}

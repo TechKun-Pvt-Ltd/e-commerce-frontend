@@ -86,12 +86,10 @@ export default function ShippingTable({
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={shipping.disabled ? "secondary" : "default"}>
-                          {shipping.disabled ? "Disabled" : "Active"}
-                        </Badge>
+                      <div className="flex items-center gap-2"> 
                         <Switch
-                          checked={!shipping.disabled}
+                        className="cursor-pointer"
+                          checked={shipping.disabled}
                           onCheckedChange={() => toggleStatus(shipping.shippingMethodId)}
                         />
                       </div>

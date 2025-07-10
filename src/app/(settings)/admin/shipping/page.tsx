@@ -24,7 +24,7 @@ export default function Shipping() {
   useEffect(() => {
     shippingData.request();
   }, []);
-
+console.log(shippingData)
   const handleEdit = (method: ShippingMethod) => {
     setEditingShipping(method);
     setIsEditDialogOpen(true);
