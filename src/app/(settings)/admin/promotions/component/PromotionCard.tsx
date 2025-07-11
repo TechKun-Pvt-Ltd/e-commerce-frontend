@@ -34,7 +34,7 @@ export const PromotionCard: React.FC<PromotionCardProps> = ({
   "bg-red-200/60",
   "bg-blue-200/60"
 ];
-  const bgGradient = index !== undefined ? cardColors[index % cardColors.length] : (promotion.promotionType === 'PERCENTAGE' ? 'from-emerald-600 to-emerald-800' : 'from-blue-600 to-blue-800');
+  const bgGradient = index !== undefined ? cardColors[index % cardColors.length] : 'bg-purple-200/60';
 
   const formatDiscount = () => {
     return promotion.promotionType === 'PERCENTAGE' 
@@ -54,7 +54,7 @@ export const PromotionCard: React.FC<PromotionCardProps> = ({
         <div className="relative group transition-all duration-300 w-full cursor-pointer">
           {/* Main Card */}
           <div className={cn(
-            "relative rounded-t-md p-6 bg-gradient-to-br  overflow-hidden text-black",
+            "relative rounded-t-md p-4 bg-gradient-to-br  overflow-hidden text-black",
             bgGradient
           )}>
             {/* Background Pattern */}
@@ -82,13 +82,15 @@ export const PromotionCard: React.FC<PromotionCardProps> = ({
             </div>
               <Dialog>
                 <DialogTrigger asChild>
-                  <button
-                    className="p-2  rounded-full text-sm font-medium bg-white/50 backdrop-blur-sm cursor-pointer"
-                    title="Delete promotion"
-                    onClick={(e) => e.stopPropagation()}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-red-600 bg-white/50 hover:text-red-700"
+                    title="Delete Promotion"
+                     onClick={(e) => e.stopPropagation()}
                   >
-                    <Trash2 size={20} />
-                  </button>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>

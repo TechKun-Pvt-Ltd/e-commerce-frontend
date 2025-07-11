@@ -15,14 +15,14 @@ interface PaymentTableProps {
   onToggleStatus?: (paymentMethodId: number) => void;
 }
 
-export function PaymentTable({ 
-  paymentData, 
-  onEdit, 
-  onDelete, 
-  onToggleStatus 
+export function PaymentTable({
+  paymentData,
+  onEdit,
+  onDelete,
+  onToggleStatus
 }: PaymentTableProps) {
-  
-  
+
+
   const handleEdit = (payment: PaymentMethod) => {
     if (onEdit) {
       onEdit(payment);
@@ -55,7 +55,7 @@ export function PaymentTable({
             <TableHeader>
               <TableRow>
                 <TableHead>Payment Type</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>Enabled</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -80,14 +80,14 @@ export function PaymentTable({
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <Badge variant={payment.disabled ? "secondary" : "default"}>
-                          {payment.disabled ? "Disabled" : "Active"}
-                        </Badge>
                         <Switch
                           className="cursor-pointer"
                           checked={!payment.disabled}
                           onCheckedChange={() => toggleStatus(payment.paymentMethodId)}
                         />
+                        <Badge variant={payment.disabled ? "secondary" : "default"}>
+                          {payment.disabled ? "Disabled" : "Active"}
+                        </Badge>
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
@@ -100,7 +100,7 @@ export function PaymentTable({
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
-                       <Dialog>
+                        <Dialog>
                           <DialogTrigger asChild>
                             <Button
                               variant="outline"

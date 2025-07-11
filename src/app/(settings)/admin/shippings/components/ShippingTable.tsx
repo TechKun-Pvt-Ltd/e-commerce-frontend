@@ -47,7 +47,7 @@ export default function ShippingTable({
                 <TableHead>Service</TableHead>
                 <TableHead>Country</TableHead>
                 <TableHead>Price</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>Enabled</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -86,7 +86,7 @@ export default function ShippingTable({
                       <div className="flex items-center gap-2">
                         <Switch
                           className="cursor-pointer"
-                          checked={shipping.disabled}
+                          checked={!shipping.disabled}
                           onCheckedChange={() => toggleStatus(shipping.shippingMethodId)}
                         />
                       </div>
