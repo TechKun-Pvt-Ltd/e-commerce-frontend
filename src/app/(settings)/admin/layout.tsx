@@ -58,12 +58,12 @@ const items = [
     },
     {
         title: "Shipping Methods",
-        url: "/admin/shippings",
+        url: "/admin/shipping-methods",
         icon: Truck  // Sliders icon represents adjustable Shipping-Method/properties
     },
     {
         title: "Payment Methods",
-        url: "/admin/payments",
+        url: "/admin/payment-methods",
         icon: CreditCardIcon  // CreditCardIcon icon represents adjustable Payment-Method/properties
     }
 ];
