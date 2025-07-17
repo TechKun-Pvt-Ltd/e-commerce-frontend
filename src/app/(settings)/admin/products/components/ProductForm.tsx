@@ -79,7 +79,7 @@ export default function ProductForm({ categories, variations, attributes, loadin
     });
     const indexedVariations = useMemo(() => variations.reduce((acc, variation) => {
         acc[variation.variationId] = variation;
-        return acc;
+        return acc;   
     }, {} as Record<number, typeof variations[number]>), [variations]);
     const indexedVariationOptions = useMemo(() => variations.reduce((acc, variation) => {
         variation.variationOptions.forEach(opt =>

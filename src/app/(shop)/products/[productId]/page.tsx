@@ -11,9 +11,13 @@ import {
     SelectItem,
 } from "@/components/ui/select";
 import { Variation } from "@/types/domains/variation";
-// import useDataFetch from "@/hooks/use-data-fetch";
-// import { getProductById } from "@/services/product";
+import useDataFetch from "@/hooks/use-data-fetch";
 import { AttributeType } from "@/types/domains/attribute";
+import { ProductReviews } from "../Components/ProductReviews";
+import { useAppSelector } from "@/store/hooks";
+import { UserRole } from "@/types/domains/user";
+
+// ... (keep your existing product data and variations objects)
 
 const product: Product = {
     productId: 1,
@@ -35,321 +39,16 @@ const product: Product = {
             isDefault: false,
         },
     ],
+    // ... (keep your existing variants and attributes)
     variants: [
-        {
-            productVariantId: 101,
-            sku: "WH-1000XM5-BLK-BT",
-            disabled: false,
-            quantityInStock: 28,
-            price: 369.99,
-            variationOptions: [
-                {
-                    variationOptionId: 1,
-                    name: "Black",
-                    variationId: 1,
-                },
-                {
-                    variationOptionId: 4,
-                    name: "Over-Ear",
-                    variationId: 2,
-                },
-                {
-                    variationOptionId: 6,
-                    name: "Bluetooth",
-                    variationId: 3,
-                },
-            ],
-        },
-        {
-            productVariantId: 102,
-            sku: "WH-1000XM5-SLV-BT",
-            disabled: false,
-            quantityInStock: 12,
-            price: 349.99,
-            variationOptions: [
-                {
-                    variationOptionId: 2,
-                    name: "Silver",
-                    variationId: 1,
-                },
-                {
-                    variationOptionId: 4,
-                    name: "Over-Ear",
-                    variationId: 2,
-                },
-                {
-                    variationOptionId: 6,
-                    name: "Bluetooth",
-                    variationId: 3,
-                },
-            ],
-        },
-        {
-            productVariantId: 103,
-            sku: "WH-1000XM5-GLD-BT",
-            disabled: false,
-            quantityInStock: 15,
-            price: 379.99,
-            variationOptions: [
-                {
-                    variationOptionId: 3,
-                    name: "Gold",
-                    variationId: 1,
-                },
-                {
-                    variationOptionId: 4,
-                    name: "Over-Ear",
-                    variationId: 2,
-                },
-                {
-                    variationOptionId: 6,
-                    name: "Bluetooth",
-                    variationId: 3,
-                },
-            ],
-        },
-        {
-            productVariantId: 104,
-            sku: "WH-1000XM5-BLK-ON-BT",
-            disabled: false,
-            quantityInStock: 20,
-            price: 329.99,
-            variationOptions: [
-                {
-                    variationOptionId: 1,
-                    name: "Black",
-                    variationId: 1,
-                },
-                {
-                    variationOptionId: 5,
-                    name: "On-Ear",
-                    variationId: 2,
-                },
-                {
-                    variationOptionId: 6,
-                    name: "Bluetooth",
-                    variationId: 3,
-                },
-            ],
-        },
-        {
-            productVariantId: 105,
-            sku: "WH-1000XM5-SLV-ON-BT",
-            disabled: false,
-            quantityInStock: 18,
-            price: 319.99,
-            variationOptions: [
-                {
-                    variationOptionId: 2,
-                    name: "Silver",
-                    variationId: 1,
-                },
-                {
-                    variationOptionId: 5,
-                    name: "On-Ear",
-                    variationId: 2,
-                },
-                {
-                    variationOptionId: 6,
-                    name: "Bluetooth",
-                    variationId: 3,
-                },
-            ],
-        },
-        {
-            productVariantId: 106,
-            sku: "WH-1000XM5-GLD-ON-BT",
-            disabled: false,
-            quantityInStock: 10,
-            price: 339.99,
-            variationOptions: [
-                {
-                    variationOptionId: 3,
-                    name: "Gold",
-                    variationId: 1,
-                },
-                {
-                    variationOptionId: 5,
-                    name: "On-Ear",
-                    variationId: 2,
-                },
-                {
-                    variationOptionId: 6,
-                    name: "Bluetooth",
-                    variationId: 3,
-                },
-            ],
-        },
-        {
-            productVariantId: 107,
-            sku: "WH-1000XM5-BLK-WR",
-            disabled: false,
-            quantityInStock: 25,
-            price: 339.99,
-            variationOptions: [
-                {
-                    variationOptionId: 1,
-                    name: "Black",
-                    variationId: 1,
-                },
-                {
-                    variationOptionId: 4,
-                    name: "Over-Ear",
-                    variationId: 2,
-                },
-                {
-                    variationOptionId: 7,
-                    name: "Wired",
-                    variationId: 3,
-                },
-            ],
-        },
-        {
-            productVariantId: 108,
-            sku: "WH-1000XM5-SLV-WR",
-            disabled: false,
-            quantityInStock: 15,
-            price: 319.99,
-            variationOptions: [
-                {
-                    variationOptionId: 2,
-                    name: "Silver",
-                    variationId: 1,
-                },
-                {
-                    variationOptionId: 4,
-                    name: "Over-Ear",
-                    variationId: 2,
-                },
-                {
-                    variationOptionId: 7,
-                    name: "Wired",
-                    variationId: 3,
-                },
-            ],
-        },
-        {
-            productVariantId: 109,
-            sku: "WH-1000XM5-GLD-WR",
-            disabled: false,
-            quantityInStock: 12,
-            price: 349.99,
-            variationOptions: [
-                {
-                    variationOptionId: 3,
-                    name: "Gold",
-                    variationId: 1,
-                },
-                {
-                    variationOptionId: 4,
-                    name: "Over-Ear",
-                    variationId: 2,
-                },
-                {
-                    variationOptionId: 7,
-                    name: "Wired",
-                    variationId: 3,
-                },
-            ],
-        },
-        {
-            productVariantId: 110,
-            sku: "WH-1000XM5-BLK-ON-WR",
-            disabled: false,
-            quantityInStock: 18,
-            price: 299.99,
-            variationOptions: [
-                {
-                    variationOptionId: 1,
-                    name: "Black",
-                    variationId: 1,
-                },
-                {
-                    variationOptionId: 5,
-                    name: "On-Ear",
-                    variationId: 2,
-                },
-                {
-                    variationOptionId: 7,
-                    name: "Wired",
-                    variationId: 3,
-                },
-            ],
-        },
-        {
-            productVariantId: 111,
-            sku: "WH-1000XM5-SLV-ON-WR",
-            disabled: false,
-            quantityInStock: 14,
-            price: 289.99,
-            variationOptions: [
-                {
-                    variationOptionId: 2,
-                    name: "Silver",
-                    variationId: 1,
-                },
-                {
-                    variationOptionId: 5,
-                    name: "On-Ear",
-                    variationId: 2,
-                },
-                {
-                    variationOptionId: 7,
-                    name: "Wired",
-                    variationId: 3,
-                },
-            ],
-        },
-        {
-            productVariantId: 112,
-            sku: "WH-1000XM5-GLD-ON-WR",
-            disabled: false,
-            quantityInStock: 8,
-            price: 309.99,
-            variationOptions: [
-                {
-                    variationOptionId: 3,
-                    name: "Gold",
-                    variationId: 1,
-                },
-                {
-                    variationOptionId: 5,
-                    name: "On-Ear",
-                    variationId: 2,
-                },
-                {
-                    variationOptionId: 7,
-                    name: "Wired",
-                    variationId: 3,
-                },
-            ],
-        },
+        // ... (keep your existing variants)
     ],
     attributes: [
-        {
-            productAttributeId: 1,
-            attribute: {
-                attributeId: 1,
-                name: "Battery Life",
-                type: AttributeType.CUSTOM,
-                allowedValues: []
-            },
-            value: "30 hours",
-        },
-        {
-            productAttributeId: 2,
-            attribute: {
-                attributeId: 2,
-                name: "Connectivity",
-                type: AttributeType.ENUMERATED,
-                allowedValues: ["Bluetooth", "Wired"],
-            },
-            value: "Bluetooth",
-        },
+        // ... (keep your existing attributes)
     ],
 };
 
-const variations: {[variationId: number]: (Omit<Variation, "variationOptions">)} = {
+const variations: { [variationId: number]: (Omit<Variation, "variationOptions">) } = {
     1: {
         variationId: 1,
         name: "Color",
@@ -382,13 +81,13 @@ type VariantSelectionState = {
     variationMap: VariationMap;
 };
 
-
-export default function ProductDetailsPage({ params }: { params: Promise<{ productId: string }>}) {
+export default function ProductDetailsPage({ params }: { params: Promise<{ productId: string }> }) {
     const { productId } = React.use(params);
-    // const productData = useDataFetch(getProductById, {
-    //     defaultValue: {productId: Number(productId), images: []}
-    // });
-    // const { response: product } = productData;
+
+    // Get user information from Redux store
+    const { user, loading: authLoading } = useAppSelector(state => state.auth);
+
+    // State for product variations
     const [activeImage, setActiveImage] = useState(() =>
         product?.productImages.find(img => img.isDefault) ?? product?.productImages[0]
     );
@@ -397,6 +96,15 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
         priceRange: [0, 0],
         variationMap: {},
     });
+
+    // Helper functions to check user roles
+    const isAdmin = user?.roleName === UserRole.ADMIN;
+    const isPlatformAdmin = user?.roleName === UserRole.PLATFORM_ADMIN;
+    const isCustomer = user?.roleName === UserRole.CUSTOMER;
+    const canModerate = isAdmin || isPlatformAdmin;
+
+    // Get current customer ID if user is a customer
+    const currentCustomerId = isCustomer ? user?.userId : undefined;
 
     const initializeVariantSelectionState = useCallback((): VariantSelectionState => {
         const initialPriceRange: [number, number] = [Infinity, -Infinity];
@@ -505,105 +213,111 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
         });
     }, [product]);
 
-    // useEffect(() => {
-    //     productData.request(Number(productId));
-    // }, []);
     useEffect(() => {
         product && setVariantSelectionState(initializeVariantSelectionState());
     }, [product]);
 
     return (
-        <div className="max-w-6xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Image Gallery */}
-            <div>
-                <div className="border rounded-md overflow-hidden">
-                    <img
-                        src={activeImage?.imageUrl}
-                        alt="Product preview"
-                        className="w-full h-[400px] object-contain"
-                    />
+        <div>
+            <div className="max-w-6xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Image Gallery */}
+                <div>
+                    <div className="border rounded-md overflow-hidden">
+                        <img
+                            src={activeImage?.imageUrl}
+                            alt="Product preview"
+                            className="w-full h-[400px] object-contain"
+                        />
+                    </div>
+                    <div className="mt-4 flex gap-2">
+                        {product?.productImages.map(img => (
+                            <Button
+                                key={img.productImageId}
+                                onClick={() => setActiveImage(img)}
+                                className={`border rounded-md p-1 w-16 h-16 ${activeImage?.productImageId === img.productImageId ? "border-primary" : "border-muted"}`}
+                            >
+                                <img src={img.imageUrl} alt="thumb" className="object-cover w-full h-full" />
+                            </Button>
+                        ))}
+                    </div>
                 </div>
-                <div className="mt-4 flex gap-2">
-                    {product?.productImages.map(img => (
-                        <Button
-                            key={img.productImageId}
-                            onClick={() => setActiveImage(img)}
-                            className={`border rounded-md p-1 w-16 h-16 ${activeImage?.productImageId === img.productImageId ? "border-primary" : "border-muted"}`}
-                        >
-                            <img src={img.imageUrl} alt="thumb" className="object-cover w-full h-full" />
-                        </Button>
-                    ))}
+
+                {/* Product Info */}
+                <div className="space-y-6">
+                    <h1 className="text-2xl font-bold">{product?.title}</h1>
+                    <p className="text-muted-foreground">{product?.description}</p>
+
+                    {/* Attribute List */}
+                    <div className="space-y-2">
+                        {product?.attributes?.map((attr) => (
+                            <div key={attr.productAttributeId} className="text-sm">
+                                <span className="font-medium">{attr.attribute.name}: </span>
+                                <span>{attr.value}</span>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Variation Selects */}
+                    <div className="space-y-4">
+                        {Object.entries(variationMap).map(([key, value]) => (
+                            <div key={key}>
+                                <label className="text-sm font-medium">{value.variationName}</label>
+                                <Select
+                                    onValueChange={v => onSelectVariation(
+                                        Number.parseInt(key), Number.parseInt(v)
+                                    )}
+                                    value={value.selectedOptionId !== undefined && value.selectedOptionId !== null ?
+                                        String(value.selectedOptionId) :
+                                        undefined
+                                    }>
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder={`Select ${value.variationName}`} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {Object.entries(value.options)
+                                            .sort(([, a], [, b]) => a.priceRange[0] - b.priceRange[0])
+                                            .map(([optKey, optValue]) => {
+                                                const [lowerValue, upperValue] = optValue.priceRange.map(a => a.toFixed(2));
+                                                return (
+                                                    <SelectItem key={optKey} value={String(optKey)}>
+                                                        {optValue.name} {value.selectedOptionId !== Number(optKey) ?
+                                                            `(${lowerValue === upperValue ?
+                                                                `$${lowerValue}` :
+                                                                `$${lowerValue} - $${upperValue}`
+                                                            })` :
+                                                            ""
+                                                        }
+                                                    </SelectItem>
+                                                );
+                                            })
+                                        }
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Variant Info */}
+                    <div className="space-y-1">
+                        <div className="text-lg font-semibold text-primary">
+                            {priceRange[0] === priceRange[1] ? `$${priceRange[0]}` : `$${priceRange[0]} - $${priceRange[1]}`}
+                        </div>
+                    </div>
+
+                    <Button size="lg" className="w-full">
+                        Add to Cart
+                    </Button>
                 </div>
             </div>
-
-            {/* Product Info */}
-            <div className="space-y-6">
-                <h1 className="text-2xl font-bold">{product?.title}</h1>
-                <p className="text-muted-foreground">{product?.description}</p>
-
-                {/* Attribute List */}
-                <div className="space-y-2">
-                    {product?.attributes?.map((attr) => (
-                        <div key={attr.productAttributeId} className="text-sm">
-                            <span className="font-medium">{attr.attribute.name}: </span>
-                            <span>{attr.value}</span>
-                        </div>
-                    ))}
+            
+            {/* Reviews Section */}
+            <div className="min-h-screen bg-gradient-to-br from-background to-product-bg">
+                <div className="container mx-auto px-4 py-8 max-w-4xl">
+                    <ProductReviews
+                        productId={Number(productId)}
+                      
+                    />
                 </div>
-
-                {/* Variation Selects */}
-                <div className="space-y-4">
-                    {Object.entries(variationMap).map(([key, value]) => (
-                        <div key={key}>
-                            <label className="text-sm font-medium">{value.variationName}</label>
-                            <Select
-                                onValueChange={v => onSelectVariation(
-                                    Number.parseInt(key), Number.parseInt(v)
-                                )}
-                                value={value.selectedOptionId !== undefined && value.selectedOptionId !== null?
-                                    String(value.selectedOptionId):
-                                    undefined
-                                }>
-                                <SelectTrigger className="w-full">
-                                    <SelectValue placeholder={`Select ${value.variationName}`} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {Object.entries(value.options)
-                                        .sort(([, a], [, b]) => a.priceRange[0] - b.priceRange[0])
-                                        .map(([optKey, optValue]) => {
-                                            const [lowerValue, upperValue] = optValue.priceRange.map(a => a.toFixed(2));
-                                            return (
-                                                <SelectItem key={optKey} value={String(optKey)}>
-                                                    {optValue.name} {value.selectedOptionId !== Number(optKey) ?
-                                                        `(${lowerValue === upperValue ?
-                                                            `$${lowerValue}`:
-                                                            `$${lowerValue} - $${upperValue}`
-                                                        })`:
-                                                        ""
-                                                    }
-                                                </SelectItem>
-                                            );
-                                        })
-                                    }
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    ))}
-                </div>
-
-                {/* Variant Info (mocked default) */}
-                <div className="space-y-1">
-                    <div className="text-lg font-semibold text-primary">
-                        {priceRange[0] === priceRange[1] ? `$${priceRange[0]}`: `$${priceRange[0]} - $${priceRange[1]}`}
-                    </div>
-                    {/* <div className="text-sm text-muted-foreground">
-                        {product.variants[0]?.quantityInStock} in stock
-                    </div> */}
-                </div>
-
-                <Button size="lg" className="w-full">
-                    Add to Cart
-                </Button>
             </div>
         </div>
     )
