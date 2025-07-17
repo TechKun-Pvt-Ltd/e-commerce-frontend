@@ -11,7 +11,6 @@ import * as reviewServices from "@/services/review";
 import { ReviewDTO } from "@/types/domains/review";
 import { useAppSelector } from "@/store/hooks";
 import { UserRole } from "@/types/domains/user";
-import { toast } from "sonner";
 
 interface Review {
   reviewId: number;
@@ -27,17 +26,36 @@ interface Review {
 
 interface ProductReviewsProps {
   productId: number;
+  currentCustomerId?: number;
 }
 
-export const ProductReviews = ({ productId }: ProductReviewsProps) => {
+export const ProductReviews = ({
+  productId,
+  currentCustomerId: propCustomerId = undefined,
+}: ProductReviewsProps) => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingReview, setEditingReview] = useState<Review | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
 
-  // Get user data from Redux store
-  const { user, loading, authenticated } = useAppSelector(state => state.auth);
+  // Get user information from Redux store
+  const { user } = useAppSelector(state => state.auth);
+
+  // Debug user data
+  console.log("Full user object:", user);
+  console.log("User ID:", user?.userId);
+  console.log("User role:", user?.roleName);
+
+  // Role checking logic
+  const isAdmin = user?.roleName === UserRole.ADMIN;
+  const isPlatformAdmin = user?.roleName === UserRole.PLATFORM_ADMIN;
+  const isCustomer = user?.roleName === UserRole.CUSTOMER;
+  const canDeleteAnyReview = isAdmin || isPlatformAdmin;
+
+  // Try different ways to get current user ID
+  const currentUserId = user?.userId;
+  const currentCustomerId = currentUserId || propCustomerId; // Use userId directly or fallback to prop
 
   // Data fetch hooks
   const getReviews = useDataFetch(reviewServices.getReviews);
@@ -45,17 +63,10 @@ export const ProductReviews = ({ productId }: ProductReviewsProps) => {
   const editReview = useDataFetch(reviewServices.editReview);
   const deleteReview = useDataFetch(reviewServices.deleteReview);
 
-  // Load reviews on component mount
+  // Load data on component mount
   useEffect(() => {
     loadReviews();
   }, [productId]);
-
-  // Check authentication status
-  useEffect(() => {
-    if (!loading && !authenticated && !user) {
-      toast('You are not logged in!', { icon: null, richColors: true });
-    }
-  }, [loading, authenticated, user]);
 
   const loadReviews = () => {
     getReviews.request(productId, undefined, 0, 10)
@@ -68,29 +79,12 @@ export const ProductReviews = ({ productId }: ProductReviewsProps) => {
       });
   };
 
-  // Role checking functions using Redux store
-  const hasRole = (roleName: UserRole): boolean => {
-    if (!user || !user.roleName) return false;
-    return user.roleName === roleName;
-  };
-
-  const canModerateReviews = hasRole(UserRole.ADMIN) || hasRole(UserRole.PLATFORM_ADMIN);
-  const canDeleteAnyReview = hasRole(UserRole.PLATFORM_ADMIN);
-
-  // Get current user's ID for review ownership checks
-  const currentUserId = user?.userId;
-
   // Handle new review submission
   const handleSubmitReview = (reviewData: {
     productId: number;
     rating: number;
     reviewText: string;
   }) => {
-    if (!authenticated || !user) {
-      toast.error('You must be logged in to submit a review');
-      return;
-    }
-
     const reviewDTO: ReviewDTO = {
       productId: reviewData.productId,
       rating: reviewData.rating,
@@ -101,7 +95,6 @@ export const ProductReviews = ({ productId }: ProductReviewsProps) => {
       .onSuccess((newReview) => {
         console.log("Raw review response:", newReview);
         
-        // Convert the API response to our Review interface
         const newReviewForList: Review = {
           reviewId: newReview.reviewId,
           reviewText: newReview.reviewText,
@@ -150,7 +143,6 @@ export const ProductReviews = ({ productId }: ProductReviewsProps) => {
       .onSuccess((updatedReview) => {
         console.log("Updated review response:", updatedReview);
         
-        // Update the review in the list
         setReviews(prev => prev.map(review => 
           review.reviewId === editingReview.reviewId 
             ? {
@@ -193,11 +185,49 @@ export const ProductReviews = ({ productId }: ProductReviewsProps) => {
 
   // Permission checking functions
   const canEditReview = (review: Review): boolean => {
-    return review.customer.customerId === currentUserId || canModerateReviews;
+    // Debug logging
+    console.log("canEditReview check:");
+    console.log("Review customer ID:", review.customer.customerId);
+    console.log("Current customer ID:", currentCustomerId);
+    console.log("PropCustomerId:", propCustomerId);
+    console.log("Current user ID:", currentUserId);
+    console.log("User from Redux:", user);
+    console.log("Match result:", review.customer.customerId === currentCustomerId);
+    
+    // Only the review owner can edit their own review (no cross-user editing)
+    return review.customer.customerId === currentCustomerId;
   };
 
   const canDeleteReview = (review: Review): boolean => {
-    return review.customer.customerId === currentUserId || canDeleteAnyReview;
+    // Debug logging
+    console.log("canDeleteReview check:");
+    console.log("Review customer ID:", review.customer.customerId);
+    console.log("Current customer ID:", currentCustomerId);
+    console.log("PropCustomerId:", propCustomerId);
+    console.log("Current user ID:", currentUserId);
+    console.log("Is Platform Admin:", isPlatformAdmin);
+    console.log("Is Admin:", isAdmin);
+    
+    // User can delete their own review
+    if (review.customer.customerId === currentCustomerId) {
+      console.log("Can delete: Own review");
+      return true;
+    }
+    
+    // Platform Admin can delete anyone's review
+    if (isPlatformAdmin) {
+      console.log("Can delete: Platform admin privilege");
+      return true;
+    }
+    
+    // Admin can delete customer reviews (but not platform admin reviews)
+    if (isAdmin) {
+      console.log("Can delete: Admin privilege");
+      return true;
+    }
+    
+    console.log("Cannot delete: No permission");
+    return false;
   };
 
   // Calculate statistics
@@ -214,18 +244,6 @@ export const ProductReviews = ({ productId }: ProductReviewsProps) => {
 
   const isLoading = getReviews.isLoading || postReview.isLoading || editReview.isLoading || deleteReview.isLoading;
 
-  // Show loading state while authentication is being checked
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-8">
       {/* Reviews Summary */}
@@ -237,9 +255,9 @@ export const ProductReviews = ({ productId }: ProductReviewsProps) => {
             {isLoading && (
               <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin ml-2" />
             )}
-            {canModerateReviews && (
+            {canDeleteAnyReview && (
               <Badge variant="outline" className="ml-auto">
-                Moderator View
+                Admin View
               </Badge>
             )}
           </CardTitle>
@@ -263,27 +281,17 @@ export const ProductReviews = ({ productId }: ProductReviewsProps) => {
                 </div>
               </div>
               
-              {authenticated && user ? (
-                <Button
-                  onClick={() => {
-                    setEditingReview(null);
-                    setShowForm(!showForm);
-                  }}
-                  disabled={isLoading}
-                  className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-[var(--shadow-elegant)] transition-all duration-300"
-                >
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  {editingReview ? "Cancel Edit" : "Write a Review"}
-                </Button>
-              ) : (
-                <Button
-                  disabled
-                  className="w-full opacity-50 cursor-not-allowed"
-                >
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  Login to Write a Review
-                </Button>
-              )}
+              <Button
+                onClick={() => {
+                  setEditingReview(null);
+                  setShowForm(!showForm);
+                }}
+                disabled={isLoading}
+                className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-[var(--shadow-elegant)] transition-all duration-300"
+              >
+                <MessageCircle className="w-4 h-4 mr-2" />
+                {editingReview ? "Cancel Edit" : "Write a Review"}
+              </Button>
             </div>
 
             <div className="space-y-2">
@@ -306,7 +314,7 @@ export const ProductReviews = ({ productId }: ProductReviewsProps) => {
       </Card>
 
       {/* Review Form */}
-      {showForm && authenticated && user && (
+      {showForm && (
         <ReviewForm
           productId={productId}
           mode={editingReview ? "edit" : "create"}
@@ -328,12 +336,6 @@ export const ProductReviews = ({ productId }: ProductReviewsProps) => {
           <Badge variant="secondary" className="ml-2">
             {reviews.length}
           </Badge>
-          {canModerateReviews && (
-            <Badge variant="outline" className="ml-2">
-              <Shield className="w-3 h-3 mr-1" />
-              Moderator
-            </Badge>
-          )}
         </h3>
         
         {getReviews.isLoading && reviews.length === 0 ? (
@@ -360,9 +362,8 @@ export const ProductReviews = ({ productId }: ProductReviewsProps) => {
                 review={review}
                 onEdit={canEditReview(review) ? handleEditReview : undefined}
                 onDelete={canDeleteReview(review) ? handleDeleteReview : undefined}
-                isOwner={review.customer.customerId === currentUserId}
-                isModerator={canModerateReviews}
-                canModerate={canModerateReviews}
+                isOwner={review.customer.customerId === currentCustomerId}
+                canModerate={canDeleteAnyReview}
               />
             ))}
           </div>

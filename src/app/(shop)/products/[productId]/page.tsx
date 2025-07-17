@@ -12,12 +12,14 @@ import {
 } from "@/components/ui/select";
 import { Variation } from "@/types/domains/variation";
 import useDataFetch from "@/hooks/use-data-fetch";
+import * as reviewServices from "@/services/review";
 import { AttributeType } from "@/types/domains/attribute";
 import { ProductReviews } from "../Components/ProductReviews";
+
+import * as roleServices from "@/services/role";
+import * as userServices from "@/services/user";
 import { useAppSelector } from "@/store/hooks";
 import { UserRole } from "@/types/domains/user";
-
-// ... (keep your existing product data and variations objects)
 
 const product: Product = {
     productId: 1,
@@ -39,12 +41,317 @@ const product: Product = {
             isDefault: false,
         },
     ],
-    // ... (keep your existing variants and attributes)
     variants: [
-        // ... (keep your existing variants)
+        {
+            productVariantId: 101,
+            sku: "WH-1000XM5-BLK-BT",
+            disabled: false,
+            quantityInStock: 28,
+            price: 369.99,
+            variationOptions: [
+                {
+                    variationOptionId: 1,
+                    name: "Black",
+                    variationId: 1,
+                },
+                {
+                    variationOptionId: 4,
+                    name: "Over-Ear",
+                    variationId: 2,
+                },
+                {
+                    variationOptionId: 6,
+                    name: "Bluetooth",
+                    variationId: 3,
+                },
+            ],
+        },
+        {
+            productVariantId: 102,
+            sku: "WH-1000XM5-SLV-BT",
+            disabled: false,
+            quantityInStock: 12,
+            price: 349.99,
+            variationOptions: [
+                {
+                    variationOptionId: 2,
+                    name: "Silver",
+                    variationId: 1,
+                },
+                {
+                    variationOptionId: 4,
+                    name: "Over-Ear",
+                    variationId: 2,
+                },
+                {
+                    variationOptionId: 6,
+                    name: "Bluetooth",
+                    variationId: 3,
+                },
+            ],
+        },
+        {
+            productVariantId: 103,
+            sku: "WH-1000XM5-GLD-BT",
+            disabled: false,
+            quantityInStock: 15,
+            price: 379.99,
+            variationOptions: [
+                {
+                    variationOptionId: 3,
+                    name: "Gold",
+                    variationId: 1,
+                },
+                {
+                    variationOptionId: 4,
+                    name: "Over-Ear",
+                    variationId: 2,
+                },
+                {
+                    variationOptionId: 6,
+                    name: "Bluetooth",
+                    variationId: 3,
+                },
+            ],
+        },
+        {
+            productVariantId: 104,
+            sku: "WH-1000XM5-BLK-ON-BT",
+            disabled: false,
+            quantityInStock: 20,
+            price: 329.99,
+            variationOptions: [
+                {
+                    variationOptionId: 1,
+                    name: "Black",
+                    variationId: 1,
+                },
+                {
+                    variationOptionId: 5,
+                    name: "On-Ear",
+                    variationId: 2,
+                },
+                {
+                    variationOptionId: 6,
+                    name: "Bluetooth",
+                    variationId: 3,
+                },
+            ],
+        },
+        {
+            productVariantId: 105,
+            sku: "WH-1000XM5-SLV-ON-BT",
+            disabled: false,
+            quantityInStock: 18,
+            price: 319.99,
+            variationOptions: [
+                {
+                    variationOptionId: 2,
+                    name: "Silver",
+                    variationId: 1,
+                },
+                {
+                    variationOptionId: 5,
+                    name: "On-Ear",
+                    variationId: 2,
+                },
+                {
+                    variationOptionId: 6,
+                    name: "Bluetooth",
+                    variationId: 3,
+                },
+            ],
+        },
+        {
+            productVariantId: 106,
+            sku: "WH-1000XM5-GLD-ON-BT",
+            disabled: false,
+            quantityInStock: 10,
+            price: 339.99,
+            variationOptions: [
+                {
+                    variationOptionId: 3,
+                    name: "Gold",
+                    variationId: 1,
+                },
+                {
+                    variationOptionId: 5,
+                    name: "On-Ear",
+                    variationId: 2,
+                },
+                {
+                    variationOptionId: 6,
+                    name: "Bluetooth",
+                    variationId: 3,
+                },
+            ],
+        },
+        {
+            productVariantId: 107,
+            sku: "WH-1000XM5-BLK-WR",
+            disabled: false,
+            quantityInStock: 25,
+            price: 339.99,
+            variationOptions: [
+                {
+                    variationOptionId: 1,
+                    name: "Black",
+                    variationId: 1,
+                },
+                {
+                    variationOptionId: 4,
+                    name: "Over-Ear",
+                    variationId: 2,
+                },
+                {
+                    variationOptionId: 7,
+                    name: "Wired",
+                    variationId: 3,
+                },
+            ],
+        },
+        {
+            productVariantId: 108,
+            sku: "WH-1000XM5-SLV-WR",
+            disabled: false,
+            quantityInStock: 15,
+            price: 319.99,
+            variationOptions: [
+                {
+                    variationOptionId: 2,
+                    name: "Silver",
+                    variationId: 1,
+                },
+                {
+                    variationOptionId: 4,
+                    name: "Over-Ear",
+                    variationId: 2,
+                },
+                {
+                    variationOptionId: 7,
+                    name: "Wired",
+                    variationId: 3,
+                },
+            ],
+        },
+        {
+            productVariantId: 109,
+            sku: "WH-1000XM5-GLD-WR",
+            disabled: false,
+            quantityInStock: 12,
+            price: 349.99,
+            variationOptions: [
+                {
+                    variationOptionId: 3,
+                    name: "Gold",
+                    variationId: 1,
+                },
+                {
+                    variationOptionId: 4,
+                    name: "Over-Ear",
+                    variationId: 2,
+                },
+                {
+                    variationOptionId: 7,
+                    name: "Wired",
+                    variationId: 3,
+                },
+            ],
+        },
+        {
+            productVariantId: 110,
+            sku: "WH-1000XM5-BLK-ON-WR",
+            disabled: false,
+            quantityInStock: 18,
+            price: 299.99,
+            variationOptions: [
+                {
+                    variationOptionId: 1,
+                    name: "Black",
+                    variationId: 1,
+                },
+                {
+                    variationOptionId: 5,
+                    name: "On-Ear",
+                    variationId: 2,
+                },
+                {
+                    variationOptionId: 7,
+                    name: "Wired",
+                    variationId: 3,
+                },
+            ],
+        },
+        {
+            productVariantId: 111,
+            sku: "WH-1000XM5-SLV-ON-WR",
+            disabled: false,
+            quantityInStock: 14,
+            price: 289.99,
+            variationOptions: [
+                {
+                    variationOptionId: 2,
+                    name: "Silver",
+                    variationId: 1,
+                },
+                {
+                    variationOptionId: 5,
+                    name: "On-Ear",
+                    variationId: 2,
+                },
+                {
+                    variationOptionId: 7,
+                    name: "Wired",
+                    variationId: 3,
+                },
+            ],
+        },
+        {
+            productVariantId: 112,
+            sku: "WH-1000XM5-GLD-ON-WR",
+            disabled: false,
+            quantityInStock: 8,
+            price: 309.99,
+            variationOptions: [
+                {
+                    variationOptionId: 3,
+                    name: "Gold",
+                    variationId: 1,
+                },
+                {
+                    variationOptionId: 5,
+                    name: "On-Ear",
+                    variationId: 2,
+                },
+                {
+                    variationOptionId: 7,
+                    name: "Wired",
+                    variationId: 3,
+                },
+            ],
+        },
     ],
     attributes: [
-        // ... (keep your existing attributes)
+        {
+            productAttributeId: 1,
+            attribute: {
+                attributeId: 1,
+                name: "Battery Life",
+                type: AttributeType.CUSTOM,
+                allowedValues: []
+            },
+            value: "30 hours",
+        },
+        {
+            productAttributeId: 2,
+            attribute: {
+                attributeId: 2,
+                name: "Connectivity",
+                type: AttributeType.ENUMERATED,
+                allowedValues: ["Bluetooth", "Wired"],
+            },
+            value: "Bluetooth",
+        },
     ],
 };
 
@@ -81,13 +388,15 @@ type VariantSelectionState = {
     variationMap: VariationMap;
 };
 
+
 export default function ProductDetailsPage({ params }: { params: Promise<{ productId: string }> }) {
     const { productId } = React.use(params);
 
-    // Get user information from Redux store
-    const { user, loading: authLoading } = useAppSelector(state => state.auth);
+    // const productData = useDataFetch(getProductById, {
+    //     defaultValue: {productId: Number(productId), images: []}
+    // });
+    // const { response: product } = productData;
 
-    // State for product variations
     const [activeImage, setActiveImage] = useState(() =>
         product?.productImages.find(img => img.isDefault) ?? product?.productImages[0]
     );
@@ -96,15 +405,6 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
         priceRange: [0, 0],
         variationMap: {},
     });
-
-    // Helper functions to check user roles
-    const isAdmin = user?.roleName === UserRole.ADMIN;
-    const isPlatformAdmin = user?.roleName === UserRole.PLATFORM_ADMIN;
-    const isCustomer = user?.roleName === UserRole.CUSTOMER;
-    const canModerate = isAdmin || isPlatformAdmin;
-
-    // Get current customer ID if user is a customer
-    const currentCustomerId = isCustomer ? user?.userId : undefined;
 
     const initializeVariantSelectionState = useCallback((): VariantSelectionState => {
         const initialPriceRange: [number, number] = [Infinity, -Infinity];
@@ -212,10 +512,30 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
             };
         });
     }, [product]);
+    // const getCustomeById = useDataFetch(roleServices.getRoleById)
 
+    // useEffect(() => {
+    //     productData.request(Number(productId));
+    // }, []);
     useEffect(() => {
         product && setVariantSelectionState(initializeVariantSelectionState());
     }, [product]);
+
+    const getAllRolesData = useDataFetch(roleServices.getAllRoles);
+
+    const { user, loading } = useAppSelector(state => state.auth);
+    // Helper functions to check user roles
+    const isAdmin = user?.roleName === UserRole.ADMIN;
+    const isPlatformAdmin = user?.roleName === UserRole.PLATFORM_ADMIN;
+    const isCustomer = user?.roleName === UserRole.CUSTOMER;
+
+    // Admin can only delete, not edit reviews
+    const canDeleteAnyReview = isAdmin || isPlatformAdmin;
+
+    // Get current customer ID if user is a customer
+    const currentCustomerId = isCustomer ? user?.userId : undefined;
+
+    // user?.roleName = UserRole.ADMIN
 
     return (
         <div>
@@ -297,11 +617,14 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
                         ))}
                     </div>
 
-                    {/* Variant Info */}
+                    {/* Variant Info (mocked default) */}
                     <div className="space-y-1">
                         <div className="text-lg font-semibold text-primary">
                             {priceRange[0] === priceRange[1] ? `$${priceRange[0]}` : `$${priceRange[0]} - $${priceRange[1]}`}
                         </div>
+                        {/* <div className="text-sm text-muted-foreground">
+                        {product.variants[0]?.quantityInStock} in stock
+                    </div> */}
                     </div>
 
                     <Button size="lg" className="w-full">
@@ -309,13 +632,11 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
                     </Button>
                 </div>
             </div>
-            
-            {/* Reviews Section */}
             <div className="min-h-screen bg-gradient-to-br from-background to-product-bg">
                 <div className="container mx-auto px-4 py-8 max-w-4xl">
                     <ProductReviews
                         productId={Number(productId)}
-                      
+                        currentCustomerId={currentCustomerId}
                     />
                 </div>
             </div>
