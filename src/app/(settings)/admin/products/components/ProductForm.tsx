@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
@@ -19,6 +19,7 @@ import { extractConsonants } from "@/lib/utils";
 import Spinner from "@/components/ui/spinner";
 import { RequestFunction } from "@/hooks/use-data-fetch";
 import CategoriesDropdown from "@/app/components/CategoriesDropdown";
+import { ProductDetails } from "@/types/domains/product";
 
 const productFormSchema = z.object({
     title: z.string().nonempty("Title is required."),
@@ -57,7 +58,9 @@ interface CategoryData {
 
 const categoryDetailsMap = new Map<number, CategoryData>();
 
-export default function ProductForm({ categories, variations, attributes, loading, categoriesLoading, fetchCategoryDetails, onSubmit }: {
+export default function ProductForm({ mode = "create", product, categories, variations, attributes, loading, categoriesLoading, fetchCategoryDetails, onSubmit }: {
+    mode?: "create" | "update";
+    product?: ProductDetails;
     categories: CategoryTree[];
     variations: Variation[];
     attributes: Attribute[];
@@ -77,6 +80,29 @@ export default function ProductForm({ categories, variations, attributes, loadin
             attributes: []
         }
     });
+    const firstRender = useRef(true);
+
+    useEffect(() => {
+        if (!firstRender.current && product) {
+            fetchCategoryDetails(product.categoryId).onSuccess(categoryDetails => {
+                registerCategoryDetails(categoryDetails);
+                productForm.reset({
+                    title: product.title,
+                    code: product.code,
+                    description: product.description,
+                    starred: product.starred?? false,
+                    categoryId: product.categoryId,
+                    variants: product.variants.map(v => ({
+                        ...v,
+                        variationOptionIds: Object.values(v.variantProperties).map(opt => opt.variationOptionId)
+                    })),
+                    attributes: product.attributes || [],
+                });
+            });
+            return;
+        }
+        firstRender.current = false;
+    }, [product]);
     const indexedVariations = useMemo(() => variations.reduce((acc, variation) => {
         acc[variation.variationId] = variation;
         return acc;
@@ -353,7 +379,7 @@ export default function ProductForm({ categories, variations, attributes, loadin
                             </TableBody>
                         </Table>
                     </div> :
-                    <div className="text-sm text-muted-foreground">Select a category to get variants.</div>}
+                        <div className="text-sm text-muted-foreground">Select a category to get variants.</div>}
                 </div>
 
                 {productAttributes.map((attr, index) => (
@@ -400,7 +426,7 @@ export default function ProductForm({ categories, variations, attributes, loadin
 
             <Button type="submit" disabled={loading}>
                 {loading && <Spinner />}
-                Create Product
+                {mode === "update" ? "Update Product" : "Create Product"}
             </Button>
         </form>
     </Form>
