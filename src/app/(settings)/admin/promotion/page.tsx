@@ -4,16 +4,19 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import useDataFetch from "@/hooks/use-data-fetch";
 import { PromotionForm } from "./component/PromotionForm";
 import { PromotionCard, promotionCardColors } from "./component/PromotionCard";
-import { PromotionDetails, PromotionDTO } from "@/types/domains/promotion";
+import { PromotionDetails } from "@/types/domains/promotion";
 import { toast } from "sonner";
 import * as promotionServices from "@/services/promotion";
 import { Button } from "@/components/ui/button";
+import { useAppSelector } from "@/store/hooks";
 
 export default function PromotionsPage() {
+    const { items: categories, loading: categoriesLoading } = useAppSelector(state => state.categories);
     const promotionData = useDataFetch(promotionServices.getAllPromotions);
     const createPromotion = useDataFetch(promotionServices.createPromotion);
     const deletePromotion = useDataFetch(promotionServices.deletePromotion);
     const updatePromotion = useDataFetch(promotionServices.updatePromotion);
+    const createDialog = useRef<DialogRef>(null);
     const editDialog = useRef<DialogRef>(null);
     const [targetPromotion, setTargetPromotion] = useState<PromotionDetails | null>(null);
     const deleteDialog = useRef<DialogRef>(null);
@@ -27,28 +30,7 @@ export default function PromotionsPage() {
         <div className="flex justify-between items-center">
             <h1 className="text-3xl font-bold text-gray-900">Promotions</h1>
             <div className="flex justify-between items-center gap-4">
-                <Dialog>
-                    <DialogTrigger asChild>
-                        <Button variant="outline">Create Promotion</Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
-                        <DialogHeader className="mb-4">
-                            <DialogTitle>Create Promotion</DialogTitle>
-                        </DialogHeader>
-                        <PromotionForm
-                            mode="create"
-                            loading={createPromotion.isLoading}
-                            onSubmit={data => {
-                                createPromotion.request(data as PromotionDTO).onSuccess(() => {
-                                    toast.success("Promotion created successfully");
-                                    promotionData.request(); // Refresh the list
-                                }).onError(() => {
-                                    toast.error("Create promotion failed");
-                                });
-                            }}
-                        />
-                    </DialogContent>
-                </Dialog>
+                <Button variant="default" onClick={() => createDialog.current?.open()}>Create Promotion</Button>
             </div>
         </div>
         <div className="py-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -69,14 +51,39 @@ export default function PromotionsPage() {
                 />
             })}
         </div>
+        <Dialog ref={createDialog}>
+            <DialogContent className="sm:max-w-[700px] overflow-y-auto">
+                <DialogHeader className="mb-4">
+                    <DialogTitle>Create Promotion</DialogTitle>
+                </DialogHeader>
+                <PromotionForm
+                    mode="create"
+                    categories={categories}
+                    loading={createPromotion.isLoading}
+                    categoriesLoading={categoriesLoading}
+                    onSubmit={data => {
+                        createPromotion.request(data).onSuccess(() => {
+                            toast.success("Promotion created successfully");
+                            promotionData.request(); // Refresh the list
+                        }).onError(() => {
+                            toast.error("Create promotion failed");
+                        });
+                    }}
+                    onCancel={() => createDialog.current?.close()}
+                />
+            </DialogContent>
+        </Dialog>
         <Dialog ref={editDialog}>
-            <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
+            <DialogContent className="sm:max-w-[700px] overflow-y-auto">
                 <DialogHeader className="mb-4">
                     <DialogTitle>Edit Promotion</DialogTitle>
                 </DialogHeader>
                 <PromotionForm
                     mode="edit"
+                    promotion={targetPromotion ?? undefined}
+                    categories={categories}
                     loading={updatePromotion.isLoading}
+                    categoriesLoading={categoriesLoading}
                     onSubmit={(data) => {
                         if (!targetPromotion) return;
 
@@ -87,9 +94,7 @@ export default function PromotionsPage() {
                             toast.error("Update promotion failed");
                         });
                     }}
-                    promotion={targetPromotion ?? undefined}
-                    showTrigger={false}
-                    useDialogContent={false}
+                    onCancel={() => editDialog.current?.close()}
                 />
             </DialogContent>
         </Dialog>
