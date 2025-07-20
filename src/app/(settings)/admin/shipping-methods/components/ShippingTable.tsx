@@ -6,9 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Edit, Trash2, Package, MapPin, DollarSign } from "lucide-react";
 import { ShippingMethod } from "@/types/domains/shipping_method";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useState } from "react";
-
 
 interface ShippingTableProps {
   shippingData: ShippingMethod[];
@@ -29,7 +26,6 @@ export default function ShippingTable({
       onEdit(shipping);
     }
   };
-
 
   const toggleStatus = (shippingMethodId: number) => {
     if (onToggleStatus) {
@@ -100,39 +96,15 @@ export default function ShippingTable({
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-red-600 hover:text-red-700"
-                              title="Delete shipping method"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </DialogTrigger>
-
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Delete Shipping Method</DialogTitle>
-                              <DialogDescription>
-                                Are you sure you want to delete "{shipping.service}"? This action cannot be undone.
-                              </DialogDescription>
-                            </DialogHeader>
-
-                            <DialogFooter className="mt-4">
-                              <DialogClose asChild>
-                                <Button variant="outline">Cancel</Button>
-                              </DialogClose>
-                              <Button
-                                variant="destructive"
-                                onClick={() => onDelete?.(shipping.shippingMethodId)}
-                              >
-                                Delete
-                              </Button>
-                            </DialogFooter>
-                          </DialogContent>
-                        </Dialog>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700"
+                          onClick={() => onDelete?.(shipping.shippingMethodId)}
+                          title="Delete shipping method"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>

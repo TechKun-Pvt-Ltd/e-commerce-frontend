@@ -4,9 +4,7 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Edit, Trash2, CreditCard } from "lucide-react";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { PaymentMethod } from "@/types/domains/payment_method";
-import { useState } from "react";
 
 interface PaymentTableProps {
   paymentData: PaymentMethod[];
@@ -22,14 +20,11 @@ export function PaymentTable({
   onToggleStatus
 }: PaymentTableProps) {
 
-
   const handleEdit = (payment: PaymentMethod) => {
     if (onEdit) {
       onEdit(payment);
     }
   };
-
-
 
   const toggleStatus = (paymentMethodId: number) => {
     if (onToggleStatus) {
@@ -100,40 +95,15 @@ export function PaymentTable({
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-red-600 hover:text-red-700"
-                              title="Delete shipping method"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </DialogTrigger>
-
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Delete Payment Method</DialogTitle>
-                              <DialogDescription>
-                                Are you sure you want to delete "{payment.paymentType}"? This action cannot be undone.
-                              </DialogDescription>
-                            </DialogHeader>
-
-                            <DialogFooter className="mt-4">
-                              <DialogClose asChild>
-                                <Button variant="outline">Cancel</Button>
-                              </DialogClose>
-                              <Button
-                                variant="destructive"
-                                onClick={() => onDelete?.(payment.paymentMethodId)}
-                              >
-                                Delete
-                              </Button>
-                            </DialogFooter>
-                          </DialogContent>
-                        </Dialog>
-
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700"
+                          onClick={() => onDelete?.(payment.paymentMethodId)}
+                          title="Delete payment method"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>

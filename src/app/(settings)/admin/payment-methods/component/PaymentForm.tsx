@@ -1,6 +1,5 @@
 "use client";
 
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -15,7 +14,7 @@ import {
 } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 const paymentFormSchema = z.object({
   paymentType: z.string().min(1, "Payment type is required."),
@@ -28,18 +27,15 @@ export function PaymentForm({
   mode = "create",
   loading,
   onSubmit,
+  onCancel,
   paymentData,
-  showTrigger = true,
-  useDialogContent = true,
 }: {
   mode: "create" | "edit";
   loading: boolean;
   onSubmit: (data: PaymentFormData) => void;
+  onCancel: () => void;
   paymentData?: PaymentFormData;
-  showTrigger?: boolean;
-  useDialogContent?: boolean;
 }) {
-
   const form = useForm<PaymentFormData>({
     resolver: zodResolver(paymentFormSchema),
     defaultValues: {
@@ -62,13 +58,16 @@ export function PaymentForm({
     }
   }, [paymentData, form, mode]);
 
-   const handleFormSubmit = (data: PaymentFormData) => {
+  const handleFormSubmit = (data: PaymentFormData) => {
     try {
       onSubmit(data);
-      form.reset({
-        paymentType: "",
-        disabled: false,
-      });
+      // Reset form after successful submission only in create mode
+      if (mode === "create") {
+        form.reset({
+          paymentType: "",
+          disabled: false,
+        });
+      }
     } catch (error) {
       console.error("Form submission error:", error);
     }
@@ -86,19 +85,9 @@ export function PaymentForm({
     "Net Banking"
   ];
 
-  const formContent = (
+  return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleFormSubmit) }className="space-y-6">
-        <DialogHeader className="mb-4">
-          <DialogTitle>{mode === "create" ? "Create Payment Method" : "Edit Payment Method"}</DialogTitle>
-          <DialogDescription>
-            {mode === "create" 
-              ? "Add a new payment method for your store" 
-              : "Update the payment method details"
-            }
-          </DialogDescription>
-        </DialogHeader>
-        
+      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
         <div className="space-y-6">
           <FormField
             control={form.control}
@@ -150,41 +139,16 @@ export function PaymentForm({
           />
         </div>
         
-        <DialogFooter className="mt-6">
-          <DialogClose asChild>
-            <Button type="button" variant="outline">Cancel</Button>
-          </DialogClose>
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
           <Button 
             type="submit"
             disabled={loading}
           >
             {loading ? "Processing..." : mode === "create" ? "Create Payment Method" : "Update Payment Method"}
           </Button>
-        </DialogFooter>
+        </div>
       </form>
-    </Form>
-  );
-
-  if (!useDialogContent) {
-    return formContent;
-  }
-
-  return (
-    <Form {...form}>
-      {showTrigger && (
-        <DialogTrigger asChild>
-          <Button variant="default">
-            {mode === "create" ? "Add Payment Method" : "Update Payment Method"}
-          </Button>
-        </DialogTrigger>
-      )}
-      {useDialogContent ? (
-        <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
-          {formContent}
-        </DialogContent>
-      ) : (
-        formContent
-      )}
     </Form>
   );
 }

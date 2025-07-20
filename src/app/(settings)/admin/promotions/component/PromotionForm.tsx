@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import CategoriesDropdown, { CategoryDropdownNode } from "@/app/components/CategoriesDropdown"
-import { useAppSelector } from "@/store/hooks"
 import { useState } from "react"
 import { PromotionDetails, PromotionType } from "@/types/domains/promotion"
 import Spinner from "@/components/ui/spinner"

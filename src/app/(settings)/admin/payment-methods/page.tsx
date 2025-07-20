@@ -1,13 +1,11 @@
 "use client"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Truck, CreditCard } from "lucide-react";
 import useDataFetch from "@/hooks/use-data-fetch";
 import * as paymentServices from "@/services/paymentMethod";
-import { Dialog } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogRef, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { PaymentMethodDTO, PaymentMethod } from "@/types/domains/payment_method";
 import { PaymentTable } from "./component/PaymentTable";
 import { PaymentForm } from "./component/PaymentForm";
@@ -18,8 +16,11 @@ export default function PaymentsPage() {
     const deletePaymentMethod = useDataFetch(paymentServices.deletePaymentMethod);
     const updatePaymentMethod = useDataFetch(paymentServices.updatePaymentMethod);
 
+    const createDialog = useRef<DialogRef>(null);
+    const editDialog = useRef<DialogRef>(null);
+    const deleteDialog = useRef<DialogRef>(null);
     const [editingPayment, setEditingPayment] = useState<PaymentMethod | null>(null);
-    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const [deletingPayment, setDeletingPayment] = useState<PaymentMethod | null>(null);
     
     useEffect(() => {
         paymentData.request();
@@ -27,7 +28,7 @@ export default function PaymentsPage() {
 
     const handleEdit = (method: PaymentMethod) => {
         setEditingPayment(method); 
-        setIsEditDialogOpen(true);
+        editDialog.current?.open();
     };
 
     const handleEditSubmit = (data: any) => {
@@ -39,7 +40,7 @@ export default function PaymentsPage() {
             updatePaymentMethod.request(editingPayment.paymentMethodId, submitData).onSuccess(() => {
                 toast.success("Payment method updated successfully");
                 paymentData.request();
-                setIsEditDialogOpen(false);
+                editDialog.current?.close();
                 setEditingPayment(null);
             }).onError(() => {
                 toast.error("Failed to update payment method");
@@ -47,17 +48,24 @@ export default function PaymentsPage() {
         }
     };
 
-    const deletePaymentMethodHandler = (paymentMethodId: number) => {
-        try {
-            deletePaymentMethod.request(paymentMethodId).onSuccess(() => {
+    const handleDelete = (paymentMethodId: number) => {
+        const method = paymentData.data?.find((m: PaymentMethod) => m.paymentMethodId === paymentMethodId);
+        if (method) {
+            setDeletingPayment(method);
+            deleteDialog.current?.open();
+        }
+    };
+
+    const confirmDelete = () => {
+        if (deletingPayment) {
+            deletePaymentMethod.request(deletingPayment.paymentMethodId).onSuccess(() => {
                 toast.success("Payment method deleted successfully");
                 paymentData.request();
-                // Close any open dialogs
+                deleteDialog.current?.close();
+                setDeletingPayment(null);
             }).onError(() => {
                 toast.error("Failed to delete payment method: Server error");
             });
-        } catch (err) {
-            toast.error("Failed to delete payment method: Unexpected error");
         }
     };
 
@@ -82,24 +90,9 @@ export default function PaymentsPage() {
             <div className="flex justify-between items-center">
                 <h1 className="text-3xl font-bold text-gray-900">Payment Methods</h1>
                 <div className="flex justify-between items-center gap-4">
-                    <Dialog>
-                        <PaymentForm
-                            mode="create"
-                            loading={createPaymentMethod.isLoading}
-                            onSubmit={data => {
-                                const submitData = {
-                                    ...data,
-                                    disabled: data.disabled || false
-                                };
-                                createPaymentMethod.request(submitData as PaymentMethodDTO).onSuccess(() => {
-                                    toast.success("Payment method created successfully");
-                                    paymentData.request();
-                                }).onError(() => {
-                                    toast.error("Create payment method failed");
-                                });
-                            }}
-                        />
-                    </Dialog>
+                    <Button variant="default" onClick={() => createDialog.current?.open()}>
+                        Add Payment Method
+                    </Button>
                 </div>
             </div>
 
@@ -107,32 +100,86 @@ export default function PaymentsPage() {
                 <PaymentTable
                     paymentData={paymentData.data || []}
                     onEdit={handleEdit}
-                    onDelete={deletePaymentMethodHandler}
+                    onDelete={handleDelete}
                     onToggleStatus={toggleStatus}
                 />
             </div>
 
+            {/* Create Dialog */}
+            <Dialog ref={createDialog}>
+                <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
+                    <DialogHeader className="mb-4">
+                        <DialogTitle>Create Payment Method</DialogTitle>
+                        <DialogDescription>
+                            Add a new payment method for your store
+                        </DialogDescription>
+                    </DialogHeader>
+                    <PaymentForm
+                        mode="create"
+                        loading={createPaymentMethod.isLoading}
+                        onSubmit={data => {
+                            const submitData = {
+                                ...data,
+                                disabled: data.disabled || false
+                            };
+                            createPaymentMethod.request(submitData as PaymentMethodDTO).onSuccess(() => {
+                                toast.success("Payment method created successfully");
+                                paymentData.request();
+                                createDialog.current?.close();
+                            }).onError(() => {
+                                toast.error("Create payment method failed");
+                            });
+                        }}
+                        onCancel={() => createDialog.current?.close()}
+                    />
+                </DialogContent>
+            </Dialog>
+
             {/* Edit Dialog */}
-            {isEditDialogOpen && editingPayment && (
-                <Dialog open={isEditDialogOpen} onOpenChange={(open) => {
-                    setIsEditDialogOpen(open);
-                    if (!open) {
-                        setEditingPayment(null);
-                    }
-                }}>
+            <Dialog ref={editDialog}>
+                <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
+                    <DialogHeader className="mb-4">
+                        <DialogTitle>Edit Payment Method</DialogTitle>
+                        <DialogDescription>
+                            Update the payment method details
+                        </DialogDescription>
+                    </DialogHeader>
                     <PaymentForm
                         mode="edit"
                         loading={updatePaymentMethod.isLoading}
                         onSubmit={handleEditSubmit}
-                        paymentData={{
+                        onCancel={() => editDialog.current?.close()}
+                        paymentData={editingPayment ? {
                             paymentType: editingPayment.paymentType,
                             disabled: editingPayment.disabled || false
-                        }}
-                        showTrigger={false}
-                        useDialogContent={true}
+                        } : undefined}
                     />
-                </Dialog>
-            )}
+                </DialogContent>
+            </Dialog>
+
+            {/* Delete Dialog */}
+            <Dialog ref={deleteDialog}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Delete Payment Method</DialogTitle>
+                        <DialogDescription>
+                            Are you sure you want to delete "{deletingPayment?.paymentType}"? This action cannot be undone.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="mt-4">
+                        <Button variant="outline" onClick={() => deleteDialog.current?.close()}>
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={confirmDelete}
+                            disabled={deletePaymentMethod.isLoading}
+                        >
+                            {deletePaymentMethod.isLoading ? "Deleting..." : "Delete"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }
