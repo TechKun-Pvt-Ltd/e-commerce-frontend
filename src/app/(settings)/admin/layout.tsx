@@ -8,7 +8,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Tags, LogOut, MoreVerticalIcon, Shapes, SlidersHorizontal, Package } from "lucide-react"
+import { Tags, LogOut, MoreVerticalIcon, Shapes, SlidersHorizontal, Package, LayoutDashboard, Percent, ShipWheelIcon, Truck, CreditCardIcon } from "lucide-react"
 import Link from "next/link";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -25,6 +25,11 @@ import { UserRole } from "@/types/domains/user";
 import Spinner from "@/components/ui/spinner";
 
 const items = [
+    {
+        title: "Dashboard",
+        url: "/admin/dashboard",
+        icon: LayoutDashboard
+    },
     {
         title: "Products",
         url: "/admin/products",
@@ -50,6 +55,21 @@ const items = [
         title: "Attributes",
         url: "/admin/attributes",
         icon: Shapes  // Sliders icon represents adjustable attributes/properties
+    },
+    {
+        title: "Promotions",
+        url: "/admin/promotions",
+        icon: Percent  // Sliders icon represents adjustable promotion/properties
+    },
+    {
+        title: "Shipping Methods",
+        url: "/admin/shipping-methods",
+        icon: Truck  // Sliders icon represents adjustable Shipping-Method/properties
+    },
+    {
+        title: "Payment Methods",
+        url: "/admin/payment-methods",
+        icon: CreditCardIcon  // CreditCardIcon icon represents adjustable Payment-Method/properties
     }
 ];
 

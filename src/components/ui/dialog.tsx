@@ -6,10 +6,15 @@ import { XIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+export interface DialogRef {
+    open: () => void;
+    close: () => void;
+}
+
 const Dialog = React.forwardRef(({
     ...props
 }: React.ComponentProps<typeof DialogPrimitive.Root>,
-    ref: React.ForwardedRef<{ open: () => void, close: () => void }>
+    ref: React.ForwardedRef<DialogRef>
 ) => {
     const [open, setOpen] = props.open ? [
         props.open,

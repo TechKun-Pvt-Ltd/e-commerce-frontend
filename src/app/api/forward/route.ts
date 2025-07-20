@@ -22,14 +22,25 @@ export async function POST(req: NextRequest) {
 
   const headers = new Headers();
 
-  for (const [key, value] of Object.entries(res.headers)) {
-    if (typeof value === 'string') {
-      headers.set(key, value);
-    } else if (Array.isArray(value)) {
-      headers.set(key, value.join(','));
+  if (res && res.headers) {
+    for (const [key, value] of Object.entries(res.headers)) {
+      if (typeof value === 'string') {
+        headers.set(key, value);
+      } else if (Array.isArray(value)) {
+        headers.set(key, value.join(','));
+      }
     }
   }
 
+
+  if (res.status === 204) {
+    return new NextResponse(null, {
+      status: res.status,
+      statusText: res.statusText,
+      headers,
+    });
+  }
+  
   return new NextResponse(JSON.stringify(res.data), {
     status: res.status,
     statusText: res.statusText,

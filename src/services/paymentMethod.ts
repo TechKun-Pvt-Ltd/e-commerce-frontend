@@ -7,8 +7,8 @@ export const createPaymentMethod: ServiceFunction<PaymentMethodDTO, PaymentMetho
     return servicesApiClient.post('/payment-methods', { data: payload });
 };
 
-export const getAllPaymentMethods: ServiceFunction<[disabled?: boolean], PaymentMethod[]> = (disabled) => {
-    return servicesApiClient.get(`/payment-methods`, { params: { disabled } });
+export const getAllPaymentMethods: ServiceFunction<[], PaymentMethod[]> = () => {
+    return servicesApiClient.get(`/payment-methods`);
 };
 
 export const updatePaymentMethod: ServiceFunction<[paymentMethodId: number, payload: PaymentMethodDTO], PaymentMethod> = (paymentMethodId, payload) => {

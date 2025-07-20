@@ -6,8 +6,8 @@ export const createShippingMethod: ServiceFunction<ShippingMethodDTO, ShippingMe
     return servicesApiClient.post('/shipping-methods', { data: shippingMethodDto });
 };
 
-export const getAllShippingMethods: ServiceFunction<[country?: string, disabled?: boolean], ShippingMethod[]> = (country, disabled) => {
-    return servicesApiClient.get(`/shipping-methods/`, { params: { country, disabled } });
+export const getAllShippingMethods: ServiceFunction<[],ShippingMethod[]> = () => {
+    return servicesApiClient.get(`/shipping-methods`);
 };
 
 export const updateShippingMethod: ServiceFunction<[shippingMethodId: number, shippingMethodDto: ShippingMethodDTO], ShippingMethod> = (shippingMethodId, shippingMethodDto) => {
