@@ -2,8 +2,8 @@ import { Product } from "./product";
 
 
 export interface DateRange {
-  startDate: string;
-  endDate: string;
+  startDate: Date;
+  endDate: Date;
 }
 
 // API Response Types based on your documentation

@@ -32,19 +32,13 @@ export default function Dashboard() {
   const productsData = useDataFetch(reportServices.getProductsPerformanceReport);
   const discountsData = useDataFetch(reportServices.getDiscountsPerformanceReport);
 
-  // Convert date range to API format
-  const formatDateRange = () => ({
-    startDate: format(dateRange.from, 'yyyy-MM-dd'),
-    endDate: format(dateRange.to, 'yyyy-MM-dd')
-  });
-
   useEffect(() => {
-    const dateRangeFormatted = formatDateRange();
-    
-    console.log('Date range formatted:', dateRangeFormatted); // Debug log
-    
-    // Make all API calls using useDataFetch
-    salesData.request(dateRangeFormatted)
+    const dateRangeArgument = {
+      startDate: dateRange.from,
+      endDate: dateRange.to
+    };
+
+    salesData.request(dateRangeArgument)
       .onSuccess((data: SalesReportResponse) => {
         console.log('Sales data loaded:', data);
       })
@@ -52,7 +46,7 @@ export default function Dashboard() {
         console.error('Sales data error:', error);
       });
 
-    customersData.request(dateRangeFormatted)
+    customersData.request(dateRangeArgument)
       .onSuccess((data: CustomersReportResponse) => {
         console.log('Customers data loaded:', data);
       })
@@ -60,7 +54,7 @@ export default function Dashboard() {
         console.error('Customers data error:', error);
       });
 
-    ordersData.request(dateRangeFormatted)
+    ordersData.request(dateRangeArgument)
       .onSuccess((data: OrdersReportResponse[]) => {
         console.log('Orders data loaded:', data);
       })
@@ -68,7 +62,7 @@ export default function Dashboard() {
         console.error('Orders data error:', error);
       });
 
-    productsData.request(dateRangeFormatted)
+    productsData.request(dateRangeArgument)
       .onSuccess((data: ProductsPerformanceResponse) => {
         console.log('Products data loaded:', data);
       })
@@ -76,7 +70,7 @@ export default function Dashboard() {
         console.error('Products data error:', error);
       });
 
-    discountsData.request(dateRangeFormatted)
+    discountsData.request(dateRangeArgument)
       .onSuccess((data: DiscountsPerformanceResponse) => {
         console.log('Discounts data loaded:', data);
       })
@@ -85,12 +79,6 @@ export default function Dashboard() {
       });
 
   }, [dateRange]);
-
-
-  const handleDateRangeChange = (newDateRange: { from: Date; to: Date }) => {
-    setDateRange(newDateRange);
-  };
-
  
   const isLoading = salesData.isLoading || customersData.isLoading || ordersData.isLoading || productsData.isLoading || discountsData.isLoading;
 
@@ -116,12 +104,15 @@ export default function Dashboard() {
           <p className="text-gray-600 mb-4">Failed to fetch dashboard data</p>
           <button 
             onClick={() => {
-              const dateRangeFormatted = formatDateRange();
-              salesData.request(dateRangeFormatted);
-              customersData.request(dateRangeFormatted);
-              ordersData.request(dateRangeFormatted);
-              productsData.request(dateRangeFormatted);
-              discountsData.request(dateRangeFormatted);
+              const dateRangeArgument = {
+                startDate: dateRange.from,
+                endDate: dateRange.to
+              };
+              salesData.request(dateRangeArgument);
+              customersData.request(dateRangeArgument);
+              ordersData.request(dateRangeArgument);
+              productsData.request(dateRangeArgument);
+              discountsData.request(dateRangeArgument);
             }}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
@@ -149,7 +140,7 @@ export default function Dashboard() {
           <div className="flex items-center space-x-4">
             <DateRangeSelector 
               dateRange={dateRange} 
-              onDateRangeChange={handleDateRangeChange} 
+              onDateRangeChange={setDateRange} 
             />
           </div>
         </div>
