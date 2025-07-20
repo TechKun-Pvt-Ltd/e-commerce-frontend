@@ -238,7 +238,6 @@ export default function ProductForm({ mode = "create", product, categories, vari
                                         disabled={field.disabled}
                                         selectedCategoryNode={categoryDetailsMap.get(field.value)}
                                         onSelect={node => {
-                                            console.log("hiiiii",categoryDetailsMap)
                                             if (categoryDetailsMap.has(node.categoryId)) {
                                                 field.onChange(node.categoryId);
                                                 updateVariantsAndAttributes(categoryDetailsMap.get(node.categoryId)!);

@@ -16,12 +16,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import CategoriesDropdown, { CategoryDropdownNode } from "@/app/components/CategoriesDropdown"
 import { useAppSelector } from "@/store/hooks"
 import { useState } from "react"
-import { PromotionDetails } from "@/types/domains/promotion"
+import { PromotionDetails, PromotionType } from "@/types/domains/promotion"
 
 
 const promotionFormSchema = z.object({
   description: z.string().nonempty("Description is required."),
-  promotionType: z.enum(['PERCENTAGE', 'FLAT']),
+  promotionType: z.enum([PromotionType.PERCENTAGE, PromotionType.FLAT]),
   discountValue: z.number().gt(0, "Discount value must be greater than 0."),
   validFrom: z.date().optional(),
   validTill: z.date().optional(),
@@ -45,7 +45,7 @@ export function PromotionForm({ mode = "create", loading, onSubmit, promotion, s
     resolver: zodResolver(promotionFormSchema),
     defaultValues: {
       description: promotion?.description || "",
-      promotionType: promotion?.promotionType || "PERCENTAGE",
+      promotionType: promotion?.promotionType || PromotionType.PERCENTAGE,
       discountValue: promotion?.discountValue || 0,
       minimumOrderValue: promotion?.minimumOrderValue || 0,
       maxUses: promotion?.maxUses || 0,
@@ -59,11 +59,8 @@ export function PromotionForm({ mode = "create", loading, onSubmit, promotion, s
   };
   const [selectedCategory, setSelectedCategory] = useState<CategoryDropdownNode>();
 
-  const formContent = (
-    <>
-      <DialogHeader className="mb-4">
-        <DialogTitle>{mode === "create" ? "Create Promotion" : "Edit Promotion"}</DialogTitle>
-      </DialogHeader>
+  return (
+    <Form {...form}>
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row gap-6 md:gap-4">
           <FormField
@@ -278,23 +275,6 @@ export function PromotionForm({ mode = "create", loading, onSubmit, promotion, s
           {mode === "create" ? "Create Promotion" : "Save Changes"}
         </Button>
       </DialogFooter>
-    </>
-  );
-
-  return (
-    <Form {...form}>
-      {showTrigger && (
-        <DialogTrigger asChild>
-          <Button variant="outline">Create Promotion</Button>
-        </DialogTrigger>
-      )}
-      {useDialogContent ? (
-        <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
-          {formContent}
-        </DialogContent>
-      ) : (
-        formContent
-      )}
     </Form>
   );
 }

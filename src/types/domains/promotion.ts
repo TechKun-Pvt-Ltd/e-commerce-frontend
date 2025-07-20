@@ -24,8 +24,8 @@ export interface PromotionDetails {
     promotionType: PromotionType;
     imageUrl?: string;
     discountValue: number;
-    validFrom?: Date | undefined ;
-    validTill?: Date | undefined;
+    validFrom?: Date;
+    validTill?: Date;
     minimumOrderValue?: number;
     maxUses?: number;
     usagePerCustomer?: number;
