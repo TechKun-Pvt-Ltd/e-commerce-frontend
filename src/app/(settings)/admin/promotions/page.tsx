@@ -108,7 +108,7 @@ export default function PromotionsPage() {
                 </DialogHeader>
                 <DialogFooter className="mt-4">
                     <Button variant="outline" className="cursor-pointer" onClick={() => { }}>Cancel</Button>
-                    <Button
+                    <Button className="text-red-600 bg-white/50 hover:text-red-700"
                         variant="destructive"
                         onClick={(e) => {
                             e.stopPropagation();
