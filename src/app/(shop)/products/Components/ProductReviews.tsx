@@ -1,16 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ReviewCard } from "./ReviewCard";
 import { ReviewForm } from "./ReviewForm";
 import { Rating, RatingButton } from "@/components/ui/rating";
-import { MessageCircle, Star, TrendingUp, Shield, Users } from "lucide-react";
+import { MessageCircle, Star, TrendingUp, Shield, Users, Send, Pencil } from "lucide-react";
 import useDataFetch from "@/hooks/use-data-fetch";
 import * as reviewServices from "@/services/review";
 import { ReviewDTO } from "@/types/domains/review";
 import { useAppSelector } from "@/store/hooks";
 import { UserRole } from "@/types/domains/user";
+import { toast } from "sonner";
 
 interface Review {
   reviewId: number;
@@ -50,7 +51,6 @@ export const ProductReviews = ({
   // Role checking logic
   const isAdmin = user?.roleName === UserRole.ADMIN;
   const isPlatformAdmin = user?.roleName === UserRole.PLATFORM_ADMIN;
-  const isCustomer = user?.roleName === UserRole.CUSTOMER;
   const canDeleteAnyReview = isAdmin || isPlatformAdmin;
 
   // Try different ways to get current user ID
@@ -85,16 +85,8 @@ export const ProductReviews = ({
     rating: number;
     reviewText: string;
   }) => {
-    const reviewDTO: ReviewDTO = {
-      productId: reviewData.productId,
-      rating: reviewData.rating,
-      reviewText: reviewData.reviewText,
-    };
-
-    postReview.request(reviewDTO)
+    postReview.request(reviewData)
       .onSuccess((newReview) => {
-        console.log("Raw review response:", newReview);
-        
         const newReviewForList: Review = {
           reviewId: newReview.reviewId,
           reviewText: newReview.reviewText,
@@ -106,13 +98,12 @@ export const ProductReviews = ({
           rating: newReview.rating,
           dateOfSubmission: new Date(newReview.dateOfSubmission),
         };
-        
+
         setReviews(prev => [newReviewForList, ...prev]);
         setShowForm(false);
-        console.log("Review submitted successfully");
       })
       .onError((error) => {
-        console.error("Failed to submit review:", error);
+        toast.error("Failed to submit review: " + error);
       });
   };
 
@@ -142,18 +133,18 @@ export const ProductReviews = ({
     editReview.request(editingReview.reviewId, editDTO)
       .onSuccess((updatedReview) => {
         console.log("Updated review response:", updatedReview);
-        
-        setReviews(prev => prev.map(review => 
-          review.reviewId === editingReview.reviewId 
+
+        setReviews(prev => prev.map(review =>
+          review.reviewId === editingReview.reviewId
             ? {
-                ...review,
-                reviewText: updatedReview.reviewText,
-                rating: updatedReview.rating,
-                dateOfSubmission: new Date(updatedReview.dateOfSubmission),
-              }
+              ...review,
+              reviewText: updatedReview.reviewText,
+              rating: updatedReview.rating,
+              dateOfSubmission: new Date(updatedReview.dateOfSubmission),
+            }
             : review
         ));
-        
+
         setEditingReview(null);
         setShowForm(false);
         console.log("Review updated successfully");
@@ -184,55 +175,17 @@ export const ProductReviews = ({
   };
 
   // Permission checking functions
-  const canEditReview = (review: Review): boolean => {
-    // Debug logging
-    console.log("canEditReview check:");
-    console.log("Review customer ID:", review.customer.customerId);
-    console.log("Current customer ID:", currentCustomerId);
-    console.log("PropCustomerId:", propCustomerId);
-    console.log("Current user ID:", currentUserId);
-    console.log("User from Redux:", user);
-    console.log("Match result:", review.customer.customerId === currentCustomerId);
-    
-    // Only the review owner can edit their own review (no cross-user editing)
+  const canEditReview = useCallback((review: Review): boolean => {
     return review.customer.customerId === currentCustomerId;
-  };
+  }, [currentCustomerId]);
 
-  const canDeleteReview = (review: Review): boolean => {
-    // Debug logging
-    console.log("canDeleteReview check:");
-    console.log("Review customer ID:", review.customer.customerId);
-    console.log("Current customer ID:", currentCustomerId);
-    console.log("PropCustomerId:", propCustomerId);
-    console.log("Current user ID:", currentUserId);
-    console.log("Is Platform Admin:", isPlatformAdmin);
-    console.log("Is Admin:", isAdmin);
-    
-    // User can delete their own review
-    if (review.customer.customerId === currentCustomerId) {
-      console.log("Can delete: Own review");
-      return true;
-    }
-    
-    // Platform Admin can delete anyone's review
-    if (isPlatformAdmin) {
-      console.log("Can delete: Platform admin privilege");
-      return true;
-    }
-    
-    // Admin can delete customer reviews (but not platform admin reviews)
-    if (isAdmin) {
-      console.log("Can delete: Admin privilege");
-      return true;
-    }
-    
-    console.log("Cannot delete: No permission");
-    return false;
-  };
+  const canDeleteReview = useCallback((review: Review): boolean => {
+    return review.customer.customerId === currentCustomerId || isAdmin || isPlatformAdmin;
+  }, [currentCustomerId, isAdmin, isPlatformAdmin]);
 
   // Calculate statistics
-  const averageRating = reviews.length > 0 
-    ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length 
+  const averageRating = reviews.length > 0
+    ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
     : 0;
 
   const ratingDistribution = Array.from({ length: 5 }, (_, i) => {
@@ -280,7 +233,7 @@ export const ProductReviews = ({
                   </p>
                 </div>
               </div>
-              
+
               <Button
                 onClick={() => {
                   setEditingReview(null);
@@ -300,7 +253,7 @@ export const ProductReviews = ({
                   <span className="text-sm font-medium w-6">{rating}</span>
                   <Star className="h-4 w-4 fill-star-filled text-star-filled" />
                   <div className="flex-1 bg-muted rounded-full h-2">
-                    <div 
+                    <div
                       className="bg-gradient-to-r from-primary to-primary/80 h-2 rounded-full transition-all duration-500"
                       style={{ width: `${percentage}%` }}
                     />
@@ -315,17 +268,37 @@ export const ProductReviews = ({
 
       {/* Review Form */}
       {showForm && (
-        <ReviewForm
-          productId={productId}
-          mode={editingReview ? "edit" : "create"}
-          onSubmit={editingReview ? handleUpdateReview : handleSubmitReview}
-          isSubmitting={postReview.isLoading || editReview.isLoading}
-          initialData={editingReview ? {
-            rating: editingReview.rating,
-            reviewText: editingReview.reviewText
-          } : undefined}
-          onCancel={handleCancelEdit}
-        />
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              {editingReview ? (
+                <>
+                  <Pencil className="w-5 h-5" />
+                  Edit Your Review
+                </>
+              ) : (
+                <>
+                  <Send className="w-5 h-5" />
+                  Write a Review
+                </>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ReviewForm
+              productId={productId}
+              mode={editingReview ? "edit" : "create"}
+              onSubmit={editingReview ? handleUpdateReview : handleSubmitReview}
+              isSubmitting={postReview.isLoading || editReview.isLoading}
+              initialData={editingReview ? {
+                rating: editingReview.rating,
+                reviewText: editingReview.reviewText
+              } : undefined}
+              onCancel={handleCancelEdit}
+            />
+          </CardContent>
+        </Card>
       )}
 
       {/* Reviews List */}
@@ -337,7 +310,7 @@ export const ProductReviews = ({
             {reviews.length}
           </Badge>
         </h3>
-        
+
         {getReviews.isLoading && reviews.length === 0 ? (
           <Card className="p-8 text-center">
             <div className="text-muted-foreground">

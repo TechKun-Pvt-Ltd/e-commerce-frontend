@@ -11,12 +11,6 @@ import {
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Rating, RatingButton } from "@/components/ui/rating";
 import { Send, Pencil } from "lucide-react";
 
@@ -60,7 +54,7 @@ export const ReviewForm = ({
     mode: "onChange",
   });
 
-  const { control, handleSubmit, watch, reset, formState } = form;
+  const { control, watch, reset } = form;
 
   const watchedRating = watch("rating");
   const watchedReviewText = watch("reviewText") || "";
@@ -97,103 +91,84 @@ export const ReviewForm = ({
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          {mode === "create" ? (
-            <>
-              <Send className="w-5 h-5" />
-              Write a Review
-            </>
-          ) : (
-            <>
-              <Pencil className="w-5 h-5" />
-              Edit Your Review
-            </>
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onFormSubmit)}
+        className="space-y-6"
+      >
+        {/* Rating Field */}
+        <FormField
+          control={control}
+          name="rating"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Rating
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  className="flex gap-1"
+                >
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <RatingButton key={index} />
+                  ))}
+                </Rating>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
           )}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onFormSubmit)}
-            className="space-y-6"
-          >
-            {/* Rating Field */}
-            <FormField
-              control={control}
-              name="rating"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Rating 
-                      value={field.value} 
-                      onValueChange={field.onChange}
-                      className="flex gap-1"
-                    >
-                      {Array.from({ length: 5 }).map((_, index) => (
-                        <RatingButton key={index} />
-                      ))}
-                    </Rating>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        />
 
-            {/* Textarea Field */}
-            <FormField
-              control={control}
-              name="reviewText"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Textarea
-                      {...field}
-                      placeholder="Write your review here..."
-                      rows={5}
-                      className="resize-none"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        {/* Textarea Field */}
+        <FormField
+          control={control}
+          name="reviewText"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Textarea
+                  {...field}
+                  placeholder="Write your review here..."
+                  rows={5}
+                  className="resize-none"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-            {/* Submit & Cancel Buttons */}
-            <div className="flex items-center gap-2">
-              <Button type="submit" disabled={isSubmitting || !isFormValid}>
-                {isSubmitting ? (
+        {/* Submit & Cancel Buttons */}
+        <div className="flex items-center gap-2">
+          <Button type="submit" disabled={isSubmitting || !isFormValid}>
+            {isSubmitting ? (
+              <>
+                <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin mr-2" />
+                {mode === "edit" ? "Updating..." : "Submitting..."}
+              </>
+            ) : (
+              <>
+                {mode === "edit" ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin mr-2" />
-                    {mode === "edit" ? "Updating..." : "Submitting..."}
+                    <Pencil className="w-4 h-4 mr-2" />
+                    Update Review
                   </>
                 ) : (
                   <>
-                    {mode === "edit" ? (
-                      <>
-                        <Pencil className="w-4 h-4 mr-2" />
-                        Update Review
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-4 h-4 mr-2" />
-                        Submit Review
-                      </>
-                    )}
+                    <Send className="w-4 h-4 mr-2" />
+                    Submit Review
                   </>
                 )}
-              </Button>
+              </>
+            )}
+          </Button>
 
-              {mode === "edit" && onCancel && (
-                <Button type="button" variant="outline" onClick={onCancel}>
-                  Cancel
-                </Button>
-              )}
-            </div>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+          {mode === "edit" && onCancel && (
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
+          )}
+        </div>
+      </form>
+    </Form>
   );
 };
