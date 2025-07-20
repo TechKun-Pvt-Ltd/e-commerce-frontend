@@ -13,7 +13,7 @@ export default function AddProductPage() {
     const router = useRouter();
     const createProduct = useDataFetch(productServices.createProduct);
     const getCategoryDetails = useDataFetch(getCategoryById);
-    const { categories, variations, attributes, loading, error } = useAppSelector(categoriesUnionSelector);
+    const { categories, variations, attributes, loading } = useAppSelector(categoriesUnionSelector);
     // const productFormRef = useRef();
 
     return <div className="h-full space-y-8 flex flex-col">

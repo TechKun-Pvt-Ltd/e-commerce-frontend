@@ -10,6 +10,8 @@ import { getAllProducts } from "@/services/product";
 import * as productServices from "@/services/product";
 import CategoriesDropdown, { CategoryDropdownNode } from "@/app/components/CategoriesDropdown";
 import { useAppSelector } from "@/store/hooks";
+import placeholderImage from '@/../public/placeholder-image.jpeg';
+
 // const productPreviews: ProductPreview[] = [
 //     {
 //         productId: 1001,
@@ -70,7 +72,7 @@ export default function ProductsPage() {
         </div>
         <div className="py-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {productsData.data?.map((product, index) => <div key={index} className="flex items-center space-x-4">
-                <Link href={`/admin/products/product-form/${product.productId}`}>
+                <Link className="w-full" href={`/admin/products/product-form/${product.productId}`}>
                     <div
                         key={product.productId}
                         className="rounded-md border overflow-hidden shadow-sm hover:shadow-md transition relative w-full"
@@ -85,11 +87,11 @@ export default function ProductsPage() {
 
                         {/* Image */}
                             <Image
-                                src={product.imageUrl}
+                                src={product.imageUrl || placeholderImage}
                                 alt={product.title}
                                 width={210}
                                 height={200}
-                                className="h-auto aspect-square object-cover"
+                                className="w-full h-auto aspect-square object-cover"
                             />
 
                         <div className="p-2 flex">
