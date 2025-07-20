@@ -19,15 +19,11 @@ export default function ProductPage({ params }: { params: Usable<{ productId: st
     const productById = useDataFetch(productServices.getProductById);
     const updateProduct = useDataFetch(productServices.updateProduct);
     const getCategoryDetails = useDataFetch(getCategoryById);
-    const { categories, variations, attributes, loading, error } = useAppSelector(categoriesUnionSelector);
+    const { categories, variations, attributes, loading } = useAppSelector(categoriesUnionSelector);
  
-
-
     useEffect(() => {
         productById.request(Number(productId));
     }, []);
-
-
 
     return <div className="h-full space-y-8 flex flex-col">
         <h1 className="text-3xl font-bold text-gray-900">Edit Product</h1>
