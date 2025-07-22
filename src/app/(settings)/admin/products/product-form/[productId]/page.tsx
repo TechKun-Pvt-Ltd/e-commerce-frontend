@@ -41,9 +41,13 @@ export default function ProductPage({ params }: { params: Usable<{ productId: st
                         fetchCategoryDetails={getCategoryDetails.request}
                         onSubmit={data => {
                             updateProduct.request(Number(productId), {
-
                                 ...data,
-                                attributes: data.attributes.filter(attr => attr.value)
+                                attributes: data.attributes?.filter(attr => attr.value),
+                                images: data.images?.map(img => ({
+                                    productImageId: img.productImageId,
+                                    imageUrl: img.imageUrl,
+                                    isDefault: img.isDefault
+                                }))
                             }).onSuccess(() => {
                                 // productFormRef.current.reset();
                                 router.replace("/admin/products");

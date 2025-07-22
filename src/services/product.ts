@@ -18,7 +18,7 @@ export const createProduct: ServiceFunction<ProductPayload, Product> = (productD
     return servicesApiClient.post('/products', { data: productDto });
 };
 
-export const updateProduct: ServiceFunction<[productId: number, productDto: ProductPayload], Product> = (productId, productDto) => {
+export const updateProduct: ServiceFunction<[productId: number, productDto: Partial<ProductPayload>], Product> = (productId, productDto) => {
     return servicesApiClient.put(`/products/${productId}`, { data: productDto });
 };
 

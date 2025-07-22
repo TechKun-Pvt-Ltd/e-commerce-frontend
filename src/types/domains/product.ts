@@ -66,6 +66,11 @@ export interface ProductPayload {
     description: string;
     starred: boolean;
     categoryId: number;
+    images: {
+        productImageId?: number;
+        imageUrl: string;
+        isDefault: boolean;
+    }[];
     variants: {
         productVariantId?: number;
         sku: string;

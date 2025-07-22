@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
@@ -20,6 +20,10 @@ import Spinner from "@/components/ui/spinner";
 import { RequestFunction } from "@/hooks/use-data-fetch";
 import CategoriesDropdown from "@/app/components/CategoriesDropdown";
 import { ProductDetails } from "@/types/domains/product";
+import useDrivePicker from "react-google-drive-picker";
+import Image from "next/image";
+import { Plus, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 const productFormSchema = z.object({
     title: z.string().nonempty("Title is required."),
@@ -27,6 +31,13 @@ const productFormSchema = z.object({
     description: z.string().nonempty("Description is required."),
     starred: z.boolean(),
     categoryId: z.number().gt(0, "Category is required."),
+    images: z.array(
+        z.object({
+            productImageId: z.number().optional(),
+            imageUrl: z.string().url("Invalid image URL"),
+            isDefault: z.boolean()
+        })
+    ),
     variants: z.array(
         z.object({
             productVariantId: z.number().optional(),
@@ -46,6 +57,10 @@ const productFormSchema = z.object({
 }).refine(data => data.variants.length > 0, { message: "At least one variant is required." });
 
 type ProductFormData = z.infer<typeof productFormSchema>;
+
+function assignField<T extends keyof ProductFormData>(field: T, target: Partial<ProductFormData>, value: ProductFormData[T]) {
+    target[field] = value;
+};
 
 interface CategoryData {
     categoryId: number;
@@ -67,8 +82,9 @@ export default function ProductForm({ mode = "create", product, categories, vari
     loading: boolean;
     categoriesLoading: boolean;
     fetchCategoryDetails: RequestFunction<[categoryId: number], CategoryDetails>;
-    onSubmit: (data: ProductFormData) => void;
+    onSubmit: (data: Partial<ProductFormData>) => void;
 }) {
+    const [openPicker, authResponse] = useDrivePicker();
     const productForm = useForm({
         resolver: zodResolver(productFormSchema),
         defaultValues: {
@@ -76,12 +92,13 @@ export default function ProductForm({ mode = "create", product, categories, vari
             code: "",
             description: "",
             starred: false,
+            images: [],
             variants: [],
             attributes: []
         }
     });
     const firstRender = useRef(true);
-
+    
     useEffect(() => {
         if (!firstRender.current && product) {
             fetchCategoryDetails(product.categoryId).onSuccess(categoryDetails => {
@@ -90,8 +107,9 @@ export default function ProductForm({ mode = "create", product, categories, vari
                     title: product.title,
                     code: product.code,
                     description: product.description,
-                    starred: product.starred?? false,
+                    starred: product.starred ?? false,
                     categoryId: product.categoryId,
+                    images: product.images || [],
                     variants: product.variants.map(v => ({
                         ...v,
                         variationOptionIds: Object.values(v.variantProperties).map(opt => opt.variationOptionId)
@@ -103,9 +121,10 @@ export default function ProductForm({ mode = "create", product, categories, vari
         }
         firstRender.current = false;
     }, [product]);
+
     const indexedVariations = useMemo(() => variations.reduce((acc, variation) => {
         acc[variation.variationId] = variation;
-        return acc;   
+        return acc;
     }, {} as Record<number, typeof variations[number]>), [variations]);
     const indexedVariationOptions = useMemo(() => variations.reduce((acc, variation) => {
         variation.variationOptions.forEach(opt =>
@@ -132,6 +151,7 @@ export default function ProductForm({ mode = "create", product, categories, vari
     }, [selectedCategoryDetails]);
     const productVariants = productForm.watch("variants");
     const productAttributes = productForm.watch("attributes");
+    const productImages = productForm.watch("images");
 
     const updateSkus = useCallback((productCode: string) => (
         productVariants.forEach((v, i) => (
@@ -155,9 +175,122 @@ export default function ProductForm({ mode = "create", product, categories, vari
         );
     }, [productForm, indexedVariations, indexedVariationOptions]);
 
+    const handleOpenPicker = useCallback(() => {
+        try {
+            openPicker({
+                clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
+                developerKey: process.env.NEXT_PUBLIC_GOOGLE_API_KEY!,
+                token: authResponse?.access_token,
+                viewId: "DOCS_IMAGES",
+                setParentFolder: "10ZZvkCV_n6HaM_5AMSXM7uSMbEqqkpi7",
+                multiselect: false,
+                supportDrives: true,
+                callbackFunction(data) {
+                    if (!(data.action === 'picked' && data.docs && data.docs.length > 0))
+                        return;
+
+                    const file = data.docs[0];
+                    const fileId = file.id;
+                    const imageUrl = `https://drive.google.com/uc?id=${fileId}&export=view`;
+                    if (productImages.some(img => img.imageUrl === imageUrl))
+                        return;
+
+                    productForm.setValue("images", [...productImages, {
+                        imageUrl, isDefault: productImages.length === 0
+                    }], { shouldDirty: true });
+                }
+            });
+        } catch (error) {
+            toast.error("Failed to open Google Drive picker. Please try again.");
+        }
+    }, [openPicker, authResponse, productImages]);
+
+    const removeImage = useCallback((imageUrl: string) => {
+        const indexToRemove = productImages.findIndex(img => img.imageUrl === imageUrl);
+        const updatedImages = [...productImages];
+        if (indexToRemove !== -1) {
+            const [removedImage] = updatedImages.splice(indexToRemove, 1);
+            if (removedImage.isDefault && updatedImages.length > 0)
+                updatedImages[0].isDefault = true;
+            productForm.setValue("images", updatedImages, { shouldDirty: true });
+        }
+    }, [productForm, productImages]);
+
+    const setAsDefault = useCallback((imageUrl: string) => {
+        const updatedImages = productImages.map(img => ({
+            ...img,
+            isDefault: img.imageUrl === imageUrl
+        }));
+        productForm.setValue("images", updatedImages, { shouldDirty: true });
+    }, [productForm, productImages]);
+
     return <Form {...productForm}>
-        <form onSubmit={productForm.handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={productForm.handleSubmit(data => {
+            const dataToSubmit: Partial<ProductFormData> = {};
+            const dirtyFields = productForm.formState.dirtyFields;
+            const dirtyFieldKeys = Object.keys(dirtyFields) as (keyof ProductFormData)[];
+            if (dirtyFieldKeys.length === 0)
+                return;
+            
+            dirtyFieldKeys.forEach(key => {
+                if (dirtyFields[key])
+                    assignField(key, dataToSubmit, data[key]);
+            });
+
+            onSubmit(dataToSubmit);
+        })} className="space-y-8">
             <div className="space-y-6">
+                
+                <div className="space-y-4">
+                    <Label>Product Images</Label>
+
+                    <div className="h-72 flex gap-4">
+                        {productImages.length > 0 && <div className="flex-1 overflow-x-auto thin-scrollbar flex gap-4">
+                            {productImages.map((image, index) => (<div key={image.imageUrl} className="relative cursor-pointer" onClick={() => setAsDefault(image.imageUrl)}>
+                                <Image
+                                    src={image.imageUrl}
+                                    alt={`Product image ${index + 1}`}
+                                    width={100}
+                                    height={100}
+                                    style={{ maxWidth: "none" }}
+                                    className={`w-auto h-full object-cover rounded-md transition-all duration-300 ${image.isDefault ? "outline outline-[3px] outline-green-500 outline-offset-[-3px]" : "outline-none"}`}
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).src = '/placeholder-image.jpeg';
+                                    }}
+                                />
+                                <span
+                                    className={`
+                                        absolute top-3 left-3
+                                        bg-green-800 text-white px-2 py-1 rounded-md text-xs
+                                        transition-opacity transition-transform duration-300
+                                        ${image.isDefault ? "opacity-100 scale-100" : "opacity-0 scale-75 pointer-events-none"}
+                                    `}
+                                >
+                                    Default
+                                </span>
+                                <Button className="absolute top-3 right-3"
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={e => {
+                                        e.stopPropagation();
+                                        removeImage(image.imageUrl);
+                                    }}
+                                    disabled={loading}
+                                >
+                                    <Trash2 />
+                                </Button>
+                            </div>))}
+                        </div>}
+                        {productImages.length < 10 && <div className="border bg-accent rounded-md min-w-64 flex flex-col justify-center items-center gap-2 cursor-pointer"
+                            onClick={loading ? undefined : handleOpenPicker}
+                        >
+                            <Plus className="size-8 text-muted-foreground" />
+                            <p className="text-sm text-muted-foreground">Select from Google Drive</p>
+                        </div>}
+                    </div>
+                </div>
+
                 <div className="flex flex-col md:flex-row gap-6 md:gap-4">
                     <FormField disabled={loading}
                         control={productForm.control}
@@ -217,6 +350,10 @@ export default function ProductForm({ mode = "create", product, categories, vari
                                     placeholder="Enter product description"
                                     className="min-h-[100px]"
                                     {...field}
+                                    onBlur={e => {
+                                        field.onBlur();
+                                        field.onChange(e.target.value.trim());
+                                    }}
                                 />
                             </FormControl>
                             <FormMessage />
@@ -315,7 +452,7 @@ export default function ProductForm({ mode = "create", product, categories, vari
                                                 render={({ field }) => (
                                                     <FormItem>
                                                         <FormControl>
-                                                            <Input {...field} />
+                                                            <Input {...field} onBlur={e => { field.onBlur(); field.onChange(e.target.value.trim()); }}/>
                                                         </FormControl>
                                                         <FormMessage />
                                                     </FormItem>
@@ -424,7 +561,7 @@ export default function ProductForm({ mode = "create", product, categories, vari
                 </div>
             )}
 
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading || !productForm.formState.isDirty}>
                 {loading && <Spinner />}
                 {mode === "update" ? "Update Product" : "Create Product"}
             </Button>
