@@ -1,4 +1,3 @@
-import { DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { z } from "zod"
@@ -13,11 +12,10 @@ import {
     FormMessage,
 } from "@/components/ui/form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import CategoriesDropdown, { CategoryDropdownNode } from "@/app/components/CategoriesDropdown"
-import { useState } from "react"
 import { PromotionDetails, PromotionType } from "@/types/domains/promotion"
 import Spinner from "@/components/ui/spinner"
 import { CategoryTree } from "@/types/domains/category"
+import CategoriesMultiSelect from "@/app/components/CategoriesMultiSelect"
 
 
 const promotionFormSchema = z.object({
@@ -56,8 +54,7 @@ export function PromotionForm({ mode = "create", promotion, categories,loading, 
             categoryIds: promotion?.categories?.map(cat => cat.categoryId) || []
         }
     });
-
-    const [selectedCategory, setSelectedCategory] = useState<CategoryDropdownNode>();
+    const promotionType = form.watch('promotionType');
 
     return (
         <Form {...form}>
@@ -106,14 +103,14 @@ export function PromotionForm({ mode = "create", promotion, categories,loading, 
                             name="discountValue"
                             render={({ field }) => (
                                 <FormItem className="flex-1">
-                                    <FormLabel>{form.watch('promotionType') === 'FLAT' ? 'Flat Amount' : 'Discount Value'}</FormLabel>
+                                    <FormLabel>{promotionType === PromotionType.FLAT ? 'Flat Amount' : 'Discount Value'}</FormLabel>
                                     <FormControl>
                                         <Input
                                             type="number"
                                             {...field}
                                             value={field.value === 0 ? '' : field.value}
                                             onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : 0)}
-                                            placeholder={form.watch('promotionType') === 'FLAT' ? 'Enter flat amount' : 'Enter discount value'}
+                                            placeholder={promotionType === PromotionType.FLAT ? 'Enter flat amount' : 'Enter discount value'}
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -231,36 +228,13 @@ export function PromotionForm({ mode = "create", promotion, categories,loading, 
                                 <FormItem>
                                     <FormLabel>Categories</FormLabel>
                                     <FormControl>
-                                        <CategoriesDropdown
-                                            selectedCategoryNode={selectedCategory}
-                                            onSelect={(node) => {
-                                                if (!field.value.includes(node.categoryId)) {
-                                                    field.onChange([...field.value, node.categoryId]);
-                                                    setSelectedCategory(undefined); // Reset to allow selecting another category
-                                                }
-                                            }}
+                                        <CategoriesMultiSelect
+                                            selectedCategoryIds={field.value}
+                                            onSelectionChange={field.onChange}
                                             categories={categories}
                                             disabled={loading || categoriesLoading}
                                         />
                                     </FormControl>
-                                    <div className="mt-2 text-sm text-muted-foreground flex justify-between items-center">
-                                        Selected Categories: {field.value.length > 0 ? field.value.map(id => {
-                                            const category = categories.find((cat: any) => cat.categoryId === id);
-                                            return category ? category.name : id;
-                                        }).join(', ') : 'None'}
-                                        {field.value.length > 0 && (
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => {
-                                                    field.onChange([]);
-                                                    setSelectedCategory(undefined);
-                                                }}
-                                            >
-                                                Clear All
-                                            </Button>
-                                        )}
-                                    </div>
                                     <FormMessage />
                                 </FormItem>
                             );
