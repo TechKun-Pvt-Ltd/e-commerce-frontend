@@ -43,6 +43,11 @@ export default function Chips({ value: chips, onChange, disabled }: {
 };
 
 function binaryInsert(arr: string[], value: string) {
+    if (arr.length === 0) {
+        arr.push(value);
+        return true;
+    }
+
     let low = 0, high = arr.length;
     const firstCmp = arr[0].localeCompare(value);
     if (firstCmp === 0)
