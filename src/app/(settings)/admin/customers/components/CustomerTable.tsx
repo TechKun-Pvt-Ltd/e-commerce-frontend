@@ -7,12 +7,12 @@ import { Trash2, User, Mail, Phone, MapPin, Calendar } from "lucide-react";
 import { ShopUser, UserRole } from "@/types/domains/user";
 
 interface CustomerTableProps {
-  shippingData: ShopUser[];
+  data: ShopUser[];
   onDelete?: (userId: number) => void;
 }
 
 export default function CustomerTable({
-  shippingData: customerData,
+  data: customerData,
   onDelete,
 }: CustomerTableProps) {
 
@@ -75,20 +75,20 @@ export default function CustomerTable({
                       <div className="flex items-center gap-2">
                         <MapPin className="h-4 w-4" />
                         <div className="max-w-[200px] truncate">
-                          {customer.address.street}, {customer.address.city}, {customer.address.country}
+                          {customer.address?.street}, {customer.address?.city}, {customer.address?.country}
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4" />
-                        {formatDate(customer.joinedAt)}
+                        {formatDate(customer?.joinedAt)}
                       </div>
                     </TableCell>
                     <TableCell>
                       <Badge 
-                        variant={customer.removed ? "destructive" : "default"}
-                        className={customer.removed ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}
+                        variant={customer?.removed ? "destructive" : "default"}
+                        className={customer?.removed ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}
                       >
                         {customer.removed ? "Inactive" : "Active"}
                       </Badge>

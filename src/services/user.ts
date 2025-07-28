@@ -2,7 +2,7 @@ import servicesApiClient from "@/lib/services-api-client";
 import { ServiceFunction } from "@/types/api";
 import { ShopUser, UserQueryOptions, UserUpdatePayload } from "@/types/domains/user";
 
-export const getAllUsers: ServiceFunction<UserQueryOptions, ShopUser[]> = (userQueryOptions) => {
+export const getAllUsers: ServiceFunction<[options?: UserQueryOptions], ShopUser[]> = (userQueryOptions) => {
     return servicesApiClient.get('/users', { data: userQueryOptions });
 };
 

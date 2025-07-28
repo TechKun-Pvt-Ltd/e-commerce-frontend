@@ -5,18 +5,15 @@ import * as usersServices from "@/services/user";
 import { toast } from "sonner";
 import { useEffect, useState, useRef } from "react";
 import { ShopUser,  UserRole } from "@/types/domains/user";
-import CustomerTable from "./components/CustomerTable"; // Fixed import name
+import CustomerTable from "./components/CustomerTable";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogRef, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { useAppSelector } from "@/store/hooks";
+
 
 export default function Customers() {
 
     const usersData = useDataFetch(usersServices.getAllUsers);
     const removeCustomer = useDataFetch(usersServices.removeUser);
-
- 
-
     const deleteDialog = useRef<DialogRef>(null);
     const [deletingCustomer, setDeletingCustomer] = useState<ShopUser | null>(null);
 
@@ -26,10 +23,9 @@ export default function Customers() {
     ) || [];
 
     useEffect(() => {
-        usersData.request
+        usersData.request();
     }, []);
 
-    console.log("hiiiiiiiii",usersData.data)
 
     const handleDelete = (userId: number) => {
         const customer = customerData.find((customer: ShopUser) => customer.userId === userId);
@@ -59,7 +55,7 @@ export default function Customers() {
             </div>
             <div className="py-2">
                 <CustomerTable
-                    shippingData={customerData} 
+                    data={customerData} 
                     onDelete={handleDelete}
                 />
             </div>
