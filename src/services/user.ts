@@ -11,5 +11,5 @@ export const updateUser: ServiceFunction<UserUpdatePayload, ShopUser> = (payload
 };
 
 export const removeUser: ServiceFunction<[userId: number], void> = (userId) => {
-    return servicesApiClient.delete(`/users/${userId}`);
+    return servicesApiClient.put(`/users/${userId}`);
 };

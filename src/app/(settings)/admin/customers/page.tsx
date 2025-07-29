@@ -19,7 +19,7 @@ export default function Customers() {
 
 
     const customerData = usersData.data?.filter((user: ShopUser) => 
-        user.role.name === UserRole.CUSTOMER
+        user.role.name === UserRole.CUSTOMER && user.removed === false
     ) || [];
 
     useEffect(() => {
@@ -37,7 +37,7 @@ export default function Customers() {
 
     const confirmDelete = () => {
         if (deletingCustomer) {
-            removeCustomer.request({ userId: deletingCustomer.userId }).onSuccess(() => {
+            removeCustomer.request(deletingCustomer.userId).onSuccess(() => {
                 toast.success("Customer removed successfully");
                 usersData.request
                 deleteDialog.current?.close();
@@ -63,7 +63,7 @@ export default function Customers() {
             <Dialog ref={deleteDialog}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Delete Customer</DialogTitle> 
+                        <DialogTitle>Remove Customer</DialogTitle> 
                         <DialogDescription>
                             Are you sure you want to remove "{deletingCustomer?.fullName}"? This action cannot be undone.
                         </DialogDescription>

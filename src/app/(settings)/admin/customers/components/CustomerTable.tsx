@@ -36,7 +36,7 @@ export default function CustomerTable({
                 <TableHead>Phone</TableHead>
                 <TableHead>Address</TableHead>
                 <TableHead>Joined Date</TableHead>
-                <TableHead>Status</TableHead>
+                {/* <TableHead>Status</TableHead> */}
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -85,14 +85,14 @@ export default function CustomerTable({
                         {formatDate(customer?.joinedAt)}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    {/* <TableCell>
                       <Badge 
                         variant={customer?.removed ? "destructive" : "default"}
                         className={customer?.removed ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}
                       >
                         {customer.removed ? "Inactive" : "Active"}
                       </Badge>
-                    </TableCell>
+                    </TableCell> */}
                     <TableCell className="text-right">
                       <div className="flex gap-2 justify-end">
                         <Button
