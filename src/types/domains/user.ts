@@ -1,11 +1,11 @@
 import { Address, AddressDTO } from "./address";
 
 export interface UserQueryOptions {
-    fullName: string;
-    phoneNo: string;
-    email: string;
-    city: string;
-    country: string;
+    fullName?: string;
+    phoneNo?: string;
+    email?: string;
+    city?: string;
+    country?: string;
 }
 
 export interface UserUpdatePayload {
