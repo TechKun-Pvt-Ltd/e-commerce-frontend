@@ -70,6 +70,11 @@ const items = [
         title: "Payment Methods",
         url: "/admin/payment-methods",
         icon: CreditCardIcon  // CreditCardIcon icon represents adjustable Payment-Method/properties
+    },
+    {
+        title: "Order Shipping",
+        url: "/admin/orders-shipping",
+        icon: ShipWheelIcon  // ShipWheelIcon icon represents adjustable Order Shipping/properties
     }
 ];
 

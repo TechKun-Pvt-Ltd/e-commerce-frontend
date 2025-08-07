@@ -6,6 +6,8 @@ import { CategoryTree } from "@/types/domains/category"
 import { ProductPreview } from "@/types/domains/product"
 import { PromotionDetails } from "@/types/domains/promotion"
 import ProductCard from "./ProductCard"
+import { Button } from "@/components/ui/button"
+import { ArrowRight } from "lucide-react"
 
 function getPromotionForCategory(
     categoryId: number,
@@ -34,7 +36,7 @@ export default function FeaturedByCategory({
     promotions: PromotionDetails[];
 }) {
     return (
-        <section className="space-y-12 py-12 px-4">
+        <section className=" px-4">
             {categories.map((category) => {
                 const categoryProducts: ProductPreview[] = [];
                 getProductsForCategory(category, products, categoryProducts);
@@ -51,9 +53,6 @@ export default function FeaturedByCategory({
                         {/* Header */}
                         <div className="flex items-center justify-between">
                             <div className="flex flex-col gap-1">
-                                <h2 className="text-xl font-semibold">
-                                    Featured in {category.name}
-                                </h2>
                                 {promo && (
                                     <Badge variant="outline" className="w-fit text-sm">
                                         {promo.promotionType === "PERCENTAGE"
@@ -63,20 +62,23 @@ export default function FeaturedByCategory({
                                     </Badge>
                                 )}
                             </div>
-                            <Link
-                                href={`/category/${category.categoryId}`}
-                                className="text-sm font-medium text-primary hover:underline"
-                            >
-                                View All →
-                            </Link>
                         </div>
 
                         {/* Products */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 pb-2">
-                            {sortedProducts.slice(0, 6).map((product) => (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {sortedProducts.slice(0, 3).map((product) => (
                                 <ProductCard key={product.productId} product={product} promo={promo} />
                             ))}
                         </div>
+                        {/* <div className="text-center">
+                            <Link
+                                href={`/category/${category.categoryId}`}>
+                                <Button variant="outline" size="lg" className="border-primary text-primary hover:bg-primary/5">
+                                    View All Plants
+                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                </Button>
+                            </Link>
+                        </div> */}
                     </div>
                 )
             })}
