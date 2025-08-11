@@ -16,6 +16,7 @@ import Banner from '../components/Banner';
 import Feature from '../products/components/Feature';
 import ProductCard from '../components/ProductCard';
 import PromoBanner from '../components/PromoBanner';
+import { TestimonialCard } from '../components/TestimonialCard';
 
 const categories: CategoryTree[] = [
     {
@@ -213,6 +214,26 @@ const products: any[] = [
     },
 ];
 
+const testimonials = [
+    {
+        id: 1,
+        testimonial: "I am absolutely thrilled with the service I received from their company! They were attentive, responsive, and genuinely cared about meeting my needs. I highly recommend them.",
+        clientName: "Your Client",
+        clientImage: "https://i.pinimg.com/736x/2e/2b/ff/2e2bffa562cf50f5757b5a547a1f34b0.jpg",
+    },
+    {
+        id: 2,
+        testimonial: "I am absolutely thrilled with the service I received from their company! They were attentive, responsive, and genuinely cared about meeting my needs. I highly recommend them.",
+        clientName: "Your Client",
+        clientImage: "https://i.pinimg.com/736x/71/22/c1/7122c1ac1382dea3563d776c1f158654.jpg",
+    },
+    {
+        id: 3,
+        testimonial: "Their team exceeded our expectations. Their creative approach and attention to detail brought our vision to life. Highly recommended!",
+        clientName: "Your Client",
+        clientImage: "https://i.pinimg.com/736x/ab/6c/7d/ab6c7d61f6b145356019b320fa613375.jpg",
+    },
+];
 
 const mockReviews: ReviewDetails[] = [
     {
@@ -308,6 +329,41 @@ export default function LandingPage() {
             </div>
             <section>
                 <PromoBanner />
+            </section>
+            <div className='responsive-container'>
+
+                <h2 className="text-3xl text-center font-bold my-16">Popular Products</h2>
+                <section className='mb-28' >
+
+                    <FeaturedByCategory
+                        categories={categories}
+                        promotions={promotions}
+                        products={products!}
+                    />
+                </section>
+            </div>
+            <section>
+                <div className='responsive-container'>
+                    <div className="text-center mb-16">
+                        <h2 className="text-3xl font-bold ">
+                            What Our Customers Say
+                        </h2>
+                        <p>
+                            Discover the reasons why people loves us and become your go-to partner.
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {testimonials.map((testimonial) => (
+                            <TestimonialCard
+                                key={testimonial.id}
+                                testimonial={testimonial.testimonial}
+                                clientName={testimonial.clientName}
+                                clientImage={testimonial.clientImage}
+                            />
+                        ))}
+                    </div>
+                </div>
             </section>
         </>
     );
