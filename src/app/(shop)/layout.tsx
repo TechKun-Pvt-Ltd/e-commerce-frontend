@@ -6,7 +6,7 @@ import CategoriesBar from '../components/CategoriesBar';
 export default function StoreLayout({children}: {children: React.ReactNode}) {
     return (<>
         <Header />
-        <CategoriesBar />
+        {/* <CategoriesBar /> */}
         <main>
             {children}
         </main>

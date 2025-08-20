@@ -65,10 +65,22 @@ export default function FeaturedByCategory({
                         </div>
 
                         {/* Products */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="flex flex-row justify-center gap-4">
+                            <div  style={{ background: `url('/product-image/Ethereal.jpg')`,backgroundSize:"cover" }} className="w-[360px] ">
+                                <div className="bg-black/60 w-full h-full ">
+                                    <div className="relative top-56 left-10  text-white">
+                                        <h2 className="text-3xl"> <b>Discover</b> <br /> BestSellers</h2>
+                                        <Button variant="ghost" className="w-32 hover:bg-white rounded-full  my-4 text-white border p-4 border-white">
+                                            Shop Now
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+
                             {sortedProducts.slice(0, 3).map((product) => (
                                 <ProductCard key={product.productId} product={product} promo={promo} />
                             ))}
+
                         </div>
                         {/* <div className="text-center">
                             <Link

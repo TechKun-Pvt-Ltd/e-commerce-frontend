@@ -30,14 +30,13 @@ function getDiscountedPrice(
 };
 
 export default function ProductCard({ product, promo }: { product: ProductPreview, promo: PromotionDetails | null }) {
-    const dispatch = useAppDispatch();
     const discounted = getDiscountedPrice(product.price, promo);
     const isDiscounted = promo && discounted < product.price;
 
     return (
         <div
             key={product.productId}
-            className="group w-[387px] border  overflow-hidden  p-0"
+            className=" w-[280px] border  overflow-hidden  p-0"
         >
             <div className="relative  aspect-square overflow-hidden">
                 {/* Add to Cart  */}
@@ -46,7 +45,7 @@ export default function ProductCard({ product, promo }: { product: ProductPrevie
                         <Button
                             size="icon"
                             variant="secondary"
-                            className="absolute bg-white right-2 rounded-full top-3 z-10"
+                            className="absolute size-8 bg-white right-2 rounded-full top-3 z-10"
                         >
                             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
                         </Button>
@@ -61,14 +60,14 @@ export default function ProductCard({ product, promo }: { product: ProductPrevie
                         <Button
                             size="icon"
                             variant="secondary"
-                            className="absolute shadow-md right-2 rounded-full top-14 z-10"
+                            className="size-8 absolute shadow-md right-2 rounded-full top-14 z-10"
 
                         >
                             <Heart className="h-4 w-4 text-muted-foreground" />
                         </Button>
                     </TooltipTrigger>
                     <TooltipContent side='left'>
-                        <span>Add to Wishlist </span>
+                        <span> Add to Wishlist </span>
                     </TooltipContent>
                 </Tooltip>
                 <img
