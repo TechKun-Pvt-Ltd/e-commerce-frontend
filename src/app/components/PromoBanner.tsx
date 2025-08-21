@@ -27,24 +27,24 @@ export default function PromoBanner() {
     let slideTimeout: NodeJS.Timeout
 
     const startSlide = () => {
-      // Step 1: Enter from right
+
       setAnimationClass('translate-x-full')
       setShow(true)
 
       setTimeout(() => {
-        setAnimationClass('translate-x-0') // Move to center
+        setAnimationClass('translate-x-0') 
       }, 50)
 
-      // Step 2: Stay centered for 3s, then slide out left
+
       slideTimeout = setTimeout(() => {
         setAnimationClass('-translate-x-full')
-      }, 3000) // Center stay duration
+      }, 3000) 
 
-      // Step 3: After sliding out, prepare next
+ 
       setTimeout(() => {
         setShow(false)
         setCurrentIndex((prev) => (prev + 1) % promos.length)
-      }, 3500) // Exit ends
+      }, 3500) 
     }
 
     startSlide()

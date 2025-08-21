@@ -58,7 +58,7 @@ const HeroSection = () => {
       <div className="absolute inset-0 " /> {/* Dark overlay */}
 
       <div className="responsive-container">
-       
+
         <div className="flex-1 max-w-2xl">
           <h2 className="text-6xl text-amber-700 font-bold mb-6">{title}</h2>
           <h3 className="text-3xl font-light mb-6 leading-tight">{subtitle}</h3>
@@ -70,6 +70,7 @@ const HeroSection = () => {
               EXPLORE NOW <ArrowRight className="ml-2 h-5 w-5" />
             </a>
           </Button>
+         
         </div>
       </div>
 
