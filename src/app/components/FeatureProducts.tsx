@@ -6,6 +6,7 @@ import { PromotionDetails } from "@/types/domains/promotion";
 import { ProductPreview } from "@/types/domains/product";
 import { Button } from "@/components/ui/button";
 import { type ClassValue } from 'clsx';
+import { ShoppingCartIcon } from "lucide-react";
 
 
 const products: any[] = [
@@ -128,19 +129,19 @@ export const FeatureProducts = () => {
                 <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 mb-8 bg-muted/50 rounded-full p-1">
                     <TabsTrigger
                         value="new"
-                        className="rounded-full font-medium data-[state=active]:bg-white data-[state=active]:text-gallery-tab-active data-[state=active]:shadow-sm"
+                        className="rounded-full cursor-pointer  font-medium data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm"
                     >
                         NEW
                     </TabsTrigger>
                     <TabsTrigger
                         value="bestsellers"
-                        className="rounded-full font-medium data-[state=active]:bg-white data-[state=active]:text-gallery-tab-active data-[state=active]:shadow-sm"
+                        className="rounded-full cursor-pointer font-medium data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm"
                     >
                         BEST SELLERS
                     </TabsTrigger>
                     <TabsTrigger
                         value="discounted"
-                        className="rounded-full font-medium data-[state=active]:bg-white data-[state=active]:text-gallery-tab-active data-[state=active]:shadow-sm"
+                        className="rounded-full cursor-pointer font-medium data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm"
                     >
                         DISCOUNTED
                     </TabsTrigger>
@@ -156,8 +157,8 @@ export const FeatureProducts = () => {
 
                     </div>
                     <div className="flex items-center justify-center mt-8  ">
-                        <Button variant="ghost" className="w-32 hover:bg-white hover:border-white rounded-full  my-4 text-black border p-4 border-black">
-                            All Products
+                        <Button variant="ghost" className="w-36 hover:bg-black  rounded-full  my-4 text-black hover:text-white border p-4 border-black">
+                            <ShoppingCartIcon />     All Products
                         </Button>
                     </div>
                 </TabsContent>
@@ -172,8 +173,8 @@ export const FeatureProducts = () => {
                         }
                     </div>
                     <div className="flex items-center justify-center mt-8  ">
-                        <Button variant="ghost" className="w-32 hover:bg-white hover:border-white rounded-full  my-4 text-black border p-4 border-black">
-                            All Products
+                        <Button variant="ghost" className="w-36 hover:bg-black  rounded-full  my-4 text-black hover:text-white border p-4 border-black">
+                            <ShoppingCartIcon />    All Products
                         </Button>
                     </div>
                 </TabsContent>
@@ -188,8 +189,8 @@ export const FeatureProducts = () => {
                         }
                     </div>
                     <div className="flex items-center justify-center mt-8 ">
-                        <Button variant="ghost" className="w-32 hover:bg-white hover:border-white rounded-full  my-4 text-black border p-4 border-black">
-                            All Products
+                        <Button variant="ghost" className="w-36 hover:bg-black  rounded-full  my-4 text-black hover:text-white border p-4 border-black">
+                            <ShoppingCartIcon />  All Products
                         </Button>
                     </div>
                 </TabsContent>

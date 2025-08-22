@@ -9,11 +9,10 @@ interface TestimonialCardProps {
 
 export const TestimonialCard = ({ testimonial, clientName, clientImage }: TestimonialCardProps) => {
   return (
-    <div className="p-8 border ">
+    <div className="p-6 border ">
       <div className="space-y-6">
-        {/* <Quote className="w-8 h-8  opacity-70" /> */}
         <img  src="/quote.png" alt="" className="w-12 h-12" />
-        <p className="text-foreground h-36 text-lg leading-relaxed">
+        <p className="text-lg leading-7">
           {testimonial}
         </p>
         <div className="flex items-center gap-4">

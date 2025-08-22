@@ -231,7 +231,7 @@ const testimonials = [
     },
     {
         id: 3,
-        testimonial: "Their team exceeded our expectations. Their creative approach and attention to detail brought our vision to life. Highly recommended!",
+        testimonial: "I am absolutely thrilled with the service I received from their company! They were attentive, responsive, and genuinely cared about meeting my needs. I highly recommend them.",
         clientName: "Your Client",
         clientImage: "https://i.pinimg.com/736x/ab/6c/7d/ab6c7d61f6b145356019b320fa613375.jpg",
     },
@@ -318,7 +318,7 @@ export default function LandingPage() {
                 <section>
                     <h2 className="text-3xl text-center font-bold my-16"> Popular Categories</h2>
 
-                    <div className="flex justify-center items-center gap-20 flex-wrap">
+                    <div className="flex justify-center items-center gap-20 flex-wrap mb-28">
                         {categoriescards.map((category) => (
                             <CategoryCard
                                 key={category.id}
@@ -331,14 +331,17 @@ export default function LandingPage() {
                 </section>
 
                 {/* Featured Products */}
-                <h2 className="text-3xl text-center font-bold my-16">Featured Products</h2>
-                <section className='mb-28' >
+                <section>
 
-                    <FeaturedByCategory
-                        categories={categories}
-                        promotions={promotions}
-                        products={products!}
-                    />
+                    <h2 className="text-3xl text-center font-bold my-16">Featured Products</h2>
+                    <div className='mb-28' >
+
+                        <FeaturedByCategory
+                            categories={categories}
+                            promotions={promotions}
+                            products={products!}
+                        />
+                    </div>
                 </section>
 
 
@@ -386,7 +389,7 @@ export default function LandingPage() {
                     />
                 </section> */}
             </div>
-            <div className=' bg-amber-50 my-16'>
+            <div className=' bg-[#F1F3E7] my-16'>
                 <PromoBannerCard />
             </div>
             <section>
@@ -410,7 +413,7 @@ export default function LandingPage() {
                             />
                         ))}
                     </div>
-                    <section className=" mx-auto my-8 px-4">
+                    <section className=" mx-auto my-16 px-4">
                         <Feature />
                     </section>
                 </div>
