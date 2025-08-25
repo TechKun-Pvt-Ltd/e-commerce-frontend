@@ -1,16 +1,8 @@
 'use client';
 import React, { useEffect } from 'react';
-import HeroSection from '../products/components/Feature';
 import FeaturedByCategory from '../components/FeaturedByCategory';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { fetchCategories } from '@/store/slices/categorySlice';
-import { fetchPromotions } from '@/store/slices/promotionSlice';
-import useDataFetch from '@/hooks/use-data-fetch';
-import { getAllProducts } from '@/services/product';
 import { CategoryTree } from '@/types/domains/category';
 import { PromotionDetails, PromotionType } from '@/types/domains/promotion';
-import { ProductPreview } from '@/types/domains/product';
-import Testimonials from '../components/Testimonials';
 import { ReviewDetails } from '@/types/domains/review';
 import Banner from '../components/Banner';
 import Feature from '../products/components/Feature';
@@ -379,15 +371,6 @@ export default function LandingPage() {
                 <section>
                     <FeatureProducts />
                 </section>
-                {/* <h2 className="text-3xl text-center font-bold my-16">Popular Products</h2>
-                <section className='mb-28' >
-
-                    <FeaturedByCategory
-                        categories={categories}
-                        promotions={promotions}
-                        products={products!}
-                    />
-                </section> */}
             </div>
             <div className=' bg-[#F1F3E7] my-16'>
                 <PromoBannerCard />

@@ -70,7 +70,7 @@ const Banner = () => {
           <Button
             variant="ghost"
             className="w-40 hover:bg-black rounded-full my-4 text-black hover:text-white 
-                       border p-4 border-black transition-transform duration-500 hover:scale-105"
+                       border p-4 border-black "
           >
             Explore Now <ArrowRight className="ml-1 h-5 w-5" />
           </Button>

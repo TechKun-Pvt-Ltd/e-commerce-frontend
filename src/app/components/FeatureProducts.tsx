@@ -2,10 +2,7 @@
 import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProductCard from "./ProductCard";
-import { PromotionDetails } from "@/types/domains/promotion";
-import { ProductPreview } from "@/types/domains/product";
 import { Button } from "@/components/ui/button";
-import { type ClassValue } from 'clsx';
 import { ShoppingCartIcon } from "lucide-react";
 
 
@@ -129,19 +126,19 @@ export const FeatureProducts = () => {
                 <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 mb-8 bg-muted/50 rounded-full p-1">
                     <TabsTrigger
                         value="new"
-                        className="rounded-full cursor-pointer  font-medium data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm"
+                        className="rounded-full cursor-pointer transition-all duration-300 ease-in-out font-medium data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm"
                     >
                         NEW
                     </TabsTrigger>
                     <TabsTrigger
                         value="bestsellers"
-                        className="rounded-full cursor-pointer font-medium data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm"
+                        className="rounded-full cursor-pointer transition-all duration-300 ease-in-out font-medium data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm"
                     >
                         BEST SELLERS
                     </TabsTrigger>
                     <TabsTrigger
                         value="discounted"
-                        className="rounded-full cursor-pointer font-medium data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm"
+                        className="rounded-full cursor-pointer transition-all duration-300 ease-in-out font-medium data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm"
                     >
                         DISCOUNTED
                     </TabsTrigger>
