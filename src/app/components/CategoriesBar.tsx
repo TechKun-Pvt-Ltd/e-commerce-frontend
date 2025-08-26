@@ -188,7 +188,7 @@ export default function CategoriesBar() {
             {visibleCategories.map((category) => (<div key={category.path} className="flex items-center">
                 <DropdownMenu>
                     <button className="rounded-l-md px-3 py-2 hover:bg-secondary font-medium text-sm">
-                        <Link href={`/category/${category.categoryId}`}>{category.name}</Link>
+                        <Link href={`/${category.name}`}>{category.name}</Link>
                     </button>
                     <DropdownMenuTrigger asChild>
                         <button className="rounded-r-md px-1.5 py-2 hover:bg-secondary">
