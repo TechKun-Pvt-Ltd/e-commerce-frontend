@@ -21,6 +21,7 @@ export interface SupportTicketDetails {
     description: string;
     status: string;
     customer: CustomerContact;
+    createdAt: Date;
 }
 
 export interface SupportTicketQueryOptions {
