@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import HeroSection from '../../products/components/HeroSection';
+import HeroSection from '../../products/components/Feature';
 import Filters from '../../products/components/Filters';
 import ProductGrid from '../../products/components/ProductGrid';
 import { useRouter } from 'next/navigation';

@@ -1,17 +1,16 @@
 'use client';
 import React, { useEffect } from 'react';
-import HeroSection from '../products/components/HeroSection';
 import FeaturedByCategory from '../components/FeaturedByCategory';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { fetchCategories } from '@/store/slices/categorySlice';
-import { fetchPromotions } from '@/store/slices/promotionSlice';
-import useDataFetch from '@/hooks/use-data-fetch';
-import { getAllProducts } from '@/services/product';
 import { CategoryTree } from '@/types/domains/category';
 import { PromotionDetails, PromotionType } from '@/types/domains/promotion';
-import { ProductPreview } from '@/types/domains/product';
-import Testimonials from '../components/Testimonials';
 import { ReviewDetails } from '@/types/domains/review';
+import Banner from '../components/Banner';
+import Feature from '../products/components/Feature';
+import PromoBanner from '../components/PromoBanner';
+import { TestimonialCard } from '../components/TestimonialCard';
+import PromoBannerCard from '../components/PromoBannerCard';
+import { FeatureProducts } from '../components/FeatureProducts';
+import { CategoryCard } from '../components/CategoriesCard';
 
 const categories: CategoryTree[] = [
     {
@@ -151,266 +150,114 @@ const categories: CategoryTree[] = [
 
 const promotions: PromotionDetails[] = [
     {
-      promotionId: 1,
-      description: "Up to 20% off on all Men's Clothing",
-      promotionType: PromotionType.PERCENTAGE,
-      discountValue: 20,
-      categories: [{ categoryId: 11, name: "Clothing" }],
+        promotionId: 1,
+        description: "Up to 20% off on all Men's Clothing",
+        promotionType: PromotionType.PERCENTAGE,
+        discountValue: 20,
+        categories: [{ categoryId: 11, name: "Clothing" }],
     },
     {
-      promotionId: 2,
-      description: "Flat $10 off on orders above $50",
-      promotionType: PromotionType.FLAT,
-      discountValue: 10,
-      minimumOrderValue: 50,
-      categories: [{ categoryId: 21, name: "Accessories" }],
+        promotionId: 2,
+        description: "Flat $10 off on orders above $50",
+        promotionType: PromotionType.FLAT,
+        discountValue: 10,
+        minimumOrderValue: 50,
+        categories: [{ categoryId: 21, name: "Accessories" }],
     },
 ];
 
-const products: ProductPreview[] = [
+const products: any[] = [
     {
-      productId: 1,
-      productVariantId: 101,
-      categoryId: 111, // Shirts
-      dateAdded: new Date('2025-01-10'),
-      quantityInStock: 45,
-      imageUrl: "https://img.freepik.com/premium-photo/young-woman-order-purchase-product-internet-using-laptop-blithe_31965-289001.jpg?w=996",
-      price: 34.99,
-      title: "Slim Fit Casual Shirt",
-      rating: 4.4,
-      starred: true,
+        "productId": 101,
+        "productVariantId": 201,
+        "categoryId": 12,
+        "dateAdded": "2025-08-07T10:00:00Z",
+        "quantityInStock": 75,
+        "imageUrl": "https://i.pinimg.com/1200x/42/15/50/4215508d64e60b2e268d8f38658753d9.jpg",
+        "price": 499.00,
+        "title": "Classic Wooden Photo Frame",
+        "code": "FRAME-WD-2025",
+        "rating": 4.6,
+        "starred": true
     },
     {
-      productId: 2,
-      productVariantId: 102,
-      categoryId: 112, // Pants
-      dateAdded: new Date('2025-02-05'),
-      quantityInStock: 30,
-      imageUrl: "https://img.freepik.com/premium-photo/young-woman-order-purchase-product-internet-using-laptop-blithe_31965-289001.jpg?w=996",
-      price: 49.99,
-      title: "Chino Pants",
-      rating: 4.1,
-      starred: false,
+        "productId": 102,
+        "productVariantId": 202,
+        "categoryId": 12,
+        "dateAdded": "2025-08-06T12:30:00Z",
+        "quantityInStock": 60,
+        "imageUrl": "https://i.pinimg.com/1200x/a6/6d/46/a66d46545c57675eff9d6d2472ff5407.jpg",
+        "price": 599.00,
+        "title": "Minimalist Black Frame",
+        "code": "FRAME-BLK-2025",
+        "rating": 4.8,
+        "starred": false
     },
     {
-      productId: 3,
-      productVariantId: 103,
-      categoryId: 111,
-      dateAdded: new Date('2025-02-25'),
-      quantityInStock: 60,
-      imageUrl: "https://img.freepik.com/premium-photo/young-woman-order-purchase-product-internet-using-laptop-blithe_31965-289001.jpg?w=996",
-      price: 28.00,
-      title: "Cotton Oxford Shirt",
-      rating: 4.5,
-      starred: true,
+        "productId": 103,
+        "productVariantId": 203,
+        "categoryId": 12,
+        "dateAdded": "2025-08-04T15:15:00Z",
+        "quantityInStock": 45,
+        "imageUrl": "https://i.pinimg.com/736x/c8/bd/7a/c8bd7accaa4325a8b0a35b712640e27c.jpg",
+        "price": 749.00,
+        "title": "Golden Antique Frame",
+        "code": "FRAME-GLD-2025",
+        "rating": 4.9,
+        "starred": true
+    },
+];
+
+const testimonials = [
+    {
+        id: 1,
+        testimonial: "I am absolutely thrilled with the service I received from their company! They were attentive, responsive, and genuinely cared about meeting my needs. I highly recommend them.",
+        clientName: "Your Client",
+        clientImage: "https://i.pinimg.com/736x/2e/2b/ff/2e2bffa562cf50f5757b5a547a1f34b0.jpg",
     },
     {
-      productId: 4,
-      productVariantId: 104,
-      categoryId: 12, // Shoes
-      dateAdded: new Date('2025-03-01'),
-      quantityInStock: 20,
-      imageUrl: "https://img.freepik.com/premium-photo/young-woman-order-purchase-product-internet-using-laptop-blithe_31965-289001.jpg?w=996",
-      price: 89.99,
-      title: "Leather Derby Shoes",
-      rating: 4.6,
-      starred: true,
+        id: 2,
+        testimonial: "I am absolutely thrilled with the service I received from their company! They were attentive, responsive, and genuinely cared about meeting my needs. I highly recommend them.",
+        clientName: "Your Client",
+        clientImage: "https://i.pinimg.com/736x/71/22/c1/7122c1ac1382dea3563d776c1f158654.jpg",
     },
     {
-      productId: 5,
-      productVariantId: 105,
-      categoryId: 112,
-      dateAdded: new Date('2025-03-20'),
-      quantityInStock: 35,
-      imageUrl: "https://img.freepik.com/premium-photo/young-woman-order-purchase-product-internet-using-laptop-blithe_31965-289001.jpg?w=996",
-      price: 54.99,
-      title: "Slim Fit Jeans",
-      rating: 4.2,
-      starred: false,
+        id: 3,
+        testimonial: "I am absolutely thrilled with the service I received from their company! They were attentive, responsive, and genuinely cared about meeting my needs. I highly recommend them.",
+        clientName: "Your Client",
+        clientImage: "https://i.pinimg.com/736x/ab/6c/7d/ab6c7d61f6b145356019b320fa613375.jpg",
     },
-    {
-        productId: 6,
-        productVariantId: 106,
-        categoryId: 21, // Accessories
-        dateAdded: new Date('2025-01-18'),
-        quantityInStock: 100,
-        imageUrl: "https://img.freepik.com/premium-photo/young-woman-order-purchase-product-internet-using-laptop-blithe_31965-289001.jpg?w=996",
-        price: 79.99,
-        title: "Leather Handbag",
-        rating: 4.5,
-        starred: true,
-    },
-    {
-        productId: 7,
-        productVariantId: 107,
-        categoryId: 21,
-        dateAdded: new Date('2025-02-11'),
-        quantityInStock: 200,
-        imageUrl: "https://img.freepik.com/premium-photo/young-woman-order-purchase-product-internet-using-laptop-blithe_31965-289001.jpg?w=996",
-        price: 24.99,
-        title: "Gold Plated Earrings",
-        rating: 4.3,
-        starred: false,
-    },
-    {
-        productId: 8,
-        productVariantId: 108,
-        categoryId: 21,
-        dateAdded: new Date('2025-02-28'),
-        quantityInStock: 80,
-        imageUrl: "https://img.freepik.com/premium-photo/young-woman-order-purchase-product-internet-using-laptop-blithe_31965-289001.jpg?w=996",
-        price: 19.99,
-        title: "Braided Waist Belt",
-        rating: 4.1,
-        starred: false,
-    },
-    {
-        productId: 9,
-        productVariantId: 109,
-        categoryId: 21,
-        dateAdded: new Date('2025-03-14'),
-        quantityInStock: 140,
-        imageUrl: "https://img.freepik.com/premium-photo/young-woman-order-purchase-product-internet-using-laptop-blithe_31965-289001.jpg?w=996",
-        price: 29.99,
-        title: "Silk Printed Scarf",
-        rating: 4.6,
-        starred: true,
-    },
-    {
-        productId: 10,
-        productVariantId: 110,
-        categoryId: 21,
-        dateAdded: new Date('2025-04-01'),
-        quantityInStock: 90,
-        imageUrl: "https://img.freepik.com/premium-photo/young-woman-order-purchase-product-internet-using-laptop-blithe_31965-289001.jpg?w=996",
-        price: 22.50,
-        title: "Wide Brim Hat",
-        rating: 4.0,
-        starred: false,
-    },
-    {
-        productId: 11,
-        productVariantId: 111,
-        categoryId: 321, // T-Shirts
-        dateAdded: new Date('2025-01-12'),
-        quantityInStock: 60,
-        imageUrl: "https://img.freepik.com/premium-photo/young-woman-order-purchase-product-internet-using-laptop-blithe_31965-289001.jpg?w=996",
-        price: 14.99,
-        title: "Graphic T-Shirt",
-        rating: 4.7,
-        starred: true,
-    },
-    {
-        productId: 12,
-        productVariantId: 112,
-        categoryId: 322, // Shorts
-        dateAdded: new Date('2025-02-01'),
-        quantityInStock: 50,
-        imageUrl: "https://img.freepik.com/premium-photo/young-woman-order-purchase-product-internet-using-laptop-blithe_31965-289001.jpg?w=996",
-        price: 12.99,
-        title: "Denim Shorts",
-        rating: 4.3,
-        starred: false,
-    },
-    {
-        productId: 13,
-        productVariantId: 113,
-        categoryId: 31, // Toys
-        dateAdded: new Date('2025-03-05'),
-        quantityInStock: 80,
-        imageUrl: "https://img.freepik.com/premium-photo/young-woman-order-purchase-product-internet-using-laptop-blithe_31965-289001.jpg?w=996",
-        price: 34.99,
-        title: "Building Blocks Set",
-        rating: 4.8,
-        starred: true,
-    },
-    {
-        productId: 14,
-        productVariantId: 114,
-        categoryId: 31,
-        dateAdded: new Date('2025-03-22'),
-        quantityInStock: 100,
-        imageUrl: "https://img.freepik.com/premium-photo/young-woman-order-purchase-product-internet-using-laptop-blithe_31965-289001.jpg?w=996",
-        price: 22.99,
-        title: "Fashion Doll",
-        rating: 4.5,
-        starred: true,
-    },
-    {
-        productId: 15,
-        productVariantId: 115,
-        categoryId: 322,
-        dateAdded: new Date('2025-04-08'),
-        quantityInStock: 55,
-        imageUrl: "https://img.freepik.com/premium-photo/young-woman-order-purchase-product-internet-using-laptop-blithe_31965-289001.jpg?w=996",
-        price: 15.49,
-        title: "Active Shorts",
-        rating: 4.2,
-        starred: false,
-    },
-    {
-        productId: 16,
-        productVariantId: 116,
-        categoryId: 41, // Furniture
-        dateAdded: new Date('2025-02-01'),
-        quantityInStock: 12,
-        imageUrl: "https://img.freepik.com/premium-photo/young-woman-order-purchase-product-internet-using-laptop-blithe_31965-289001.jpg?w=996",
-        price: 199.99,
-        title: "Modern Coffee Table",
-        rating: 4.4,
-        starred: true,
-    },
-    {
-        productId: 17,
-        productVariantId: 117,
-        categoryId: 42, // Decor
-        dateAdded: new Date('2025-02-14'),
-        quantityInStock: 40,
-        imageUrl: "https://img.freepik.com/premium-photo/young-woman-order-purchase-product-internet-using-laptop-blithe_31965-289001.jpg?w=996",
-        price: 89.99,
-        title: "Table Lamp",
-        rating: 4.5,
-        starred: true,
-    },
-    {
-        productId: 18,
-        productVariantId: 118,
-        categoryId: 41,
-        dateAdded: new Date('2025-03-02'),
-        quantityInStock: 20,
-        imageUrl: "https://img.freepik.com/premium-photo/young-woman-order-purchase-product-internet-using-laptop-blithe_31965-289001.jpg?w=996",
-        price: 599.99,
-        title: "3-Seater Sofa",
-        rating: 4.6,
-        starred: true,
-    },
-    {
-        productId: 19,
-        productVariantId: 119,
-        categoryId: 42,
-        dateAdded: new Date('2025-03-20'),
-        quantityInStock: 80,
-        imageUrl: "https://img.freepik.com/premium-photo/young-woman-order-purchase-product-internet-using-laptop-blithe_31965-289001.jpg?w=996",
-        price: 39.99,
-        title: "Framed Wall Art",
-        rating: 4.2,
-        starred: false,
-    },
-    {
-        productId: 20,
-        productVariantId: 120,
-        categoryId: 42,
-        dateAdded: new Date('2025-04-01'),
-        quantityInStock: 30,
-        imageUrl: "https://img.freepik.com/premium-photo/young-woman-order-purchase-product-internet-using-laptop-blithe_31965-289001.jpg?w=996",
-        price: 24.99,
-        title: "Ceramic Vase",
-        rating: 4.3,
-        starred: false,
-    }      
 ];
 
 
+
+const categoriescards: any[] = [
+    {
+        id: "bath",
+        image: "https://i.pinimg.com/736x/b0/1b/09/b01b0990f1ac187bf29d742e53e02e33.jpg",
+        title: "Bath",
+    },
+    {
+        id: "bed",
+        image: "https://i.pinimg.com/736x/75/1a/f1/751af1ac8f5723f907c9b9d47deccf55.jpg",
+        title: "Bed",
+    },
+    {
+        id: "bedroom",
+        image: "https://i.pinimg.com/736x/49/d5/0d/49d50d513f7c359e47b1df9aab86d350.jpg",
+        title: "Bedroom",
+    },
+    {
+        id: "decoration",
+        image: "https://i.pinimg.com/736x/da/92/5d/da925d8a4b4500f16aa5cecd87064ffd.jpg",
+        title: "Decoration",
+    },
+    {
+        id: "home",
+        image: "https://i.pinimg.com/1200x/e9/b4/dc/e9b4dcf87e3861f16709f0bd1f2efbcc.jpg",
+        title: "Home",
+    },
+];
 const mockReviews: ReviewDetails[] = [
     {
         reviewId: 1,
@@ -455,44 +302,103 @@ export default function LandingPage() {
 
     return (
         <>
-            {/* Hero Section */}
-            <section className="container mx-auto px-4">
-                <HeroSection />
+            {/* Banner */}
+            <section>
+                <Banner />
             </section>
+            <div className='responsive-container'>
+                <section>
+                    <h2 className="text-3xl text-center font-bold my-16"> Popular Categories</h2>
 
-            {/* Featured Products */}
-            <section className="container mx-auto px-4 py-12">
-                <FeaturedByCategory
-                    categories={categories}
-                    promotions={promotions}
-                    products={products!}
-                />
-            </section>
+                    <div className="flex justify-center items-center gap-20 flex-wrap mb-28">
+                        {categoriescards.map((category) => (
+                            <CategoryCard
+                                key={category.id}
+                                image={category.image}
+                                title={category.title}
+                                onClick={() => console.log(`Clicked on ${category.title}`)}
+                            />
+                        ))}
+                    </div>
+                </section>
 
-            <section className="container mx-auto mb-16 px-4">
-                <Testimonials
-                    reviews={mockReviews}
-                />
-            </section>
+                {/* Featured Products */}
+                <section>
 
-            {/* Newsletter Section */}
-            <section className="container mx-auto px-4 py-16">
-                <div className="max-w-2xl mx-auto text-center">
-                    <h2 className="text-3xl font-bold mb-4">Stay Updated</h2>
-                    <p className="text-gray-600 mb-6">Subscribe to our newsletter for exclusive offers and updates</p>
-                    <form className="flex gap-2 max-w-md mx-auto">
-                        <input
-                            type="email"
-                            placeholder="Enter your email"
-                            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    <h2 className="text-3xl text-center font-bold my-16">Featured Products</h2>
+                    <div className='mb-28' >
+
+                        <FeaturedByCategory
+                            categories={categories}
+                            promotions={promotions}
+                            products={products!}
                         />
-                        <button
-                            type="submit"
-                            className="bg-black text-white px-6 py-2 rounded-lg font-semibold hover:bg-gray-800 transition-colors duration-200"
-                        >
-                            Subscribe
-                        </button>
-                    </form>
+                    </div>
+                </section>
+
+
+                {/* <section className="container mx-auto mb-16 px-4">
+                    <Testimonials
+                        reviews={mockReviews}
+                    />
+                </section> */}
+
+                {/* Newsletter Section */}
+                {/* <section className=" mx-auto px-4 py-16">
+                    <div className="max-w-2xl mx-auto text-center">
+                        <h2 className="text-3xl font-bold mb-4">Stay Updated</h2>
+                        <p className="text-gray-600 mb-6">Subscribe to our newsletter for exclusive offers and updates</p>
+                        <form className="flex gap-2 max-w-md mx-auto">
+                            <input
+                                type="email"
+                                placeholder="Enter your email"
+                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                            />
+                            <button
+                                type="submit"
+                                className="bg-black text-white px-6 py-2 rounded-lg font-semibold hover:bg-gray-800 transition-colors duration-200"
+                            >
+                                Subscribe
+                            </button>
+                        </form>
+                    </div>
+                </section> */}
+            </div>
+            <section>
+                <PromoBanner />
+            </section>
+            <div className='responsive-container'>
+                <section>
+                    <FeatureProducts />
+                </section>
+            </div>
+            <div className=' bg-[#F1F3E7] my-16'>
+                <PromoBannerCard />
+            </div>
+            <section>
+                <div className='responsive-container'>
+                    <div className="text-center mb-16">
+                        <h2 className="text-3xl font-bold ">
+                            What Our Customers Say
+                        </h2>
+                        <p>
+                            Discover the reasons why people loves us and become your go-to partner.
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {testimonials.map((testimonial) => (
+                            <TestimonialCard
+                                key={testimonial.id}
+                                testimonial={testimonial.testimonial}
+                                clientName={testimonial.clientName}
+                                clientImage={testimonial.clientImage}
+                            />
+                        ))}
+                    </div>
+                    <section className=" mx-auto my-16 px-4">
+                        <Feature />
+                    </section>
                 </div>
             </section>
         </>

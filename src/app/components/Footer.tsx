@@ -37,13 +37,13 @@ const Footer = () => {
             <p className="text-gray-600 text-sm mb-4">
               Sign up for our newsletter and get 10% off your first order.
             </p>
-            <div className="flex">
+            <div className="flex ">
               <input
                 type="email"
                 placeholder="Your email"
                 className="border border-gray-300 px-4 py-2 w-full text-sm rounded-l-lg focus:outline-none focus:ring-2 focus:ring-black"
               />
-              <button className="bg-black text-white px-4 py-2 text-sm rounded-r-lg hover:bg-gray-900 transition-colors duration-200">
+              <button className="bg-black w-28 text-white px-4 py-2 text-sm rounded-r-lg hover:bg-gray-900 transition-colors duration-200">
                 Sign Up
               </button>
             </div>
