@@ -8,157 +8,247 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
-import { Grid, List, Heart, ShoppingCart, Star } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card"
+import {
+    Carousel,
+    CarouselContent,
+    CarouselItem,
+    CarouselNext,
+    CarouselPrevious,
+} from "@/components/ui/carousel"
+import { Heart, ShoppingCart, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import FilterSidebar from "./FilterSidebar";
+import ProductCard from '@/app/components/ProductCard';
 
-// Sample product data
-const products = [
+// Grid layout icons (you can replace these with actual icons)
+const GridIcon2 = () => (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <rect x="3" y="3" width="8" height="8"/>
+        <rect x="13" y="3" width="8" height="8"/>
+        <rect x="3" y="13" width="8" height="8"/>
+        <rect x="13" y="13" width="8" height="8"/>
+    </svg>
+);
+
+const GridIcon3 = () => (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <rect x="2" y="3" width="5" height="5"/>
+        <rect x="9" y="3" width="5" height="5"/>
+        <rect x="16" y="3" width="5" height="5"/>
+        <rect x="2" y="10" width="5" height="5"/>
+        <rect x="9" y="10" width="5" height="5"/>
+        <rect x="16" y="10" width="5" height="5"/>
+    </svg>
+);
+
+const GridIcon4 = () => (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <rect x="2" y="3" width="4" height="4"/>
+        <rect x="8" y="3" width="4" height="4"/>
+        <rect x="14" y="3" width="4" height="4"/>
+        <rect x="20" y="3" width="2" height="4"/>
+        <rect x="2" y="9" width="4" height="4"/>
+        <rect x="8" y="9" width="4" height="4"/>
+        <rect x="14" y="9" width="4" height="4"/>
+        <rect x="20" y="9" width="2" height="4"/>
+    </svg>
+);
+
+const products: any[] = [
     {
-        id: 1,
-        title: "Shirt Soft Cotton",
-        brand: "Uniqlo",
-        price: 60.00,
-        originalPrice: null,
-        image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=300&h=300&fit=crop",
-        badge: "New Arrival",
-        stock: "15 items left",
-        rating: 4.5,
-        isWishlisted: false
+        "productId": 101,
+        "productVariantId": 201,
+        "categoryId": 12,
+        "dateAdded": "2025-08-07T10:00:00Z",
+        "quantityInStock": 75,
+        "imageUrl": "https://i.pinimg.com/1200x/42/15/50/4215508d64e60b2e268d8f38658753d9.jpg",
+        "price": 499.00,
+        "title": "Classic Wooden Photo Frame",
+        "code": "FRAME-WD-2025",
+        "rating": 4.6,
+        "starred": true
     },
     {
-        id: 2,
-        title: "Zip Up Neck Shirt",
-        brand: "Uniqlo",
-        price: 60.00,
-        originalPrice: null,
-        image: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=300&h=300&fit=crop",
-        badge: "New Arrival",
-        stock: "12 items left",
-        rating: 4.3,
-        isWishlisted: false
+        "productId": 102,
+        "productVariantId": 202,
+        "categoryId": 12,
+        "dateAdded": "2025-08-06T12:30:00Z",
+        "quantityInStock": 60,
+        "imageUrl": "https://i.pinimg.com/1200x/a6/6d/46/a66d46545c57675eff9d6d2472ff5407.jpg",
+        "price": 599.00,
+        "title": "Minimalist Black Frame",
+        "code": "FRAME-BLK-2025",
+        "rating": 4.8,
+        "starred": false
     },
     {
-        id: 3,
-        title: "Classic Long Sleeve",
-        brand: "Uniqlo",
-        price: 60.00,
-        originalPrice: null,
-        image: "https://images.unsplash.com/photo-1581803118522-7b72a50f7e9f?w=300&h=300&fit=crop",
-        badge: "New Arrival",
-        stock: "20 items left",
-        rating: 4.7,
-        isWishlisted: false
+        "productId": 103,
+        "productVariantId": 203,
+        "categoryId": 12,
+        "dateAdded": "2025-08-04T15:15:00Z",
+        "quantityInStock": 45,
+        "imageUrl": "https://i.pinimg.com/736x/c8/bd/7a/c8bd7accaa4325a8b0a35b712640e27c.jpg",
+        "price": 749.00,
+        "title": "Golden Antique Frame",
+        "code": "FRAME-GLD-2025",
+        "rating": 4.9,
+        "starred": true
     },
     {
-        id: 4,
-        title: "Shirt Soft Cotton",
-        brand: "Uniqlo",
-        price: 60.00,
-        originalPrice: null,
-        image: "https://images.unsplash.com/photo-1622470953794-389648aa5601?w=300&h=300&fit=crop",
-        badge: "New Arrival",
-        stock: "8 items left",
-        rating: 4.2,
-        isWishlisted: false
+        "productId": 104,
+        "productVariantId": 201,
+        "categoryId": 12,
+        "dateAdded": "2025-08-07T10:00:00Z",
+        "quantityInStock": 75,
+        "imageUrl": "https://i.pinimg.com/1200x/42/15/50/4215508d64e60b2e268d8f38658753d9.jpg",
+        "price": 499.00,
+        "title": "Classic Wooden Photo Frame",
+        "code": "FRAME-WD-2025",
+        "rating": 4.6,
+        "starred": true
     },
     {
-        id: 5,
-        title: "Shirt Soft Cotton",
-        brand: "Uniqlo",
-        price: 60.00,
-        originalPrice: null,
-        image: "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=300&h=300&fit=crop",
-        badge: "New Arrival",
-        stock: "25 items left",
-        rating: 4.6,
-        isWishlisted: false
+        "productId": 105,
+        "productVariantId": 202,
+        "categoryId": 12,
+        "dateAdded": "2025-08-06T12:30:00Z",
+        "quantityInStock": 60,
+        "imageUrl": "https://i.pinimg.com/1200x/a6/6d/46/a66d46545c57675eff9d6d2472ff5407.jpg",
+        "price": 599.00,
+        "title": "Minimalist Black Frame",
+        "code": "FRAME-BLK-2025",
+        "rating": 4.8,
+        "starred": false
     },
     {
-        id: 6,
-        title: "Classic Long Sleeve",
-        brand: "Uniqlo",
-        price: 60.00,
-        originalPrice: null,
-        image: "https://images.unsplash.com/photo-1583743814966-8936f37f888b?w=300&h=300&fit=crop",
-        badge: "New Arrival",
-        stock: "18 items left",
-        rating: 4.4,
-        isWishlisted: false
+        "productId": 106,
+        "productVariantId": 203,
+        "categoryId": 12,
+        "dateAdded": "2025-08-04T15:15:00Z",
+        "quantityInStock": 45,
+        "imageUrl": "https://i.pinimg.com/736x/c8/bd/7a/c8bd7accaa4325a8b0a35b712640e27c.jpg",
+        "price": 749.00,
+        "title": "Golden Antique Frame",
+        "code": "FRAME-GLD-2025",
+        "rating": 4.9,
+        "starred": true
+    },
+    {
+        "productId": 107,
+        "productVariantId": 201,
+        "categoryId": 12,
+        "dateAdded": "2025-08-07T10:00:00Z",
+        "quantityInStock": 75,
+        "imageUrl": "https://i.pinimg.com/1200x/42/15/50/4215508d64e60b2e268d8f38658753d9.jpg",
+        "price": 499.00,
+        "title": "Classic Wooden Photo Frame",
+        "code": "FRAME-WD-2025",
+        "rating": 4.6,
+        "starred": true
+    },
+    {
+        "productId": 108,
+        "productVariantId": 202,
+        "categoryId": 12,
+        "dateAdded": "2025-08-06T12:30:00Z",
+        "quantityInStock": 60,
+        "imageUrl": "https://i.pinimg.com/1200x/a6/6d/46/a66d46545c57675eff9d6d2472ff5407.jpg",
+        "price": 599.00,
+        "title": "Minimalist Black Frame",
+        "code": "FRAME-BLK-2025",
+        "rating": 4.8,
+        "starred": false
+    },
+];
+
+// Recommended products for carousel
+const recommendedProducts = [
+    {
+        "productId": 201,
+        "productVariantId": 301,
+        "categoryId": 12,
+        "dateAdded": "2025-08-05T14:20:00Z",
+        "quantityInStock": 30,
+        "imageUrl": "https://i.pinimg.com/1200x/42/15/50/4215508d64e60b2e268d8f38658753d9.jpg",
+        "price": 799.00,
+        "title": "Premium Silver Frame",
+        "code": "FRAME-SLV-2025",
+        "rating": 4.7,
+        "starred": false
+    },
+    {
+        "productId": 202,
+        "productVariantId": 302,
+        "categoryId": 12,
+        "dateAdded": "2025-08-03T09:45:00Z",
+        "quantityInStock": 25,
+        "imageUrl": "https://i.pinimg.com/1200x/a6/6d/46/a66d46545c57675eff9d6d2472ff5407.jpg",
+        "price": 649.00,
+        "title": "Modern White Frame",
+        "code": "FRAME-WHT-2025",
+        "rating": 4.5,
+        "starred": true
+    },
+    {
+        "productId": 203,
+        "productVariantId": 303,
+        "categoryId": 12,
+        "dateAdded": "2025-08-02T16:30:00Z",
+        "quantityInStock": 40,
+        "imageUrl": "https://i.pinimg.com/736x/c8/bd/7a/c8bd7accaa4325a8b0a35b712640e27c.jpg",
+        "price": 899.00,
+        "title": "Elegant Rose Gold Frame",
+        "code": "FRAME-RG-2025",
+        "rating": 4.8,
+        "starred": false
+    },
+    {
+        "productId": 204,
+        "productVariantId": 304,
+        "categoryId": 12,
+        "dateAdded": "2025-08-01T11:15:00Z",
+        "quantityInStock": 35,
+        "imageUrl": "https://i.pinimg.com/1200x/42/15/50/4215508d64e60b2e268d8f38658753d9.jpg",
+        "price": 549.00,
+        "title": "Rustic Brown Frame",
+        "code": "FRAME-BRN-2025",
+        "rating": 4.4,
+        "starred": true
+    },
+    {
+        "productId": 205,
+        "productVariantId": 305,
+        "categoryId": 12,
+        "dateAdded": "2025-07-31T13:00:00Z",
+        "quantityInStock": 50,
+        "imageUrl": "https://i.pinimg.com/1200x/a6/6d/46/a66d46545c57675eff9d6d2472ff5407.jpg",
+        "price": 699.00,
+        "title": "Contemporary Black Frame",
+        "code": "FRAME-CB-2025",
+        "rating": 4.6,
+        "starred": false
     }
 ];
 
-const ProductCard = ({ product, onWishlistToggle }: { product: any, onWishlistToggle: (id: number) => void }) => (
-    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
-        <div className="relative">
-            <img
-                src={product.image}
-                alt={product.title}
-                className="w-full h-64 object-cover"
-            />
-            <Button
-                size="icon"
-                variant="ghost"
-                className="absolute top-2 right-2 bg-white/80 hover:bg-white"
-                onClick={() => onWishlistToggle(product.id)}
-            >
-                <Heart className={`h-4 w-4 ${product.isWishlisted ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
-            </Button>
-            {product.badge && (
-                <span className="absolute top-2 left-2 bg-cyan-400 text-white px-2 py-1 rounded text-xs font-medium">
-                    {product.badge}
-                </span>
-            )}
-        </div>
-
-        <div className="p-4">
-            <div className="flex justify-between items-start mb-1">
-                <span className="text-sm text-gray-500">{product.brand}</span>
-                <div className="flex items-center gap-1">
-                    <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                    <span className="text-xs text-gray-600">{product.rating}</span>
-                </div>
-            </div>
-
-            <h3 className="font-medium text-gray-900 mb-1">{product.title}</h3>
-
-            <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                    <span className="font-semibold text-blue-600">SAR {product.price.toFixed(2)}</span>
-                    {product.originalPrice && (
-                        <span className="text-sm text-gray-400 line-through">SAR {product.originalPrice.toFixed(2)}</span>
-                    )}
-                </div>
-                <span className="text-xs text-red-500">{product.stock}</span>
-            </div>
-
-            <Button className="w-full bg-cyan-400 hover:bg-cyan-500 text-white">
-                <ShoppingCart className="h-4 w-4 mr-2" />
-                Add to Cart
-            </Button>
-        </div>
-    </div>
-);
-
 const ProductGrid = () => {
-    const [wishlistedItems, setWishlistedItems] = useState(new Set());
-    const [viewMode, setViewMode] = useState('grid');
+    const [gridColumns, setGridColumns] = useState(4); 
 
-    const handleWishlistToggle = (productId: number) => {
-        const newWishlisted = new Set(wishlistedItems);
-        if (newWishlisted.has(productId)) {
-            newWishlisted.delete(productId);
-        } else {
-            newWishlisted.add(productId);
+
+    
+    const getGridClass = () => {
+        switch(gridColumns) {
+            case 2:
+                return 'grid-cols-2';
+            case 3:
+                return 'grid-cols-3';
+            case 4:
+                return 'grid-cols-4';
+            default:
+                return 'grid-cols-4';
         }
-        setWishlistedItems(newWishlisted);
     };
-
-    const productsWithWishlist = products.map(product => ({
-        ...product,
-        isWishlisted: wishlistedItems.has(product.id)
-    }));
 
     return (
         <section className="bg-white">
@@ -184,53 +274,65 @@ const ProductGrid = () => {
                         <FilterSidebar />
                     </aside>
 
-                 
                     <main className="flex-1">
                         {/* Header */}
-                  
-                            {/* <h1 className="text-lg font-medium text-gray-900">64 result for clothes</h1> */}
-
-                            <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-2">
+                                {/* Grid Column Options */}
                                 <div className="flex items-center gap-1 border rounded p-1">
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className={`h-7 w-7 ${viewMode === 'grid' ? 'bg-gray-100' : ''}`}
-                                        onClick={() => setViewMode('grid')}
+                                        className={`h-7 w-7 ${gridColumns === 2 ? 'bg-gray-200' : ''}`}
+                                        onClick={() => setGridColumns(2)}
+                                        title="2 columns"
                                     >
-                                        <Grid className="h-4 w-4" />
+                                      2
                                     </Button>
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className={`h-7 w-7 ${viewMode === 'list' ? 'bg-gray-100' : ''}`}
-                                        onClick={() => setViewMode('list')}
+                                        className={`h-7 w-7 ${gridColumns === 3 ? 'bg-gray-200' : ''}`}
+                                        onClick={() => setGridColumns(3)}
+                                        title="3 columns"
                                     >
-                                        <List className="h-4 w-4" />
+                                   3
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className={`h-7 w-7 ${gridColumns === 4 ? 'bg-gray-200' : ''}`}
+                                        onClick={() => setGridColumns(4)}
+                                        title="4 columns"
+                                    >
+                                     4
                                     </Button>
                                 </div>
-                          
-                                <div className="flex items-center gap-2 text-sm">
-                                    <span>Sort by:</span>
-                                    <Select defaultValue="popular">
-                                        <SelectTrigger className="w-24 h-8 text-sm border-gray-300">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="popular">Popular</SelectItem>
-                                            <SelectItem value="newest">Newest</SelectItem>
-                                            <SelectItem value="price-low">Price: Low to High</SelectItem>
-                                            <SelectItem value="price-high">Price: High to Low</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
                             </div>
-             
 
-                        {/* Products */}
-                        <div className="grid grid-cols-3 gap-6">
-                            {/* Products Cards */}
+                            <div className="flex items-center gap-2 text-sm">
+                                <span>Sort by:</span>
+                                <Select defaultValue="popular">
+                                    <SelectTrigger className="w-24 h-8 text-sm border-gray-300">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="popular">Popular</SelectItem>
+                                        <SelectItem value="newest">Newest</SelectItem>
+                                        <SelectItem value="price-low">Price: Low to High</SelectItem>
+                                        <SelectItem value="price-high">Price: High to Low</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
+
+                        {/* Products Grid */}
+                        <div className={`grid ${getGridClass()} gap-6 py-6 ${gridColumns === 2 ? 'justify-center' : ''}`}>
+                            {products.slice(0, 8).map((product) => (
+                                <ProductCard key={product.productId} product={product} promo={null} />
+                            ))}
+                        </div>
+
                     </main>
                 </div>
             </div>
