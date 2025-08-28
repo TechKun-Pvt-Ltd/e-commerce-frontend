@@ -252,14 +252,14 @@ export default function EditCategoryForm({
                            <FormLabel>Image</FormLabel>
                            <FormControl>
                               {image ? (
-                                 <div className="h-72 flex align-center justify-center relative">
+                                 <div className="h-60 flex align-center justify-center relative w-full ">
                                     <Image
                                        src={image}
                                        alt="Category image"
                                        width={100}
                                        height={100}
                                        style={{ maxWidth: "none" }}
-                                       className="w-auto h-full object-contain rounded-md relative"
+                                       className="object-contain rounded-md w-full"
                                        onError={(e) => {
                                           (e.target as HTMLImageElement).src = "/placeholder-image.jpeg";
                                        }}
@@ -278,7 +278,6 @@ export default function EditCategoryForm({
                                        <div
                                           className="absolute top-13 right-3 transform pointer-events-auto p-1 rounded-full bg-white bg-opacity-70 hover:bg-opacity-100 cursor-pointer"
                                           onClick={(e) => {
-                                             e.stopPropagation();
                                              handleOpenPicker();
                                           }}
                                           aria-label="Update image"
@@ -289,7 +288,7 @@ export default function EditCategoryForm({
                                  </div>
                               ) : (
                                  <div
-                                    className="border bg-accent rounded-md min-w-64 flex flex-col justify-center items-center gap-2 cursor-pointer py-6"
+                                    className="border bg-accent rounded-md flex flex-col justify-center items-center gap-2 cursor-pointer py-8"
                                     onClick={handleOpenPicker}
                                  >
                                     <Plus className="size-8 text-muted-foreground" />

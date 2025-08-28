@@ -18,6 +18,7 @@ import Spinner from "@/components/ui/spinner";
 import { ServiceResponse } from "@/types/api";
 import { useRouter } from "nextjs-toploader/app";
 import { categoriesUnionSelector } from "@/store/selectors";
+import { toast } from "sonner";
 
 type CategoryData = React.ComponentProps<typeof EditCategoryForm>["category"] & {};
 
@@ -91,6 +92,7 @@ export default function AdminCategoryPage() {
          const categoryDetails = categoryDetailsMap.get(selectedCategory.categoryId)!;
          categoryDetails.name = res.name;
          categoryDetails.code = res.code;
+         categoryDetails.imageUrl = res.imageUrl;
          categoryDetails.variationIds = res.variations.map((v) => v.variationId);
          categoryDetails.attributeIds = res.attributes.map((a) => a.attributeId);
 
@@ -105,9 +107,11 @@ export default function AdminCategoryPage() {
             )
          );
          setSelectedCategory(null);
+         toast("The category has been updated successfully.", { icon: null, richColors: true });
       },
       [categories, selectedCategory]
    );
+
    const onSelectCategory = useCallback(
       (id: number) => {
          if (categoryDetailsMap.has(id)) setSelectedCategory(categoryDetailsMap.get(id)!);
@@ -376,9 +380,8 @@ function registerCategoryDetails(categoryDetails: CategoryDetails): CategoryData
    if (categoryDetailsMap.has(categoryId)) return categoryDetailsMap.get(categoryId)!;
 
    const details = {
+      ...categoryDetails,
       categoryId: categoryId,
-      name: categoryDetails.name,
-      code: categoryDetails.code,
       parentCategory: categoryDetails.parentCategory ? registerCategoryDetails(categoryDetails.parentCategory) : undefined,
       variationIds: categoryDetails.variations.map((v) => v.variationId),
       attributeIds: categoryDetails.attributes.map((a) => a.attributeId),
