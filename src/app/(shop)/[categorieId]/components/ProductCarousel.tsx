@@ -1,15 +1,8 @@
 "use client"
 import React from 'react';
-import {
-    Carousel,
-    CarouselContent,
-    CarouselItem,
-    CarouselNext,
-    CarouselPrevious,
-} from "@/components/ui/carousel";
 import ProductCard from '@/app/components/ProductCard';
 
-const carouselProducts: any[] = [
+const gridProducts: any[] = [
     {
         "productId": 301,
         "productVariantId": 401,
@@ -103,42 +96,26 @@ const carouselProducts: any[] = [
     }
 ];
 
-const ProductCarousel = () => {
+const ProductGrid = () => {
     return (
         <section className="bg-gray-50 py-12">
             <div className="container mx-auto px-4">
                 {/* Section Header */}
                 <div className="mb-8 text-center">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-24">
+                    <h2 className="text-3xl font-bold text-gray-900 mb-16">
                         Category Best Sellers
                     </h2>
                 </div>
 
-                {/* Carousel */}
-                <div>
-                    <Carousel
-                        opts={{
-                            align: "center",
-                            loop: true,
-                        }}
-                        className="w-full relative "
-                    >
-                        <CarouselContent>
-                            {carouselProducts.map((product) => (
-                                <CarouselItem key={product.productId} className=" md:basis-1/2 lg:basis-1/3 xl:basis-1/5">
-                                    <ProductCard product={product} promo={null} />
-                                </CarouselItem>
-                            ))}
-                        </CarouselContent>
-                        <CarouselPrevious className="left-0 top-[-50] h-10 w-10 border-2 border-gray-300 bg-white hover:bg-gray-50" />
-                        <CarouselNext className="right-0 top-[-50]  h-10 w-10 border-2 border-gray-300 bg-white hover:bg-gray-50" />
-                  
-                    </Carousel>
- 
+                {/* Grid Layout */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                    {gridProducts.slice(0,5).map((product) => (
+                        <ProductCard key={product.productId} product={product} promo={null} />
+                    ))}
                 </div>
             </div>
         </section>
     );
 };
 
-export default ProductCarousel;
+export default ProductGrid;

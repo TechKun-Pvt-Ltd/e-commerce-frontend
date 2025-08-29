@@ -2,9 +2,9 @@ import { ChevronRight, Star, Sparkles } from "lucide-react";
 
 export default function BannerSection() {
   return (
-    <section className="relative bg-gradient-to-r from-gray-900 to-gray-800 h-96">
+    <section className="relative bg-gradient-to-r from-gray-500 via-gray-400 to-gray-500 h-96">
       <div className="container mx-auto px-4 h-full">
-        <div className="grid grid-cols-1 lg:grid-cols-2 h-full items-center">
+        <div className="flex items-center gap-80">
           {/* Left Content */}
           <div className="text-white space-y-6">
             {/* Badge */}
@@ -18,16 +18,18 @@ export default function BannerSection() {
               <h1 className="text-5xl font-bold leading-tight mb-4">
                 Style Meets
                 <br />
-                <span className="text-yellow-400">Simplicity</span>
+                {/* <span className="text-yellow-400">Simplicity</span> */}
               </h1>
               <p className="text-xl text-gray-300 max-w-lg">
                 Discover our curated collection of premium products designed for the modern lifestyle.
               </p>
             </div>
             
-            
           
           </div>
+            <div>
+              <img src="banner-image\ArtDrawing-removebg-preview.png" alt="" className="h-96" />
+            </div>
          
         </div>
       </div>

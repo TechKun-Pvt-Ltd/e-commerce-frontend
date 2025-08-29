@@ -8,53 +8,11 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
-import { Card, CardContent } from "@/components/ui/card"
-import {
-    Carousel,
-    CarouselContent,
-    CarouselItem,
-    CarouselNext,
-    CarouselPrevious,
-} from "@/components/ui/carousel"
-import { Heart, ShoppingCart, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import FilterSidebar from "./FilterSidebar";
 import ProductCard from '@/app/components/ProductCard';
-
-// Grid layout icons (you can replace these with actual icons)
-const GridIcon2 = () => (
-    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <rect x="3" y="3" width="8" height="8"/>
-        <rect x="13" y="3" width="8" height="8"/>
-        <rect x="3" y="13" width="8" height="8"/>
-        <rect x="13" y="13" width="8" height="8"/>
-    </svg>
-);
-
-const GridIcon3 = () => (
-    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <rect x="2" y="3" width="5" height="5"/>
-        <rect x="9" y="3" width="5" height="5"/>
-        <rect x="16" y="3" width="5" height="5"/>
-        <rect x="2" y="10" width="5" height="5"/>
-        <rect x="9" y="10" width="5" height="5"/>
-        <rect x="16" y="10" width="5" height="5"/>
-    </svg>
-);
-
-const GridIcon4 = () => (
-    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <rect x="2" y="3" width="4" height="4"/>
-        <rect x="8" y="3" width="4" height="4"/>
-        <rect x="14" y="3" width="4" height="4"/>
-        <rect x="20" y="3" width="2" height="4"/>
-        <rect x="2" y="9" width="4" height="4"/>
-        <rect x="8" y="9" width="4" height="4"/>
-        <rect x="14" y="9" width="4" height="4"/>
-        <rect x="20" y="9" width="2" height="4"/>
-    </svg>
-);
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const products: any[] = [
     {
@@ -233,12 +191,12 @@ const recommendedProducts = [
 ];
 
 const ProductGrid = () => {
-    const [gridColumns, setGridColumns] = useState(4); 
+    const [gridColumns, setGridColumns] = useState(4);
 
 
-    
+
     const getGridClass = () => {
-        switch(gridColumns) {
+        switch (gridColumns) {
             case 2:
                 return 'grid-cols-2';
             case 3:
@@ -277,37 +235,33 @@ const ProductGrid = () => {
                     <main className="flex-1">
                         {/* Header */}
                         <div className="flex items-center justify-between gap-4">
-                            <div className="flex items-center gap-2">
-                                {/* Grid Column Options */}
-                                <div className="flex items-center gap-1 border rounded p-1">
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className={`h-7 w-7 ${gridColumns === 2 ? 'bg-gray-200' : ''}`}
-                                        onClick={() => setGridColumns(2)}
-                                        title="2 columns"
-                                    >
-                                      2
-                                    </Button>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className={`h-7 w-7 ${gridColumns === 3 ? 'bg-gray-200' : ''}`}
-                                        onClick={() => setGridColumns(3)}
-                                        title="3 columns"
-                                    >
-                                   3
-                                    </Button>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className={`h-7 w-7 ${gridColumns === 4 ? 'bg-gray-200' : ''}`}
-                                        onClick={() => setGridColumns(4)}
-                                        title="4 columns"
-                                    >
-                                     4
-                                    </Button>
-                                </div>
+                            <div className="flex items-center  gap-2">
+                                {/* Grid Column Options (Tabs) */}
+                                <Tabs value={String(gridColumns)} onValueChange={(val) => setGridColumns(Number(val))}>
+                                    <TabsList className="border rounded p-1 bg-muted/30">
+                                        <TabsTrigger
+                                            value="2"
+                                            className=" flex items-center justify-center rounded data-[state=active]:bg-gray-200 data-[state=active]:shadow"
+                                            title="2 columns"
+                                        >
+                                            <img src="grid/svgviewer-output.svg" alt="grid 2" className="w-5 h-5" />
+                                        </TabsTrigger>
+                                        <TabsTrigger
+                                            value="3"
+                                            className=" flex items-center justify-center rounded data-[state=active]:bg-gray-200 data-[state=active]:shadow"
+                                            title="3 columns"
+                                        >
+                                            <img src="grid/svgviewer-output3.svg" alt="grid 3" className="w-5 h-5" />
+                                        </TabsTrigger>
+                                        <TabsTrigger
+                                            value="4"
+                                            className="flex items-center justify-center rounded data-[state=active]:bg-gray-200 data-[state=active]:shadow"
+                                            title="4 columns"
+                                        >
+                                            <img src="grid/svgviewer-output2.svg" alt="grid 4" className="w-5 h-5" />
+                                        </TabsTrigger>
+                                    </TabsList>
+                                </Tabs>
                             </div>
 
                             <div className="flex items-center gap-2 text-sm">
@@ -332,7 +286,7 @@ const ProductGrid = () => {
                                 <ProductCard key={product.productId} product={product} promo={null} />
                             ))}
                         </div>
-
+                            
                     </main>
                 </div>
             </div>

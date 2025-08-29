@@ -1,30 +1,29 @@
 "use client"
 import React, { useState } from "react";
-import { Check, ChevronDown, Search } from "lucide-react";
+import { ChevronDown, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 
-const brands = [
-    { name: "Nike", count: 156 },
-    { name: "Adidas", count: 89 },
-    { name: "Apple", count: 34 },
-    { name: "New Balance", count: 67 },
-    { name: "Puma", count: 123 },
-    { name: "Uniqlo", count: 45 },
+// Categories list
+const Categories = [
+    { name: "Shoes", count: 156 },
+    { name: "Clothing", count: 89 },
+    { name: "Electronics", count: 34 },
+    { name: "Accessories", count: 67 },
+    { name: "Sports", count: 123 },
+    { name: "Home", count: 45 },
 ];
 
-const sizes = ["XXS", "XS", "S", "M", "L", "XL", "XXL"];
-
 const FilterSidebar = () => {
-    const [priceRange, setPriceRange] = useState([2900, 100000]);
-    const [brandSearch, setBrandSearch] = useState("");
-    const [selectedBrands, setSelectedBrands] = useState(new Set(["Nike"])); // Nike selected by default
+    const [priceRange, setPriceRange] = useState([0, 100000]);
+    const [categorySearch, setCategorySearch] = useState("");
+    const [selectedCategories, setSelectedCategories] = useState(new Set());
     const [selectedSizes, setSelectedSizes] = useState(new Set());
     const [selectedColors, setSelectedColors] = useState(new Set());
     const [openSections, setOpenSections] = useState({
-        brand: true,
+        category: true,
         price: true,
         size: true,
     });
@@ -33,54 +32,30 @@ const FilterSidebar = () => {
         setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
     };
 
-    const toggleBrand = (brandName: string) => {
-        const newSelected = new Set(selectedBrands);
-        if (newSelected.has(brandName)) {
-            newSelected.delete(brandName);
-        } else {
-            newSelected.add(brandName);
-        }
-        setSelectedBrands(newSelected);
+    const toggleCategory = (categoryName: string) => {
+        const newSelected = new Set(selectedCategories);
+        newSelected.has(categoryName) ? newSelected.delete(categoryName) : newSelected.add(categoryName);
+        setSelectedCategories(newSelected);
     };
 
-    const toggleSize = (size: string) => {
-        const newSelected = new Set(selectedSizes);
-        if (newSelected.has(size)) {
-            newSelected.delete(size);
-        } else {
-            newSelected.add(size);
-        }
-        setSelectedSizes(newSelected);
-    };
-
-    const toggleColor = (color: string) => {
-        const newSelected = new Set(selectedColors);
-        if (newSelected.has(color)) {
-            newSelected.delete(color);
-        } else {
-            newSelected.add(color);
-        }
-        setSelectedColors(newSelected);
-    };
-
-    const filteredBrands = brands.filter(brand =>
-        brand.name.toLowerCase().includes(brandSearch.toLowerCase())
+    const filteredCategories = Categories.filter(cat =>
+        cat.name.toLowerCase().includes(categorySearch.toLowerCase())
     );
 
     return (
         <div className="w-72 bg-white border-r border-gray-200">
-            {/* Filter Header */}
+            {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
                 <h2 className="font-medium text-gray-900">Filter</h2>
-                {(selectedBrands.size > 0 || selectedSizes.size > 0 || selectedColors.size > 0) && (
+                {(selectedCategories.size > 0 || selectedSizes.size > 0 || selectedColors.size > 0) && (
                     <Button
                         variant="outline"
                         size="sm"
                         onClick={() => {
-                            setSelectedBrands(new Set());
+                            setSelectedCategories(new Set());
                             setSelectedSizes(new Set());
                             setSelectedColors(new Set());
-                            setPriceRange([2900, 100000]);
+                            setPriceRange([0, 100000]);
                         }}
                     >
                         Clear
@@ -89,76 +64,43 @@ const FilterSidebar = () => {
             </div>
 
             <div className="p-4 space-y-6">
-                {(selectedBrands.size > 0 || selectedSizes.size > 0 || selectedColors.size > 0) && (
-                    <div className="pb-4 border-b border-gray-200">
-                        {/* Active filters display */}
-                        <div className="mt-3 space-y-2">
-                            {selectedBrands.size > 0 && (
-                                <div className="text-xs text-gray-600">
-                                    <span className="font-medium">Brands: </span>
-                                    {Array.from(selectedBrands).join(', ')}
-                                </div>
-                            )}
-                            {selectedSizes.size > 0 && (
-                                <div className="text-xs text-gray-600">
-                                    <span className="font-medium">Sizes: </span>
-                                    {Array.from(selectedSizes).join(', ')}
-                                </div>
-                            )}
-                            {selectedColors.size > 0 && (
-                                <div className="text-xs text-gray-600">
-                                    <span className="font-medium">Colors: </span>
-                                    {Array.from(selectedColors).join(', ')}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
 
-                {/* Brand Filter */}
+                {/* Category Filter */}
                 <div>
                     <div
                         className="flex items-center justify-between mb-3 cursor-pointer"
-                        onClick={() => toggleSection('brand')}
+                        onClick={() => toggleSection('category')}
                     >
-                        <h3 className="font-medium text-gray-900">Brand</h3>
-                        <ChevronDown className={`h-4 w-4 transition-transform ${openSections.brand ? 'rotate-180' : ''}`} />
+                        <h3 className="font-medium text-gray-900">Categories</h3>
+                        <ChevronDown className={`h-4 w-4 transition-transform ${openSections.category ? 'rotate-180' : ''}`} />
                     </div>
 
-                    {openSections.brand && (
+                    {openSections.category && (
                         <div className="space-y-3">
                             <div className="relative">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                                 <Input
-                                    placeholder="Search brand"
-                                    value={brandSearch}
-                                    onChange={(e) => setBrandSearch(e.target.value)}
+                                    placeholder="Search categories"
+                                    value={categorySearch}
+                                    onChange={(e) => setCategorySearch(e.target.value)}
                                     className="pl-10 text-sm"
                                 />
                             </div>
-
                             <div className="space-y-2">
-                                {filteredBrands.map((brand) => (
-                                    <div key={brand.name} className="flex items-center space-x-3">
+                                {filteredCategories.map((cat) => (
+                                    <div key={cat.name} className="flex items-center space-x-3">
                                         <Checkbox
-                                            id={brand.name}
-                                            checked={selectedBrands.has(brand.name)}
-                                            onCheckedChange={() => toggleBrand(brand.name)}
+                                            id={cat.name}
+                                            checked={selectedCategories.has(cat.name)}
+                                            onCheckedChange={() => toggleCategory(cat.name)}
                                         />
-                                        <div className="flex items-center w-6 h-6">
-                                            <div className="w-6 h-6 bg-gray-100 rounded flex items-center justify-center">
-                                                <span className="text-xs font-bold text-gray-600">
-                                                    {brand.name.charAt(0)}
-                                                </span>
-                                            </div>
-                                        </div>
                                         <label
-                                            htmlFor={brand.name}
+                                            htmlFor={cat.name}
                                             className="flex-1 flex items-center justify-between text-sm cursor-pointer"
-                                            onClick={() => toggleBrand(brand.name)}
+                                            onClick={() => toggleCategory(cat.name)}
                                         >
-                                            <span className="text-gray-700">{brand.name}</span>
-                                            <span className="text-gray-400 text-xs">({brand.count})</span>
+                                            <span className="text-gray-700">{cat.name}</span>
+                                            <span className="text-gray-400 text-xs">({cat.count})</span>
                                         </label>
                                     </div>
                                 ))}
@@ -183,8 +125,8 @@ const FilterSidebar = () => {
                                 <Slider
                                     value={priceRange}
                                     onValueChange={setPriceRange}
-                                    max={300000}
-                                    min={2900}
+                                    max={100000}
+                                    min={0}
                                     step={100}
                                     className="w-full"
                                 />
@@ -196,23 +138,22 @@ const FilterSidebar = () => {
                             <div className="flex gap-2">
                                 <Input
                                     type="number"
-                                    placeholder="2900"
+                                    placeholder="0"
                                     value={priceRange[0]}
-                                    onChange={(e) => setPriceRange([parseInt(e.target.value) || 2900, priceRange[1]])}
+                                    onChange={(e) => setPriceRange([parseInt(e.target.value) || priceRange[1]])}
                                     className="text-center text-sm"
                                 />
                                 <Input
                                     type="number"
-                                    placeholder="300,000"
+                                    placeholder="100"
                                     value={priceRange[1]}
-                                    onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value) || 300000])}
+                                    onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
                                     className="text-center text-sm"
                                 />
                             </div>
                         </div>
                     )}
                 </div>
-
             </div>
         </div>
     );
