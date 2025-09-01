@@ -96,7 +96,7 @@ const gridProducts: any[] = [
     }
 ];
 
-const ProductGrid = () => {
+const BestSeller = () => {
     return (
         <section className="bg-gray-50 py-12">
             <div className="container mx-auto px-4">
@@ -118,4 +118,4 @@ const ProductGrid = () => {
     );
 };
 
-export default ProductGrid;
+export default BestSeller;
