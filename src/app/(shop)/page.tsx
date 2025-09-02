@@ -212,19 +212,19 @@ const testimonials = [
     {
         id: 1,
         testimonial: "I am absolutely thrilled with the service I received from their company! They were attentive, responsive, and genuinely cared about meeting my needs. I highly recommend them.",
-        clientName: "Your Client",
+        clientName: "Imad Imteyaaz",
         clientImage: "https://i.pinimg.com/736x/2e/2b/ff/2e2bffa562cf50f5757b5a547a1f34b0.jpg",
     },
     {
         id: 2,
         testimonial: "I am absolutely thrilled with the service I received from their company! They were attentive, responsive, and genuinely cared about meeting my needs. I highly recommend them.",
-        clientName: "Your Client",
+        clientName: "Jone Doe",
         clientImage: "https://i.pinimg.com/736x/71/22/c1/7122c1ac1382dea3563d776c1f158654.jpg",
     },
     {
         id: 3,
         testimonial: "I am absolutely thrilled with the service I received from their company! They were attentive, responsive, and genuinely cared about meeting my needs. I highly recommend them.",
-        clientName: "Your Client",
+        clientName: "Sarah Smith",
         clientImage: "https://i.pinimg.com/736x/ab/6c/7d/ab6c7d61f6b145356019b320fa613375.jpg",
     },
 ];

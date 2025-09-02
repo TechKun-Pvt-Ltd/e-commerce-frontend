@@ -11,33 +11,40 @@ import {
     SelectItem,
 } from "@/components/ui/select";
 import { Variation } from "@/types/domains/variation";
-import useDataFetch from "@/hooks/use-data-fetch";
-import * as reviewServices from "@/services/review";
 import { AttributeType } from "@/types/domains/attribute";
 import { ProductReviews } from "../Components/ProductReviews";
 
-import * as roleServices from "@/services/role";
-import * as userServices from "@/services/user";
 import { useAppSelector } from "@/store/hooks";
 import { UserRole } from "@/types/domains/user";
+import { CardDescription } from '@/components/ui/card';
 
 const product: Product = {
     productId: 1,
     categoryId: 101,
     title: "Premium Wireless Headphones",
     description:
-        "Experience high-fidelity audio with our noise-cancelling, over-ear wireless headphones. Built for comfort and performance.",
+        "Elevate your everyday style with our Essential Polos, the perfect blend of comfort and sophistication. Crafted from premium, breathable fabric, these polos offer a tailored fit that’s ideal for both casual outings and smart-casual settings. Designed with classic collars and subtle detailing, they bring timeless appeal to your wardrobe. Available in a range of versatile colors, they pair effortlessly with jeans, chinos, or shorts. Whether you’re heading to the office or a weekend brunch, Essential Polos keep you looking sharp and feeling comfortable all day long.",
     dateAdded: "2025-04-10T00:00:00Z",
     starred: true,
     productImages: [
         {
             productImageId: 1,
-            imageUrl: "https://img.freepik.com/premium-photo/young-woman-order-purchase-product-internet-using-laptop-blithe_31965-289001.jpg?w=996",
+            imageUrl: "https://i.pinimg.com/736x/2f/89/ba/2f89ba6de7afbb51d329c30c475f9e55.jpg",
             isDefault: true,
         },
         {
             productImageId: 2,
-            imageUrl: "https://example.com/images/headphones2.png",
+            imageUrl: "https://i.pinimg.com/736x/61/81/70/6181701187f9e48136eecc8b8a622acf.jpg",
+            isDefault: false,
+        },
+        {
+            productImageId: 3,
+            imageUrl: "https://i.pinimg.com/736x/aa/09/d2/aa09d28585253a74c08dcac92dabac60.jpg",
+            isDefault: false,
+        },
+        {
+            productImageId: 4,
+            imageUrl: "https://i.pinimg.com/1200x/4f/53/78/4f53789fb9723f36fb201ca7b61beb90.jpg",
             isDefault: false,
         },
     ],
@@ -392,10 +399,7 @@ type VariantSelectionState = {
 export default function ProductDetailsPage({ params }: { params: Promise<{ productId: string }> }) {
     const { productId } = React.use(params);
 
-    // const productData = useDataFetch(getProductById, {
-    //     defaultValue: {productId: Number(productId), images: []}
-    // });
-    // const { response: product } = productData;
+
 
     const [activeImage, setActiveImage] = useState(() =>
         product?.productImages.find(img => img.isDefault) ?? product?.productImages[0]
@@ -512,16 +516,12 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
             };
         });
     }, [product]);
-    // const getCustomeById = useDataFetch(roleServices.getRoleById)
 
-    // useEffect(() => {
-    //     productData.request(Number(productId));
-    // }, []);
     useEffect(() => {
         product && setVariantSelectionState(initializeVariantSelectionState());
     }, [product]);
 
-    const getAllRolesData = useDataFetch(roleServices.getAllRoles);
+
 
     const { user, loading } = useAppSelector(state => state.auth);
     // Helper functions to check user roles
@@ -529,48 +529,51 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
     const isPlatformAdmin = user?.roleName === UserRole.PLATFORM_ADMIN;
     const isCustomer = user?.roleName === UserRole.CUSTOMER;
 
-    // Admin can only delete, not edit reviews
-    const canDeleteAnyReview = isAdmin || isPlatformAdmin;
 
-    // Get current customer ID if user is a customer
     const currentCustomerId = isCustomer ? user?.userId : undefined;
 
-    // user?.roleName = UserRole.ADMIN
+
 
     return (
-        <div>
-            <div className="max-w-6xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Image Gallery */}
+        <div className="responsive-container">
+            <div className="relative p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
+
                 <div>
                     <div className="border rounded-md overflow-hidden">
                         <img
                             src={activeImage?.imageUrl}
                             alt="Product preview"
-                            className="w-full h-[400px] object-contain"
+                            className="w-full h-full object-cover"
                         />
                     </div>
-                    <div className="mt-4 flex gap-2">
+                    <div className="mt-4 flex justify-between">
                         {product?.productImages.map(img => (
                             <Button
                                 key={img.productImageId}
                                 onClick={() => setActiveImage(img)}
-                                className={`border rounded-md p-1 w-16 h-16 ${activeImage?.productImageId === img.productImageId ? "border-primary" : "border-muted"}`}
+                                className={`rounded-md  p-0 w-35 h-35 ${activeImage?.productImageId === img.productImageId ? "border-black border-3 z-10" : "border-mute"}`}
                             >
-                                <img src={img.imageUrl} alt="thumb" className="object-cover w-full h-full" />
+                                <img src={img.imageUrl} alt="thumb" className=" rounded-sm w-full h-full" />
                             </Button>
                         ))}
                     </div>
+                    <div className="py-8 ">
+                        <ProductReviews
+                            productId={Number(productId)}
+                            currentCustomerId={currentCustomerId}
+                        />
+                    </div>
                 </div>
 
-                {/* Product Info */}
+
                 <div className="space-y-6">
                     <h1 className="text-2xl font-bold">{product?.title}</h1>
-                    <p className="text-muted-foreground">{product?.description}</p>
+                    {/* <p className="text-muted-foreground">{product?.description}</p> */}
 
                     {/* Attribute List */}
-                    <div className="space-y-2">
+                    <div className="flex gap-8 space-y-2 ">
                         {product?.attributes?.map((attr) => (
-                            <div key={attr.productAttributeId} className="text-sm">
+                            <div key={attr.productAttributeId} className="text-sm ">
                                 <span className="font-medium">{attr.attribute.name}: </span>
                                 <span>{attr.value}</span>
                             </div>
@@ -630,14 +633,10 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
                     <Button size="lg" className="w-full">
                         Add to Cart
                     </Button>
-                </div>
-            </div>
-            <div className="min-h-screen bg-gradient-to-br from-background to-product-bg">
-                <div className="container mx-auto px-4 py-8 max-w-4xl">
-                    <ProductReviews
-                        productId={Number(productId)}
-                        currentCustomerId={currentCustomerId}
-                    />
+
+                    <h1 className="text-2xl font-bold"> Description </h1>
+                    <p className="text-muted-foreground">{product?.description}</p>
+
                 </div>
             </div>
         </div>
