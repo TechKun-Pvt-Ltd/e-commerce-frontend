@@ -16,7 +16,118 @@ import { ProductReviews } from "../Components/ProductReviews";
 
 import { useAppSelector } from "@/store/hooks";
 import { UserRole } from "@/types/domains/user";
-import { CardDescription } from '@/components/ui/card';
+import ProductCard from "@/app/components/ProductCard";
+
+const products: any[] = [
+    {
+        "productId": 101,
+        "productVariantId": 201,
+        "categoryId": 12,
+        "dateAdded": "2025-08-07T10:00:00Z",
+        "quantityInStock": 75,
+        "imageUrl": "https://i.pinimg.com/1200x/b8/98/4e/b8984e1d41ef5987dcd45d239aa641fd.jpg",
+        "price": 499.00,
+        "title": "Classic Wooden Photo Frame",
+        "code": "FRAME-WD-2025",
+        "rating": 4.6,
+        "starred": true
+
+    },
+    {
+        "productId": 102,
+        "productVariantId": 202,
+        "categoryId": 12,
+        "dateAdded": "2025-08-06T12:30:00Z",
+        "quantityInStock": 60,
+        "imageUrl": "https://i.pinimg.com/1200x/93/3b/f1/933bf196b3e96ad63cf7e28537008244.jpg",
+        "price": 599.00,
+        "title": "Minimalist Black Frame",
+        "code": "FRAME-BLK-2025",
+        "rating": 4.8,
+        "starred": false
+    },
+    {
+        "productId": 103,
+        "productVariantId": 203,
+        "categoryId": 12,
+        "dateAdded": "2025-08-04T15:15:00Z",
+        "quantityInStock": 45,
+        "imageUrl": "https://i.pinimg.com/736x/27/89/70/278970ef6800d537b042bbebb142473d.jpg",
+        "price": 749.00,
+        "title": "Golden Antique Frame",
+        "code": "FRAME-GLD-2025",
+        "rating": 4.9,
+        "starred": true
+    }, {
+        "productId": 104,
+        "productVariantId": 201,
+        "categoryId": 12,
+        "dateAdded": "2025-08-07T10:00:00Z",
+        "quantityInStock": 75,
+        "imageUrl": "https://i.pinimg.com/1200x/14/6c/20/146c20591a0c03ad90c8a08f42cf3624.jpg",
+        "price": 499.00,
+        "title": "Classic Wooden Photo Frame",
+        "code": "FRAME-WD-2025",
+        "rating": 4.6,
+        "starred": true
+
+    },
+    {
+        "productId": 105,
+        "productVariantId": 202,
+        "categoryId": 12,
+        "dateAdded": "2025-08-06T12:30:00Z",
+        "quantityInStock": 60,
+        "imageUrl": "https://i.pinimg.com/1200x/a6/6d/46/a66d46545c57675eff9d6d2472ff5407.jpg",
+        "price": 599.00,
+        "title": "Minimalist Black Frame",
+        "code": "FRAME-BLK-2025",
+        "rating": 4.8,
+        "starred": false
+    },
+    {
+        "productId": 106,
+        "productVariantId": 203,
+        "categoryId": 12,
+        "dateAdded": "2025-08-04T15:15:00Z",
+        "quantityInStock": 45,
+        "imageUrl": "https://i.pinimg.com/1200x/35/ca/d9/35cad961cbbc05fa924bf8054b0e01bb.jpg",
+        "price": 749.00,
+        "title": "Golden Antique Frame",
+        "code": "FRAME-GLD-2025",
+        "rating": 4.9,
+        "starred": true
+    }, {
+        "productId": 107,
+        "productVariantId": 201,
+        "categoryId": 12,
+        "dateAdded": "2025-08-07T10:00:00Z",
+        "quantityInStock": 75,
+        "imageUrl": "https://i.pinimg.com/736x/42/de/7b/42de7bb703fca6d7b52b68c2affd949f.jpg",
+        "price": 499.00,
+        "title": "Classic Wooden Photo Frame",
+        "code": "FRAME-WD-2025",
+        "rating": 4.6,
+        "starred": true
+
+    },
+    {
+        "productId": 108,
+        "productVariantId": 202,
+        "categoryId": 12,
+        "dateAdded": "2025-08-06T12:30:00Z",
+        "quantityInStock": 60,
+        "imageUrl": "https://i.pinimg.com/1200x/8e/1d/81/8e1d81152c50bb4ace7609fe6a10491e.jpg",
+        "price": 599.00,
+        "title": "Minimalist Black Frame",
+        "code": "FRAME-BLK-2025",
+        "rating": 4.8,
+        "starred": false
+    },
+
+
+];
+
 
 const product: Product = {
     productId: 1,
@@ -629,6 +740,12 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
                         {product.variants[0]?.quantityInStock} in stock
                     </div> */}
                     </div>
+                    <div className=" border w-full  rounded-md  p-4">
+                        <h1 className="mt-[-30px] text-center text-xl font-bold">Safe Chackout</h1>
+                        <div className="flex items-center justify-center mt-8">
+                            <img src="/online-payments.png" alt="Online-Payments" className="w-72" />
+                        </div>
+                    </div>
 
                     <Button size="lg" className="w-full">
                         Add to Cart
@@ -637,6 +754,17 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
                     <h1 className="text-2xl font-bold"> Description </h1>
                     <p className="text-muted-foreground">{product?.description}</p>
 
+                </div>
+            </div>
+            <div>
+                <h1 className="text-3xl text-center font-bold mb-16"> Related Products</h1>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+
+                    {
+                        products.slice(0, 4).map((product) => (
+                            <ProductCard key={product.productId} product={product} promo={null} />
+                        ))
+                    }
                 </div>
             </div>
         </div>
