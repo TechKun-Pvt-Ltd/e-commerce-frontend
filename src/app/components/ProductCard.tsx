@@ -36,7 +36,7 @@ export default function ProductCard({ product, promo }: { product: ProductPrevie
     return (
         <div
             key={product.productId}
-            className=" w-[280px] border  overflow-hidden  p-0"
+            className=" w-full border  overflow-hidden  p-0"
         >
             <div className="relative  aspect-square overflow-hidden">
                 {/* Add to Cart  */}

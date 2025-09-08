@@ -31,7 +31,14 @@ export default function AddProductPage() {
                         onSubmit={data => {
                             createProduct.request({
                                 ...data,
-                                attributes: data.attributes.filter(attr => attr.value)
+                                title: data.title ?? "",
+                                code: data.code ?? "",
+                                description: data.description ?? "",
+                                starred: data.starred ?? false,
+                                categoryId: data.categoryId ?? 0,
+                                images: data.images ?? [],
+                                variants: data.variants ?? [],
+                                attributes: (data.attributes ?? []).filter(attr => attr.value)
                             }).onSuccess(() => {
                                 // productFormRef.current.reset();
                                 router.replace("/admin/products");
