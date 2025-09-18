@@ -20,8 +20,8 @@ const paymentFormSchema = z.object({
       .length(2, "Expiry year must be 2 digits.")
       .regex(/^\d{2}$/, "Invalid year"),
    isDefault: z.boolean(),
-   last4: z.string().optional(),
-   providerToken: z.string().optional(),
+   last4: z.string().min(4, "Last 4 digits required"),
+   providerToken: z.string().min(1, "Provider token required"),
 });
 
 type PaymentFormData = z.infer<typeof paymentFormSchema>;
