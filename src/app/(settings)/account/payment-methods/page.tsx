@@ -15,8 +15,8 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useEffect, useState, useRef } from "react";
 import { PaymentMethodDTO, PaymentMethod } from "@/types/domains/payment_method";
-import { PaymentTable } from "./component/PaymentTable";
 import { PaymentForm } from "./component/PaymentForm";
+import { PaymentTable } from "./component/PaymentTable";
 
 export default function PaymentsPage() {
    const paymentData = useDataFetch(paymentServices.getAllPaymentMethods);
@@ -95,17 +95,17 @@ export default function PaymentsPage() {
             providerToken: method.providerToken,
             expiryMonth: method.expiryMonth,
             expiryYear: method.expiryYear,
-            isDefault: true,
+            isDefault: !method.isDefault,
             cardHolderName: method.cardHolderName,
          };
          updatePaymentMethod
             .request(paymentMethodId, updatedMethod)
             .onSuccess(() => {
-               toast.success("Payment method set as default");
+               toast.success("Payment method updated successfully");
                paymentData.request();
             })
             .onError(() => {
-               toast.error("Failed to set payment method as default");
+               toast.error("Failed to update payment method");
             });
       }
    };
@@ -123,6 +123,7 @@ export default function PaymentsPage() {
 
          <div className="py-2">
             <PaymentTable
+               isLoading={paymentData.isLoading}
                paymentData={paymentData.data || []}
                onEdit={handleEdit}
                onDelete={handleDelete}
@@ -142,8 +143,8 @@ export default function PaymentsPage() {
                   loading={createPaymentMethod.isLoading}
                   onSubmit={(data) => {
                      const submitData: PaymentMethodDTO = {
-                        last4: data.last4,
-                        providerToken: data.providerToken,
+                        last4: data.last4!,
+                        providerToken: data.providerToken!,
                         expiryMonth: data.expiryMonth,
                         expiryYear: data.expiryYear,
                         isDefault: data.isDefault || false,

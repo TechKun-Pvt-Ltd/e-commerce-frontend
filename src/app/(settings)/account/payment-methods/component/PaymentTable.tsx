@@ -1,61 +1,21 @@
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Edit, Trash2, CreditCard } from "lucide-react";
-import { PaymentMethod, PaymentType } from "@/types/domains/payment_method";
+import { PaymentMethod } from "@/types/domains/payment_method";
+import { CreditCard, Edit, Trash2 } from "lucide-react";
 
 interface PaymentTableProps {
    paymentData: PaymentMethod[];
+   isLoading: boolean;
    onEdit?: (payment: PaymentMethod) => void;
    onDelete?: (paymentMethodId: number) => void;
    onSetDefault?: (paymentMethodId: number) => void;
 }
-const data: PaymentMethod[] = [
-   {
-      paymentMethodId: 201,
-      type: PaymentType.CREDIT_CARD,
-      providerToken: "tok_abc123xyz",
-      last4: "4242",
-      expiryMonth: "10",
-      expiryYear: "2026",
-      isDefault: true,
-      cardHolderName: "Salman Usman Kachchhi",
-   },
-   {
-      paymentMethodId: 202,
-      type: PaymentType.CREDIT_CARD,
-      providerToken: "tok_def456uvw",
-      last4: "2107",
-      expiryMonth: "12",
-      expiryYear: "2025",
-      isDefault: false,
-      cardHolderName: "Ayesha Rahman",
-   },
-   {
-      paymentMethodId: 203,
-      type: PaymentType.CREDIT_CARD,
-      providerToken: "tok_ghi789rst",
-      last4: "5689",
-      expiryMonth: "08",
-      expiryYear: "2027",
-      isDefault: false,
-      cardHolderName: "Mohammed Ali",
-   },
-   {
-      paymentMethodId: 204,
-      type: PaymentType.CREDIT_CARD,
-      providerToken: "tok_jkl012mno",
-      last4: "3471",
-      expiryMonth: "06",
-      expiryYear: "2024",
-      isDefault: false,
-      cardHolderName: "Fatima Noor",
-   },
-];
 
-export function PaymentTable({ paymentData, onEdit, onDelete, onSetDefault }: PaymentTableProps) {
+export function PaymentTable({ paymentData, isLoading, onEdit, onDelete, onSetDefault }: PaymentTableProps) {
    const handleEdit = (payment: PaymentMethod) => {
       if (onEdit) {
          onEdit(payment);
@@ -91,7 +51,17 @@ export function PaymentTable({ paymentData, onEdit, onDelete, onSetDefault }: Pa
                      </TableRow>
                   </TableHeader>
                   <TableBody>
-                     {data.length === 0 ? (
+                     {isLoading ? (
+                        <TableRow>
+                           <TableCell colSpan={3}>
+                              <div className="flex flex-col gap-2 py-8">
+                                 <Skeleton className="h-4 w-full" />
+                                 <Skeleton className="h-4 w-full" />
+                                 <Skeleton className="h-4 w-1/2" />
+                              </div>
+                           </TableCell>
+                        </TableRow>
+                     ) : paymentData.length === 0 ? (
                         <TableRow>
                            <TableCell colSpan={3} className="text-center py-8">
                               <div className="flex flex-col items-center gap-2">
@@ -101,7 +71,7 @@ export function PaymentTable({ paymentData, onEdit, onDelete, onSetDefault }: Pa
                            </TableCell>
                         </TableRow>
                      ) : (
-                        data.map((payment) => (
+                        paymentData.map((payment) => (
                            <TableRow key={payment.paymentMethodId}>
                               <TableCell className="font-medium">
                                  <div className="flex items-center gap-4">
