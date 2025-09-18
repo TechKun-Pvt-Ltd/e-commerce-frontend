@@ -33,9 +33,9 @@ export default function PaymentsPage() {
 
     const handleEditSubmit = (data: any) => {
         if (editingPayment) {
-            const submitData = {
-                ...data,
-                disabled: data.disabled || false
+            const submitData: PaymentMethodDTO = {
+                isDefault: data.isDefault || false,
+                cardHolderName: data.cardHolderName
             };
             updatePaymentMethod.request(editingPayment.paymentMethodId, submitData).onSuccess(() => {
                 toast.success("Payment method updated successfully");
@@ -69,18 +69,18 @@ export default function PaymentsPage() {
         }
     };
 
-    const toggleStatus = (paymentMethodId: number) => {
+    const setDefaultPaymentMethod = (paymentMethodId: number) => {
         const method = paymentData.data?.find((m: PaymentMethod) => m.paymentMethodId === paymentMethodId);
         if (method) {
-            const updatedMethod = { 
-                paymentType: method.paymentType,
-                disabled: !method.disabled 
+            const updatedMethod: PaymentMethodDTO = { 
+                isDefault: true,
+                cardHolderName: method.cardHolderName
             };
             updatePaymentMethod.request(paymentMethodId, updatedMethod).onSuccess(() => {
-                toast.success("Payment method status updated");
+                toast.success("Payment method set as default");
                 paymentData.request();
             }).onError(() => {
-                toast.error("Failed to update payment method status");
+                toast.error("Failed to set payment method as default");
             });
         }
     };
@@ -101,7 +101,7 @@ export default function PaymentsPage() {
                     paymentData={paymentData.data || []}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
-                    onToggleStatus={toggleStatus}
+                    onSetDefault={setDefaultPaymentMethod}
                 />
             </div>
 
@@ -118,11 +118,11 @@ export default function PaymentsPage() {
                         mode="create"
                         loading={createPaymentMethod.isLoading}
                         onSubmit={data => {
-                            const submitData = {
-                                ...data,
-                                disabled: data.disabled || false
+                            const submitData: PaymentMethodDTO = {
+                                isDefault: data.isDefault || false,
+                                cardHolderName: data.cardHolderName
                             };
-                            createPaymentMethod.request(submitData as PaymentMethodDTO).onSuccess(() => {
+                            createPaymentMethod.request(submitData).onSuccess(() => {
                                 toast.success("Payment method created successfully");
                                 paymentData.request();
                                 createDialog.current?.close();
@@ -150,8 +150,8 @@ export default function PaymentsPage() {
                         onSubmit={handleEditSubmit}
                         onCancel={() => editDialog.current?.close()}
                         paymentData={editingPayment ? {
-                            paymentType: editingPayment.paymentType,
-                            disabled: editingPayment.disabled || false
+                            isDefault: editingPayment.isDefault || false,
+                            cardHolderName: editingPayment.cardHolderName
                         } : undefined}
                     />
                 </DialogContent>
@@ -163,7 +163,7 @@ export default function PaymentsPage() {
                     <DialogHeader>
                         <DialogTitle>Delete Payment Method</DialogTitle>
                         <DialogDescription>
-                            Are you sure you want to delete "{deletingPayment?.paymentType}"? This action cannot be undone.
+                            Are you sure you want to delete "{deletingPayment?.cardHolderName}"? This action cannot be undone.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter className="mt-4">
