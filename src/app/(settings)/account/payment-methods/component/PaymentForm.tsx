@@ -1,12 +1,11 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Switch } from "@/components/ui/switch";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 const paymentFormSchema = z.object({
    cardHolderName: z.string().min(1, "Card holder name is required."),
