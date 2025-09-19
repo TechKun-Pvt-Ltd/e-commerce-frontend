@@ -1,26 +1,31 @@
+
+
 export interface ShippingOption {
   id?: number;
-  profile_id?: number;
-  destination_country: string;
+  shippingMethodId?: number;
+  destinationCountry: string;
   carrier: string;
-  cost_first_item: number;
+  costFirstItem: number;
+  costAdditionalItem: number;
+  estimatedDeliveryMin: number;
+  estimatedDeliveryMax: number;
 }
 
 export interface ShippingMethod {
   id: number;
-  seller_id: number;
   name: string;
+  originCountry: string;
+  originPostalCode: string;
+  processingTimeMin: number;
+  processingTimeMax: number;
   shippingOptions: ShippingOption[];
 }
 
 export interface ShippingMethodDTO {
-  seller_id: number;
   name: string;
-  shippingOptions: ShippingOption[];
-}
-
-export interface ShippingMethodUpdationPayload {
-  name: string;
-  seller_id: number;
+  originCountry: string;
+  originPostalCode: string;
+  processingTimeMin: number;
+  processingTimeMax: number;
   shippingOptions: ShippingOption[];
 }

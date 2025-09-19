@@ -6,7 +6,7 @@ import Spinner from "@/components/ui/spinner";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ShippingMethodUpdationPayload } from "@/types/domains/shipping_method";
+import { ShippingMethodDTO } from "@/types/domains/shipping_method";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Minus, Plus } from "lucide-react";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
@@ -15,24 +15,41 @@ import { z } from "zod";
 
 const shippingSchema = z.object({
     name: z.string().nonempty("Shipping method name is required."),
+    originCountry: z.string().nonempty("Origin country is required."),
+    originPostalCode: z.string().nonempty("Origin postal code is required."),
+    processingTimeMin: z.number().min(0, "Processing time must be 0 or greater."),
+    processingTimeMax: z.number().min(0, "Processing time must be 0 or greater."),
     shippingOptions: z.array(
         z.object({
             id: z.number().optional(),
             key: z.number(),
-            destination_country: z.string().nonempty("Destination country is required."),
+            destinationCountry: z.string().nonempty("Destination country is required."),
             carrier: z.string().nonempty("Carrier is required."),
-            cost_first_item: z.number().min(0, "Cost must be 0 or greater.")
+            costFirstItem: z.number().min(0, "Cost must be 0 or greater."),
+            costAdditionalItem: z.number().min(0, "Additional cost must be 0 or greater."),
+            estimatedDeliveryMin: z.number().min(1, "Delivery time must be at least 1 day."),
+            estimatedDeliveryMax: z.number().min(1, "Delivery time must be at least 1 day.")
         })
     ).min(1, "There must be at least one shipping option.")
+}).refine((data) => data.processingTimeMax >= data.processingTimeMin, {
+    message: "Max processing time must be greater than or equal to min processing time",
+    path: ["processingTimeMax"]
 });
 
 const defaultFieldValues = {
     name: "",
+    originCountry: "",
+    originPostalCode: "",
+    processingTimeMin: 1,
+    processingTimeMax: 3,
     shippingOptions: [{
         key: 0,
-        destination_country: "",
+        destinationCountry: "",
         carrier: "",
-        cost_first_item: 0
+        costFirstItem: 0,
+        costAdditionalItem: 0,
+        estimatedDeliveryMin: 1,
+        estimatedDeliveryMax: 5
     }]
 };
 
@@ -42,13 +59,8 @@ const countries = [
     "US", "CA", "UK", "NZ", "JP", "AU", "IN", "BR", "MX", 
     "DE", "FR", "IT", "ES", "NL", "SE", "NO", "DK", "FI",
     "AE", "SA", "TR", "KR", "SG", "MY", "TH", "VN", "PH",
-    "CN", "HK", "TW", "ID", "BD", "PK", "LK", "NP", "AF"
-];
-
-const carriers = [
-    "DHL Express", "FedEx", "UPS", "Aramex", "BlueDart", 
-    "TNT", "DPD", "GLS", "Hermes", "Royal Mail",
-    "USPS", "Canada Post", "Australia Post", "India Post"
+    "CN", "HK", "TW", "ID", "BD", "PK", "LK", "NP", "AF",
+    "IE", "KW"
 ];
 
 export default function ShippingForm({
@@ -56,23 +68,26 @@ export default function ShippingForm({
     loading,
     onSubmit
 }: {
-    shippingMethod: ShippingMethodUpdationPayload,
+    shippingMethod?: ShippingMethodDTO,
     loading: boolean,
-    onSubmit: (data: ShippingMethodUpdationPayload) => void
-} | {
-    shippingMethod?: undefined,
-    loading: boolean,
-    onSubmit: (data: FieldValues) => void
+    onSubmit: (data: ShippingMethodDTO) => void
 }) {
     const firstRender = useRef(true);
     const defaultValues = useMemo(() => shippingMethod ? {
         name: shippingMethod.name,
+        originCountry: shippingMethod.originCountry,
+        originPostalCode: shippingMethod.originPostalCode,
+        processingTimeMin: shippingMethod.processingTimeMin,
+        processingTimeMax: shippingMethod.processingTimeMax,
         shippingOptions: shippingMethod.shippingOptions.map((opt, i) => ({
             id: opt.id,
             key: i,
-            destination_country: opt.destination_country,
+            destinationCountry: opt.destinationCountry,
             carrier: opt.carrier,
-            cost_first_item: opt.cost_first_item
+            costFirstItem: opt.costFirstItem,
+            costAdditionalItem: opt.costAdditionalItem,
+            estimatedDeliveryMin: opt.estimatedDeliveryMin,
+            estimatedDeliveryMax: opt.estimatedDeliveryMax
         }))
     } : defaultFieldValues, [shippingMethod]);
 
@@ -96,7 +111,7 @@ export default function ShippingForm({
                     onValueChange={field.onChange}
                 >
                     <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select country" />
+                        <SelectValue placeholder="Country" />
                     </SelectTrigger>
                     <SelectContent>
                         {countries.map((country) => (
@@ -107,10 +122,10 @@ export default function ShippingForm({
                     </SelectContent>
                 </Select>
             </FormControl>
-            <FormMessage className="w-full whitespace-normal" />
+            <FormMessage className="w-full whitespace-normal text-xs" />
         </FormItem>
     ), []) as ((params: {
-        field: ControllerRenderProps<FieldValues, `shippingOptions.${number}.destination_country`>;
+        field: ControllerRenderProps<FieldValues, `shippingOptions.${number}.destinationCountry`>;
         fieldState: ControllerFieldState;
         formState: UseFormStateReturn<FieldValues>;
     }) => React.ReactElement);
@@ -118,23 +133,12 @@ export default function ShippingForm({
     const renderCarrierField = useCallback(({ field }) => (
         <FormItem>
             <FormControl>
-                <Select
-                    value={field.value}
-                    onValueChange={field.onChange}
-                >
-                    <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select carrier" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {carriers.map((carrier) => (
-                            <SelectItem key={carrier} value={carrier}>
-                                {carrier}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+                <Input
+                    placeholder="Enter carrier"
+                    {...field}
+                />
             </FormControl>
-            <FormMessage className="w-full whitespace-normal" />
+            <FormMessage className="w-full whitespace-normal text-xs" />
         </FormItem>
     ), []) as ((params: {
         field: ControllerRenderProps<FieldValues, `shippingOptions.${number}.carrier`>;
@@ -142,26 +146,32 @@ export default function ShippingForm({
         formState: UseFormStateReturn<FieldValues>;
     }) => React.ReactElement);
 
-    const renderCostField = useCallback(({ field }) => (
-        <FormItem>
-            <FormControl>
-                <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="Enter cost"
-                    {...field}
-                    value={field.value === 0 ? '' : field.value}
-                    onChange={e => field.onChange(e.target.value ? Number(e.target.value) : 0)}
-                />
-            </FormControl>
-            <FormMessage className="w-full whitespace-normal" />
-        </FormItem>
-    ), []) as ((params: {
-        field: ControllerRenderProps<FieldValues, `shippingOptions.${number}.cost_first_item`>;
-        fieldState: ControllerFieldState;
-        formState: UseFormStateReturn<FieldValues>;
-    }) => React.ReactElement);
+    const renderNumberField = useCallback(
+        (placeholder: string, step: string = "0.01") => {
+            return ({
+                field,
+            }: {
+                field: ControllerRenderProps<FieldValues, any>;
+            }) => (
+                <FormItem>
+                    <FormControl>
+                        <Input
+                            type="number"
+                            step={step}
+                            min="0"
+                            placeholder={placeholder}
+                            className="w-full"
+                            {...field}
+                            value={field.value === 0 ? '' : field.value}
+                            onChange={e => field.onChange(e.target.value ? Number(e.target.value) : 0)}
+                        />
+                    </FormControl>
+                    <FormMessage className="w-full whitespace-normal text-xs" />
+                </FormItem>
+            );
+        },
+        []
+    );
 
     return <Form {...shippingForm}>
         <form className="space-y-6" onSubmit={shippingForm.handleSubmit(data => {
@@ -169,7 +179,7 @@ export default function ShippingForm({
             const erroneousIndices: number[] = [];
             const combinationSet = new Set<string>();
             data.shippingOptions.forEach((opt, i) => {
-                const combination = `${opt.destination_country}-${opt.carrier}`;
+                const combination = `${opt.destinationCountry}-${opt.carrier}`;
                 if (combinationSet.has(combination)) {
                     erroneousIndices.push(i);
                 } else {
@@ -177,32 +187,43 @@ export default function ShippingForm({
                 }
             });
             
+            // Validate delivery times
+            data.shippingOptions.forEach((opt, i) => {
+                if (opt.estimatedDeliveryMax < opt.estimatedDeliveryMin) {
+                    shippingForm.setError(`shippingOptions.${i}.estimatedDeliveryMax`, {
+                        message: "Max >= Min"
+                    });
+                }
+            });
+            
             for (const i of erroneousIndices) { 
-                shippingForm.setError(`shippingOptions.${i}.destination_country`, {
-                    message: "Country-Carrier combination must be unique."
+                shippingForm.setError(`shippingOptions.${i}.destinationCountry`, {
+                    message: "Duplicate"
                 });
                 shippingForm.setError(`shippingOptions.${i}.carrier`, {
-                    message: "Country-Carrier combination must be unique."
+                    message: "Duplicate"
                 });
             }
             if (erroneousIndices.length)
                 return;
 
-            if (shippingMethod)
-                onSubmit({
-                    name: data.name,
-                    seller_id: shippingMethod.seller_id,
-                    shippingOptions: data.shippingOptions.map(opt => ({
-                        id: opt.id,
-                        destination_country: opt.destination_country,
-                        carrier: opt.carrier,
-                        cost_first_item: opt.cost_first_item
-                    }))
-                });
-            else
-                onSubmit(data);
+            onSubmit({
+                name: data.name,
+                originCountry: data.originCountry,
+                originPostalCode: data.originPostalCode,
+                processingTimeMin: data.processingTimeMin,
+                processingTimeMax: data.processingTimeMax,
+                shippingOptions: data.shippingOptions.map(opt => ({
+                    destinationCountry: opt.destinationCountry,
+                    carrier: opt.carrier,
+                    costFirstItem: opt.costFirstItem,
+                    costAdditionalItem: opt.costAdditionalItem,
+                    estimatedDeliveryMin: opt.estimatedDeliveryMin,
+                    estimatedDeliveryMax: opt.estimatedDeliveryMax
+                }))
+            });
         })}>
-            <div className="space-y-4">
+            <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
                 <FormField
                     control={shippingForm.control}
                     name="name"
@@ -211,7 +232,7 @@ export default function ShippingForm({
                         <FormItem>
                             <FormLabel>Shipping Method Name</FormLabel>
                             <FormControl>
-                                <Input placeholder="Enter shipping method name"
+                                <Input placeholder="e.g., Express International Shipping"
                                     {...field}
                                 />
                             </FormControl>
@@ -219,6 +240,99 @@ export default function ShippingForm({
                         </FormItem>
                     )}
                 />
+                
+                <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                        control={shippingForm.control}
+                        name="originCountry"
+                        disabled={loading}
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Origin Country</FormLabel>
+                                <FormControl>
+                                    <Select
+                                        value={field.value}
+                                        onValueChange={field.onChange}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select origin country" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {countries.map((country) => (
+                                                <SelectItem key={country} value={country}>
+                                                    {country}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    
+                    <FormField
+                        control={shippingForm.control}
+                        name="originPostalCode"
+                        disabled={loading}
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Origin Postal Code</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="e.g., 10001"
+                                        {...field}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                        control={shippingForm.control}
+                        name="processingTimeMin"
+                        disabled={loading}
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Min Processing Time (days)</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        type="number"
+                                        min="0"
+                                        placeholder="1"
+                                        {...field}
+                                        onChange={e => field.onChange(Number(e.target.value))}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    
+                    <FormField
+                        control={shippingForm.control}
+                        name="processingTimeMax"
+                        disabled={loading}
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Max Processing Time (days)</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        type="number"
+                                        min="0"
+                                        placeholder="3"
+                                        {...field}
+                                        onChange={e => field.onChange(Number(e.target.value))}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+
                 <FormField
                     control={shippingForm.control}
                     name="shippingOptions"
@@ -230,72 +344,101 @@ export default function ShippingForm({
                                 <div className="space-y-2">
                                     <div
                                         data-slot="table-container"
-                                        className="relative w-full max-w-full h-64 overflow-auto"
+                                        className="relative w-full max-w-full h-64 overflow-auto border rounded-md"
                                     >
-                                        <Table className="border-separate border-spacing-0 w-full table-fixed">
-                                            <TableHeader className="sticky top-0">
+                                        <Table className="w-full">
+                                            <TableHeader className="sticky top-0 z-10">
                                                 <TableRow>
-                                                    <TableHead className="border-y border-x rounded-tl-md bg-background w-[35%]">Country</TableHead>
-                                                    <TableHead className="border-y border-r bg-background w-[35%]">Carrier</TableHead>
-                                                    <TableHead className="border-y border-r bg-background w-[20%]">Cost ($)</TableHead>
-                                                    <TableHead className="border-y border-r rounded-tr-md bg-background w-[10%]" />
+                                                    <TableHead className="bg-background">Country</TableHead>
+                                                    <TableHead className="bg-background">Carrier</TableHead>
+                                                    <TableHead className="bg-background">First ($)</TableHead>
+                                                    <TableHead className="bg-background">Add. ($)</TableHead>
+                                                    <TableHead className="bg-background">Min Days</TableHead>
+                                                    <TableHead className="bg-background">Max Days</TableHead>
+                                                    <TableHead className="bg-background w-10"></TableHead>
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
-                                                {field.value.map((opt, i) => <TableRow key={opt.key}>
-                                                    <TableCell className={`border-b border-x p-2 ${i === field.value.length - 1 ? "rounded-bl-md": ""}`}>
-                                                        <FormField
-                                                            control={shippingForm.control}
-                                                            name={`shippingOptions.${i}.destination_country`}
-                                                            disabled={field.disabled}
-                                                            render={renderDestinationCountryField}
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell className="border-b border-r p-2">
-                                                        <FormField
-                                                            control={shippingForm.control}
-                                                            name={`shippingOptions.${i}.carrier`}
-                                                            disabled={field.disabled}
-                                                            render={renderCarrierField}
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell className="border-b border-r p-2">
-                                                        <FormField
-                                                            control={shippingForm.control}
-                                                            name={`shippingOptions.${i}.cost_first_item`}
-                                                            disabled={field.disabled}
-                                                            render={renderCostField}
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell className={`border-b border-r p-1 ${i === field.value.length - 1 ? "rounded-br-md": ""}`}>
-                                                        {field.value.length === 1 ?
-                                                            <Tooltip>
-                                                                <TooltipTrigger asChild>
-                                                                    <div className="h-min">
-                                                                        <Button variant="ghost" disabled size="sm">
-                                                                            <Minus className="w-3 h-3" />
-                                                                        </Button>
-                                                                    </div>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent>
-                                                                    <p>At least one option must be there</p>
-                                                                </TooltipContent>
-                                                            </Tooltip> :
-                                                            <Button variant="ghost"
-                                                                type="button"
-                                                                size="sm"
-                                                                disabled={field.disabled || field.value.length === 1}
-                                                                onClick={() => {
-                                                                    const currentValue = shippingForm.getValues("shippingOptions");
-                                                                    currentValue.splice(i, 1);
-                                                                    field.onChange([...currentValue]);
-                                                                }}
-                                                            >
-                                                                <Minus className="w-3 h-3" />
-                                                            </Button>
-                                                        }
-                                                    </TableCell>
-                                                </TableRow>)}
+                                                {field.value.map((opt, i) => (
+                                                    <TableRow key={opt.key}>
+                                                        <TableCell className="p-1">
+                                                            <FormField
+                                                                control={shippingForm.control}
+                                                                name={`shippingOptions.${i}.destinationCountry`}
+                                                                disabled={field.disabled}
+                                                                render={renderDestinationCountryField}
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell className="p-1">
+                                                            <FormField
+                                                                control={shippingForm.control}
+                                                                name={`shippingOptions.${i}.carrier`}
+                                                                disabled={field.disabled}
+                                                                render={renderCarrierField}
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell className="p-1">
+                                                            <FormField
+                                                                control={shippingForm.control}
+                                                                name={`shippingOptions.${i}.costFirstItem`}
+                                                                disabled={field.disabled}
+                                                                render={renderNumberField("0.00")}
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell className="p-1">
+                                                            <FormField
+                                                                control={shippingForm.control}
+                                                                name={`shippingOptions.${i}.costAdditionalItem`}
+                                                                disabled={field.disabled}
+                                                                render={renderNumberField("0.00")}
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell className="p-1">
+                                                            <FormField
+                                                                control={shippingForm.control}
+                                                                name={`shippingOptions.${i}.estimatedDeliveryMin`}
+                                                                disabled={field.disabled}
+                                                                render={renderNumberField("1", "1")}
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell className="p-1">
+                                                            <FormField
+                                                                control={shippingForm.control}
+                                                                name={`shippingOptions.${i}.estimatedDeliveryMax`}
+                                                                disabled={field.disabled}
+                                                                render={renderNumberField("5", "1")}
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell className="p-1">
+                                                            {field.value.length === 1 ?
+                                                                <Tooltip>
+                                                                    <TooltipTrigger asChild>
+                                                                        <div className="h-min">
+                                                                            <Button variant="ghost" disabled size="sm">
+                                                                                <Minus className="w-3 h-3" />
+                                                                            </Button>
+                                                                        </div>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent>
+                                                                        <p>At least one option required</p>
+                                                                    </TooltipContent>
+                                                                </Tooltip> :
+                                                                <Button variant="ghost"
+                                                                    type="button"
+                                                                    size="sm"
+                                                                    disabled={field.disabled || field.value.length === 1}
+                                                                    onClick={() => {
+                                                                        const currentValue = shippingForm.getValues("shippingOptions");
+                                                                        currentValue.splice(i, 1);
+                                                                        field.onChange([...currentValue]);
+                                                                    }}
+                                                                >
+                                                                    <Minus className="w-3 h-3" />
+                                                                </Button>
+                                                            }
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
                                             </TableBody>
                                         </Table>
                                     </div>
@@ -309,9 +452,12 @@ export default function ShippingForm({
                                             const key = currentValue.length ? currentValue[currentValue.length - 1]?.key + 1 : 1;
                                             field.onChange([...currentValue, { 
                                                 key, 
-                                                destination_country: "", 
+                                                destinationCountry: "", 
                                                 carrier: "", 
-                                                cost_first_item: 0 
+                                                costFirstItem: 0,
+                                                costAdditionalItem: 0,
+                                                estimatedDeliveryMin: 1,
+                                                estimatedDeliveryMax: 5
                                             }]);
                                         }}
                                     >
