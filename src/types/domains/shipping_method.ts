@@ -1,5 +1,3 @@
-
-
 export interface ShippingOption {
   id?: number;
   shippingMethodId?: number;

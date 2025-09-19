@@ -1,8 +1,8 @@
 "use client"
 
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { Plus } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogRef } from '@/components/ui/dialog';
 import ShippingForm from './components/ShippingForm';
 import { ShippingMethod, ShippingMethodDTO } from '@/types/domains/shipping_method';
 import * as shippingServices from '@/services/shippingMethod';
@@ -10,13 +10,14 @@ import useDataFetch from '@/hooks/use-data-fetch';
 import { Button } from '@/components/ui/button';
 import Spinner from '@/components/ui/spinner';
 import ShippingItem from './components/ShippingItem';
+import { toast } from "sonner";
 
 export default function ShippingMethodsPage() {
     const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([]);
 
-    const addShippingMethodRef = React.useRef<{ open(): void, close(): void }>(null);
-    const editShippingMethodRef = React.useRef<{ open(): void, close(): void }>(null);
-    const deleteDialogRef = React.useRef<{ open(): void, close(): void }>(null);
+    const addShippingMethodRef = useRef<DialogRef>(null);
+    const editShippingMethodRef = useRef<DialogRef>(null);
+    const deleteDialogRef = useRef<DialogRef>(null);
     const [selectedShippingMethod, setSelectedShippingMethod] = useState<ShippingMethod | null>(null);
     const [deletionTarget, setDeletionTarget] = useState<ShippingMethod | null>(null);
     
@@ -28,6 +29,8 @@ export default function ShippingMethodsPage() {
     useEffect(() => {
         shippingMethodsData.request().onSuccess((data) => {
             setShippingMethods(data);
+        }).onError(() => {
+            toast.error("Failed to load shipping methods");
         });
     }, []);
 
@@ -41,106 +44,133 @@ export default function ShippingMethodsPage() {
         deleteDialogRef.current?.open();
     }, []);
 
-    const loading = shippingMethodsData.isLoading;
-    const error = shippingMethodsData.hasError ? "Failed to load shipping methods" : null;
-
+ 
     return <>
         <div className="h-full space-y-8 flex flex-col">
-            <h1 className="text-3xl font-bold text-gray-900">Shipping Methods</h1>
-            {error && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 text-sm text-yellow-800">
-                    {error}
+            <div className="flex justify-between items-center">
+                <h1 className="text-3xl font-bold text-gray-900">Shipping Methods</h1>
+                <div className="flex justify-between items-center gap-4">
+                    <Button variant="default" onClick={() => addShippingMethodRef.current?.open()}>
+                        Add Shipping Method
+                    </Button>
+                </div>
+            </div>
+            {shippingMethodsData.hasError && (
+                <div className="bg-red-50 border border-red-200 rounded-md p-3 text-sm text-red-800">
+                    Failed to load shipping methods. Please try again.
                 </div>
             )}
-            <div className="max-w-4xl py-2 space-y-2">
-                {loading ?
+            <div className="py-2 space-y-2">
+                {shippingMethodsData.isLoading ?
                     <div className="space-y-2">
-                        <div className="border rounded-md h-9 bg-gray-100 animate-pulse"></div>
-                        <div className="border rounded-md h-9 bg-gray-100 animate-pulse"></div>
-                        <div className="border rounded-md h-9 bg-gray-100 animate-pulse"></div>
+                        <div className="border rounded-md h-16 bg-gray-100 animate-pulse"></div>
+                        <div className="border rounded-md h-16 bg-gray-100 animate-pulse"></div>
+                        <div className="border rounded-md h-16 bg-gray-100 animate-pulse"></div>
                     </div> :
-                    (!error && shippingMethods.length) ? shippingMethods.map(item => <ShippingItem key={item.id}
+                    (!shippingMethodsData.hasError && shippingMethods.length) ? shippingMethods.map(item => <ShippingItem key={item.id}
                         shippingMethod={item}
                         onEdit={onEdit}
                         onDelete={onDelete}
                     />):
-                    <div className="border rounded-md h-9 bg-background px-3.5 flex items-center text-gray-400">
-                        No shipping methods created! Click the button below to create one now.
-                    </div>
+                    !shippingMethodsData.hasError ? (
+                        <div className="border rounded-md h-16 bg-background px-3.5 flex items-center text-gray-400">
+                            No shipping methods created! Click the button above to create one now.
+                        </div>
+                    ) : null
                 }
-                <div className="rounded-md cursor-pointer h-9 hover:bg-accent px-3.5 flex items-center gap-2 text-gray-600"
-                    onClick={() => addShippingMethodRef.current?.open()}
-                >
-                    <Plus className="w-4 h-4" />
-                    <div className="font-medium text-base">Add Shipping Method</div>
-                </div>
             </div>
         </div>
 
         <Dialog ref={addShippingMethodRef}>
-            <DialogContent className='gap-6 sm:max-w-5xl' aria-describedby=''>
-                <DialogHeader>
+            <DialogContent className="sm:max-w-[900px] max-w-[95vw] ">
+                <DialogHeader className="mb-4">
                     <DialogTitle>Add Shipping Method</DialogTitle>
+                    <DialogDescription>
+                        Create a new shipping method with delivery options
+                    </DialogDescription>
                 </DialogHeader>
-                <ShippingForm
-                    loading={addShippingMethod.isLoading}
-                    onSubmit={data => addShippingMethod.request(data)
-                        .onSuccess(res => {
-                            setShippingMethods(prev => [...prev, res]);
-                            addShippingMethodRef.current?.close();
-                        })
-                    }
-                />
+                <div className="overflow-y-auto flex-1">
+                    <ShippingForm
+                        loading={addShippingMethod.isLoading}
+                        onSubmit={data => addShippingMethod.request(data)
+                            .onSuccess(res => {
+                                toast.success("Shipping method created successfully");
+                                setShippingMethods(prev => [...prev, res]);
+                                addShippingMethodRef.current?.close();
+                            }).onError(() => {
+                                toast.error("Failed to create shipping method");
+                            })
+                        }
+                    />
+                </div>
             </DialogContent>
         </Dialog>
 
         <Dialog ref={editShippingMethodRef}>
-            <DialogContent className=' gap-6 sm:max-w-5xl ' aria-describedby=''>
-                <DialogHeader>
+            <DialogContent className="sm:max-w-[900px] max-w-[95vw] ">
+                <DialogHeader className="mb-4">
                     <DialogTitle>Edit Shipping Method</DialogTitle>
+                    <DialogDescription>
+                        Update the shipping method details and options
+                    </DialogDescription>
                 </DialogHeader>
-                <ShippingForm
-                    shippingMethod={selectedShippingMethod ? {
-                        name: selectedShippingMethod.name,
-                        originCountry: selectedShippingMethod.originCountry,
-                        originPostalCode: selectedShippingMethod.originPostalCode,
-                        processingTimeMin: selectedShippingMethod.processingTimeMin,
-                        processingTimeMax: selectedShippingMethod.processingTimeMax,
-                        shippingOptions: selectedShippingMethod.shippingOptions
-                    } : undefined}
-                    loading={editShippingMethod.isLoading}
-                    onSubmit={(data: ShippingMethodDTO) => editShippingMethod
-                        .request(selectedShippingMethod!.id, data)
-                        .onSuccess(res => {
-                            setShippingMethods(prev => prev.map(item => item.id === res.id ? res : item));
-                            setSelectedShippingMethod(null);
-                            editShippingMethodRef.current?.close();
-                        })
-                    }
-                />
+                <div className="overflow-y-auto flex-1">
+                    <ShippingForm
+                        shippingMethod={selectedShippingMethod ? {
+                            name: selectedShippingMethod.name,
+                            originCountry: selectedShippingMethod.originCountry,
+                            originPostalCode: selectedShippingMethod.originPostalCode,
+                            processingTimeMin: selectedShippingMethod.processingTimeMin,
+                            processingTimeMax: selectedShippingMethod.processingTimeMax,
+                            shippingOptions: selectedShippingMethod.shippingOptions
+                        } : undefined}
+                        loading={editShippingMethod.isLoading}
+                        onSubmit={(data: ShippingMethodDTO) => editShippingMethod
+                            .request(selectedShippingMethod!.id, data)
+                            .onSuccess(res => {
+                                toast.success("Shipping method updated successfully");
+                                setShippingMethods(prev => prev.map(item => item.id === res.id ? res : item));
+                                setSelectedShippingMethod(null);
+                                editShippingMethodRef.current?.close();
+                            }).onError(() => {
+                                toast.error("Failed to update shipping method");
+                            })
+                        }
+                    />
+                </div>
             </DialogContent>
         </Dialog>
 
         <Dialog ref={deleteDialogRef}>
-            <DialogContent aria-describedby="">
+            <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Delete Shipping Method</DialogTitle>
+                    <DialogDescription>
+                        Are you sure you want to delete this shipping method? This action will also delete all its shipping options and cannot be undone.
+                    </DialogDescription>
                 </DialogHeader>
-                <div>Are you sure you want to delete this shipping method? It will delete all its shipping options too.</div>
-                <div className="grid grid-cols-2 gap-2">
-                    <Button variant="secondary" onClick={() => deleteDialogRef.current?.close()}>No</Button>
-                    <Button onClick={() => {
-                        deleteShippingMethod.request(deletionTarget!.id)
-                            .onSuccess(() => {
-                                setShippingMethods(prev => prev.filter(item => item.id !== deletionTarget!.id));
-                                setDeletionTarget(null);
-                                deleteDialogRef.current?.close();
-                            });
-                    }}>
-                        {deleteShippingMethod.isLoading && <Spinner />}
-                        Yes
+                <DialogFooter className="mt-4">
+                    <Button variant="outline" onClick={() => deleteDialogRef.current?.close()}>
+                        Cancel
                     </Button>
-                </div>
+                    <Button
+                        variant="destructive"
+                        onClick={() => {
+                            deleteShippingMethod.request(deletionTarget!.id)
+                                .onSuccess(() => {
+                                    toast.success("Shipping method deleted successfully");
+                                    setShippingMethods(prev => prev.filter(item => item.id !== deletionTarget!.id));
+                                    setDeletionTarget(null);
+                                    deleteDialogRef.current?.close();
+                                }).onError(() => {
+                                    toast.error("Failed to delete shipping method");
+                                });
+                        }}
+                        disabled={deleteShippingMethod.isLoading}
+                    >
+                        {deleteShippingMethod.isLoading ? "Deleting..." : "Delete"}
+                    </Button>
+                </DialogFooter>
             </DialogContent>
         </Dialog>
     </>;
