@@ -78,7 +78,7 @@ export default function ShippingMethodsPage() {
         </div>
 
         <Dialog ref={addShippingMethodRef}>
-            <DialogContent className='gap-6 max-w-5xl' aria-describedby=''>
+            <DialogContent className='gap-6 sm:max-w-5xl' aria-describedby=''>
                 <DialogHeader>
                     <DialogTitle>Add Shipping Method</DialogTitle>
                 </DialogHeader>
@@ -95,7 +95,7 @@ export default function ShippingMethodsPage() {
         </Dialog>
 
         <Dialog ref={editShippingMethodRef}>
-            <DialogContent className='gap-6 ' aria-describedby=''>
+            <DialogContent className=' gap-6 sm:max-w-5xl ' aria-describedby=''>
                 <DialogHeader>
                     <DialogTitle>Edit Shipping Method</DialogTitle>
                 </DialogHeader>

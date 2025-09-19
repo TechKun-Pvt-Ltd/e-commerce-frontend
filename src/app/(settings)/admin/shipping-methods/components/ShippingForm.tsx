@@ -344,7 +344,7 @@ export default function ShippingForm({
                                 <div className="space-y-2">
                                     <div
                                         data-slot="table-container"
-                                        className="relative w-full max-w-full h-64 overflow-auto border rounded-md"
+                                        className="relative w-full max-w-full h-48 overflow-auto border rounded-md"
                                     >
                                         <Table className="w-full">
                                             <TableHeader className="sticky top-0 z-10">
