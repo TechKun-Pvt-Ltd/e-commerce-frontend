@@ -74,20 +74,20 @@ export default function ShippingForm({
 }) {
     const firstRender = useRef(true);
     const defaultValues = useMemo(() => shippingMethod ? {
-        name: shippingMethod.name,
-        originCountry: shippingMethod.originCountry,
-        originPostalCode: shippingMethod.originPostalCode,
-        processingTimeMin: shippingMethod.processingTimeMin,
-        processingTimeMax: shippingMethod.processingTimeMax,
+        name: shippingMethod.name || "",
+        originCountry: shippingMethod.originCountry || "",
+        originPostalCode: shippingMethod.originPostalCode || "",
+        processingTimeMin: shippingMethod.processingTimeMin ?? 1,
+        processingTimeMax: shippingMethod.processingTimeMax ?? 3,
         shippingOptions: shippingMethod.shippingOptions.map((opt, i) => ({
             id: opt.id,
             key: i,
-            destinationCountry: opt.destinationCountry,
-            carrier: opt.carrier,
-            costFirstItem: opt.costFirstItem,
-            costAdditionalItem: opt.costAdditionalItem,
-            estimatedDeliveryMin: opt.estimatedDeliveryMin,
-            estimatedDeliveryMax: opt.estimatedDeliveryMax
+            destinationCountry: opt.destinationCountry || "",
+            carrier: opt.carrier || "",
+            costFirstItem: opt.costFirstItem ?? 0,
+            costAdditionalItem: opt.costAdditionalItem ?? 0,
+            estimatedDeliveryMin: opt.estimatedDeliveryMin ?? 1,
+            estimatedDeliveryMax: opt.estimatedDeliveryMax ?? 5
         }))
     } : defaultFieldValues, [shippingMethod]);
 
@@ -107,7 +107,7 @@ export default function ShippingForm({
         <FormItem>
             <FormControl>
                 <Select
-                    value={field.value}
+                    value={field.value || ""}
                     onValueChange={field.onChange}
                 >
                     <SelectTrigger className="w-full">
@@ -136,6 +136,7 @@ export default function ShippingForm({
                 <Input
                     placeholder="Enter carrier"
                     {...field}
+                    value={field.value || ""}
                 />
             </FormControl>
             <FormMessage className="w-full whitespace-normal text-xs" />
@@ -162,7 +163,7 @@ export default function ShippingForm({
                             placeholder={placeholder}
                             className="w-full"
                             {...field}
-                            value={field.value === 0 ? '' : field.value}
+                            value={field.value === 0 ? '' : (field.value ?? '')}
                             onChange={e => field.onChange(e.target.value ? Number(e.target.value) : 0)}
                         />
                     </FormControl>
@@ -234,6 +235,7 @@ export default function ShippingForm({
                             <FormControl>
                                 <Input placeholder="e.g., Express International Shipping"
                                     {...field}
+                                    value={field.value || ""}
                                 />
                             </FormControl>
                             <FormMessage />
@@ -251,7 +253,7 @@ export default function ShippingForm({
                                 <FormLabel>Origin Country</FormLabel>
                                 <FormControl>
                                     <Select
-                                        value={field.value}
+                                        value={field.value || ""}
                                         onValueChange={field.onChange}
                                     >
                                         <SelectTrigger>
@@ -281,6 +283,7 @@ export default function ShippingForm({
                                 <FormControl>
                                     <Input placeholder="e.g., 10001"
                                         {...field}
+                                        value={field.value || ""}
                                     />
                                 </FormControl>
                                 <FormMessage />
@@ -303,7 +306,8 @@ export default function ShippingForm({
                                         min="0"
                                         placeholder="1"
                                         {...field}
-                                        onChange={e => field.onChange(Number(e.target.value))}
+                                        value={field.value ?? ""}
+                                        onChange={e => field.onChange(e.target.value ? Number(e.target.value) : 0)}
                                     />
                                 </FormControl>
                                 <FormMessage />
@@ -324,7 +328,8 @@ export default function ShippingForm({
                                         min="0"
                                         placeholder="3"
                                         {...field}
-                                        onChange={e => field.onChange(Number(e.target.value))}
+                                        value={field.value ?? ""}
+                                        onChange={e => field.onChange(e.target.value ? Number(e.target.value) : 0)}
                                     />
                                 </FormControl>
                                 <FormMessage />

@@ -1,25 +1,21 @@
 "use client"
 
-import React, { useCallback, useState, useEffect, useRef } from 'react';
-import { Plus } from 'lucide-react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogRef } from '@/components/ui/dialog';
 import ShippingForm from './components/ShippingForm';
 import { ShippingMethod, ShippingMethodDTO } from '@/types/domains/shipping_method';
 import * as shippingServices from '@/services/shippingMethod';
 import useDataFetch from '@/hooks/use-data-fetch';
 import { Button } from '@/components/ui/button';
-import Spinner from '@/components/ui/spinner';
 import ShippingItem from './components/ShippingItem';
 import { toast } from "sonner";
 
 export default function ShippingMethodsPage() {
-    const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([]);
-
     const addShippingMethodRef = useRef<DialogRef>(null);
     const editShippingMethodRef = useRef<DialogRef>(null);
     const deleteDialogRef = useRef<DialogRef>(null);
     const [selectedShippingMethod, setSelectedShippingMethod] = useState<ShippingMethod | null>(null);
-    const [deletionTarget, setDeletionTarget] = useState<ShippingMethod | null>(null);
+    const [deleteShippingMethodId, setDeletionTarget] = useState<ShippingMethod | null>(null);
     
     const shippingMethodsData = useDataFetch(shippingServices.getAllShippingMethods);
     const addShippingMethod = useDataFetch(shippingServices.createShippingMethod);
@@ -27,11 +23,7 @@ export default function ShippingMethodsPage() {
     const deleteShippingMethod = useDataFetch(shippingServices.deleteShippingMethod);
 
     useEffect(() => {
-        shippingMethodsData.request().onSuccess((data) => {
-            setShippingMethods(data);
-        }).onError(() => {
-            toast.error("Failed to load shipping methods");
-        });
+        shippingMethodsData.request();
     }, []);
 
     const onEdit = useCallback((shippingMethod: ShippingMethod) => {
@@ -44,7 +36,6 @@ export default function ShippingMethodsPage() {
         deleteDialogRef.current?.open();
     }, []);
 
- 
     return <>
         <div className="h-full space-y-8 flex flex-col">
             <div className="flex justify-between items-center">
@@ -67,11 +58,15 @@ export default function ShippingMethodsPage() {
                         <div className="border rounded-md h-16 bg-gray-100 animate-pulse"></div>
                         <div className="border rounded-md h-16 bg-gray-100 animate-pulse"></div>
                     </div> :
-                    (!shippingMethodsData.hasError && shippingMethods.length) ? shippingMethods.map(item => <ShippingItem key={item.id}
-                        shippingMethod={item}
-                        onEdit={onEdit}
-                        onDelete={onDelete}
-                    />):
+                    (!shippingMethodsData.hasError && (shippingMethodsData.data as ShippingMethod[])?.length) ? 
+                        (shippingMethodsData.data as ShippingMethod[]).map((item, index) => 
+                            <ShippingItem 
+                                key={`shipping-method-${item.id}-${index}`}
+                                shippingMethod={item}
+                                onEdit={onEdit}
+                                onDelete={onDelete}
+                            />
+                        ) :
                     !shippingMethodsData.hasError ? (
                         <div className="border rounded-md h-16 bg-background px-3.5 flex items-center text-gray-400">
                             No shipping methods created! Click the button above to create one now.
@@ -95,7 +90,7 @@ export default function ShippingMethodsPage() {
                         onSubmit={data => addShippingMethod.request(data)
                             .onSuccess(res => {
                                 toast.success("Shipping method created successfully");
-                                setShippingMethods(prev => [...prev, res]);
+                                shippingMethodsData.request(); // Refresh the list
                                 addShippingMethodRef.current?.close();
                             }).onError(() => {
                                 toast.error("Failed to create shipping method");
@@ -129,7 +124,7 @@ export default function ShippingMethodsPage() {
                             .request(selectedShippingMethod!.id, data)
                             .onSuccess(res => {
                                 toast.success("Shipping method updated successfully");
-                                setShippingMethods(prev => prev.map(item => item.id === res.id ? res : item));
+                                shippingMethodsData.request(); // Refresh the list
                                 setSelectedShippingMethod(null);
                                 editShippingMethodRef.current?.close();
                             }).onError(() => {
@@ -156,10 +151,10 @@ export default function ShippingMethodsPage() {
                     <Button
                         variant="destructive"
                         onClick={() => {
-                            deleteShippingMethod.request(deletionTarget!.id)
+                            deleteShippingMethod.request(deleteShippingMethodId!.id)
                                 .onSuccess(() => {
                                     toast.success("Shipping method deleted successfully");
-                                    setShippingMethods(prev => prev.filter(item => item.id !== deletionTarget!.id));
+                                    shippingMethodsData.request(); // Refresh the list
                                     setDeletionTarget(null);
                                     deleteDialogRef.current?.close();
                                 }).onError(() => {

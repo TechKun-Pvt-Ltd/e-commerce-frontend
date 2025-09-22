@@ -94,13 +94,13 @@ function ShippingItem({ shippingMethod, onEdit, onDelete }: {
                                 <div className="flex items-center gap-1">
                                     <DollarSign className="w-3 h-3 text-gray-400 flex-shrink-0" />
                                     <span className="text-gray-600">
-                                        First: <span className="font-semibold">${option.costFirstItem.toFixed(2)}</span>
+                                        First: <span className="font-semibold">${(option.costFirstItem ?? 0).toFixed(2)}</span>
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-1">
                                     <DollarSign className="w-3 h-3 text-gray-400 flex-shrink-0" />
                                     <span className="text-gray-600">
-                                        Additional: <span className="font-semibold">${option.costAdditionalItem.toFixed(2)}</span>
+                                        Additional: <span className="font-semibold">${(option.costAdditionalItem ?? 0).toFixed(2)}</span>
                                     </span>
                                 </div>
                             </div>
