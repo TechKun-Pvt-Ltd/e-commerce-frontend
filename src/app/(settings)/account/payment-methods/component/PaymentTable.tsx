@@ -45,22 +45,30 @@ export function PaymentTable({ paymentData, isLoading, onEdit, onDelete, onSetDe
                <Table>
                   <TableHeader>
                      <TableRow>
-                        <TableHead></TableHead>
+                        <TableHead>
+                           <div className="flex gap-4">
+                              <div className="w-4"></div> Account Details{" "}
+                           </div>
+                        </TableHead>
                         <TableHead>Default</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                      </TableRow>
                   </TableHeader>
                   <TableBody>
                      {isLoading ? (
-                        <TableRow>
-                           <TableCell colSpan={3}>
-                              <div className="flex flex-col gap-2 py-8">
-                                 <Skeleton className="h-4 w-full" />
-                                 <Skeleton className="h-4 w-full" />
-                                 <Skeleton className="h-4 w-1/2" />
-                              </div>
-                           </TableCell>
-                        </TableRow>
+                        Array.from({ length: 3 }).map((_, index) => (
+                           <TableRow key={index}>
+                              <TableCell className="py-3">
+                                 <Skeleton className="h-6 w-full" />
+                              </TableCell>
+                              <TableCell className="py-3">
+                                 <Skeleton className="h-6 w-full" />
+                              </TableCell>
+                              <TableCell className="py-3">
+                                 <Skeleton className="h-6 w-full" />
+                              </TableCell>
+                           </TableRow>
+                        ))
                      ) : paymentData.length === 0 ? (
                         <TableRow>
                            <TableCell colSpan={3} className="text-center py-8">

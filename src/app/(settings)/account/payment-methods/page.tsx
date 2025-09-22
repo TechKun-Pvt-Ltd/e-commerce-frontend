@@ -19,7 +19,7 @@ import { PaymentForm } from "./component/PaymentForm";
 import { PaymentTable } from "./component/PaymentTable";
 
 export default function PaymentsPage() {
-   const paymentData = useDataFetch(paymentServices.getAllPaymentMethods);
+   const paymentData = useDataFetch(paymentServices.getAllPaymentMethods, { defaultLoading: true });
    const createPaymentMethod = useDataFetch(paymentServices.createPaymentMethod);
    const deletePaymentMethod = useDataFetch(paymentServices.deletePaymentMethod);
    const updatePaymentMethod = useDataFetch(paymentServices.updatePaymentMethod);

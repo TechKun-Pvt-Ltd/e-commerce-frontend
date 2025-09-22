@@ -17,6 +17,7 @@ export type ResponseHandler<R> = {
 export type RequestFunction<T, R> = (...args: T extends any[]? T : [T]) => ResponseHandler<R>;
 
 const useDataFetch = <T, R>(apiFunc: ServiceFunction<T, R>, options?: {
+    defaultLoading?: boolean,
     defaultValue?: R,
 }): {
     request: RequestFunction<T, R>,
@@ -24,7 +25,7 @@ const useDataFetch = <T, R>(apiFunc: ServiceFunction<T, R>, options?: {
     const [dataFetchState, setDataFetchState] = useState<DataFetchState<R>>({
         data: options?.defaultValue,
         hasError: false,
-        isLoading: false
+        isLoading: options?.defaultLoading ?? false
     });
 
     const request = useCallback((...args: T extends any[] ? T : [T]) => {
