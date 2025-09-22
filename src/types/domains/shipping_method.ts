@@ -10,7 +10,7 @@ export interface ShippingOption {
 }
 
 export interface ShippingMethod {
-  id: number;
+  shippingMethodId: number;
   name: string;
   originCountry: string;
   originPostalCode: string;

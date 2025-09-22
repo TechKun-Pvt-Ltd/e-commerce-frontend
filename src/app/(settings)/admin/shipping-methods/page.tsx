@@ -15,7 +15,7 @@ export default function ShippingMethodsPage() {
     const editShippingMethodRef = useRef<DialogRef>(null);
     const deleteDialogRef = useRef<DialogRef>(null);
     const [selectedShippingMethod, setSelectedShippingMethod] = useState<ShippingMethod | null>(null);
-    const [deleteShippingMethodId, setDeletionTarget] = useState<ShippingMethod | null>(null);
+    const [deleteShippingMethodId, setDeleteShippingMethodId] = useState<number | null>(null);
     
     const shippingMethodsData = useDataFetch(shippingServices.getAllShippingMethods);
     const addShippingMethod = useDataFetch(shippingServices.createShippingMethod);
@@ -26,16 +26,7 @@ export default function ShippingMethodsPage() {
         shippingMethodsData.request();
     }, []);
 
-    const onEdit = useCallback((shippingMethod: ShippingMethod) => {
-        setSelectedShippingMethod(shippingMethod);
-        editShippingMethodRef.current?.open();
-    }, []);
-
-    const onDelete = useCallback((shippingMethod: ShippingMethod) => {
-        setDeletionTarget(shippingMethod);
-        deleteDialogRef.current?.open();
-    }, []);
-
+  
     return <>
         <div className="h-full space-y-8 flex flex-col">
             <div className="flex justify-between items-center">
@@ -61,10 +52,16 @@ export default function ShippingMethodsPage() {
                     (!shippingMethodsData.hasError && (shippingMethodsData.data as ShippingMethod[])?.length) ? 
                         (shippingMethodsData.data as ShippingMethod[]).map((item, index) => 
                             <ShippingItem 
-                                key={`shipping-method-${item.id}-${index}`}
+                                key={`shipping-method-${item.shippingMethodId}-${index}`}
                                 shippingMethod={item}
-                                onEdit={onEdit}
-                                onDelete={onDelete}
+                                onEdit={shippingMethod => {
+                                    setSelectedShippingMethod(shippingMethod);
+                                    editShippingMethodRef.current?.open();
+                                }}
+                                onDelete={shippingMethod => {
+                                    setDeleteShippingMethodId(shippingMethod.shippingMethodId);
+                                    deleteDialogRef.current?.open();
+                                }}
                             />
                         ) :
                     !shippingMethodsData.hasError ? (
@@ -120,17 +117,23 @@ export default function ShippingMethodsPage() {
                             shippingOptions: selectedShippingMethod.shippingOptions
                         } : undefined}
                         loading={editShippingMethod.isLoading}
-                        onSubmit={(data: ShippingMethodDTO) => editShippingMethod
-                            .request(selectedShippingMethod!.id, data)
-                            .onSuccess(res => {
-                                toast.success("Shipping method updated successfully");
-                                shippingMethodsData.request(); // Refresh the list
-                                setSelectedShippingMethod(null);
-                                editShippingMethodRef.current?.close();
-                            }).onError(() => {
-                                toast.error("Failed to update shipping method");
-                            })
-                        }
+                        onSubmit={(data: ShippingMethodDTO) => {
+                            if (!selectedShippingMethod?.shippingMethodId) {
+                                toast.error("No shipping method selected");
+                                return;
+                            }
+
+                            editShippingMethod
+                                .request(selectedShippingMethod.shippingMethodId, data)
+                                .onSuccess(res => {
+                                    toast.success("Shipping method updated successfully");
+                                    shippingMethodsData.request(); // Refresh the list
+                                    setSelectedShippingMethod(null);
+                                    editShippingMethodRef.current?.close();
+                                }).onError(() => {
+                                    toast.error("Failed to update shipping method");
+                                });
+                        }}
                     />
                 </div>
             </DialogContent>
@@ -150,18 +153,23 @@ export default function ShippingMethodsPage() {
                     </Button>
                     <Button
                         variant="destructive"
+                        disabled={deleteShippingMethod.isLoading}
                         onClick={() => {
-                            deleteShippingMethod.request(deleteShippingMethodId!.id)
+                            if (!deleteShippingMethodId) {
+                                toast.error("No shipping method selected for deletion");
+                                return;
+                            }
+
+                            deleteShippingMethod.request(deleteShippingMethodId)
                                 .onSuccess(() => {
                                     toast.success("Shipping method deleted successfully");
                                     shippingMethodsData.request(); // Refresh the list
-                                    setDeletionTarget(null);
+                                    setDeleteShippingMethodId(null);
                                     deleteDialogRef.current?.close();
                                 }).onError(() => {
                                     toast.error("Failed to delete shipping method");
                                 });
                         }}
-                        disabled={deleteShippingMethod.isLoading}
                     >
                         {deleteShippingMethod.isLoading ? "Deleting..." : "Delete"}
                     </Button>
