@@ -357,7 +357,7 @@ export default function ShippingForm({
                                                     <TableHead className="bg-background">Country</TableHead>
                                                     <TableHead className="bg-background">Carrier</TableHead>
                                                     <TableHead className="bg-background">First ($)</TableHead>
-                                                    <TableHead className="bg-background">Add. ($)</TableHead>
+                                                    <TableHead className="bg-background">Additional ($)</TableHead>
                                                     <TableHead className="bg-background">Min Days</TableHead>
                                                     <TableHead className="bg-background">Max Days</TableHead>
                                                     <TableHead className="bg-background w-10"></TableHead>

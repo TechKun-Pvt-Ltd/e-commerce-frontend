@@ -1,6 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuPortal, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 import { CategoryTree } from "@/types/domains/category";
 import { ChevronRight, ChevronsUpDown } from "lucide-react";
 import React from "react";
@@ -38,11 +39,12 @@ function renderCategoryDropdown(category: CategoryTree, parentCategory: Category
     </div>
 };
 
-export default function CategoriesDropdown({ disabled = false, categories, selectedCategoryNode, onSelect }: {
+export default function CategoriesDropdown({className = "", disabled = false, categories, selectedCategoryNode, onSelect }: {
     disabled?: boolean;
     categories: CategoryTree[];
     selectedCategoryNode: CategoryDropdownNode | undefined;
     onSelect: (id: CategoryDropdownNode) => void;
+    className?: string;
 }) {
     const selectedCategory = getParentStack(selectedCategoryNode);
 
@@ -50,8 +52,7 @@ export default function CategoriesDropdown({ disabled = false, categories, selec
         <DropdownMenuTrigger asChild>
             <Button disabled={disabled}
                 variant={"outline"}
-                className={`border px-3 py-1.5 justify-between ${selectedCategory ? "" : "text-muted-foreground"}`}
-                style={{ height: "auto" }}
+                className={cn(`border px-3 py-1.5 justify-between ${selectedCategory ? "" : "text-muted-foreground"}`, className)}
             >
                 {selectedCategory ?
                     <div className="text-left">

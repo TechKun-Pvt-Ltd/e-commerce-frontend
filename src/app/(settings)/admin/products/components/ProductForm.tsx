@@ -441,17 +441,18 @@ export default function ProductForm({
                   )}
                />
 
-               <div className="flex flex-col lg:flex-row lg:items-start gap-6 lg:gap-4">
+               <div className="flex items-center flex-col lg:flex-row lg:items-start gap-6 lg:gap-4">
                   <FormField
                      control={productForm.control}
                      name="categoryId"
                      disabled={loading || categoriesLoading}
                      render={({ field }) => {
                         return (
-                           <FormItem className="min-w-xs flex-1">
+                           <FormItem className=" min-w-xs flex-1">
                               <FormLabel>Category</FormLabel>
                               <FormControl>
                                  <CategoriesDropdown
+                                 className="h-14"
                                     categories={categories}
                                     disabled={field.disabled}
                                     selectedCategoryNode={categoryDetailsMap.get(field.value)}
@@ -479,21 +480,21 @@ export default function ProductForm({
                      name="shippingMethodId"
                      disabled={loading || shippingMethodsLoading}
                      render={({ field }) => (
-                        <FormItem className="min-w-xs flex-1">
+                        <FormItem >
                            <FormLabel>Shipping Method</FormLabel>
                            <FormControl>
-                              <Select
+                              <Select 
                                  disabled={field.disabled}
                                  value={field.value ? field.value.toString() : ""}
                                  onValueChange={(value) => field.onChange(parseInt(value))}
                               >
-                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select shipping method" />
+                                 <SelectTrigger  className="data-[size=default]:h-14">
+                                    <SelectValue  placeholder="Select shipping method" />
                                  </SelectTrigger>
-                                 <SelectContent>
+                                 <SelectContent >
                                     {shippingMethods.map((method) => (
                                        <SelectItem key={method.shippingMethodId} value={method.shippingMethodId.toString()}>
-                                           <div className="flex flex-col items-start text-left w-full">
+                                           <div className="flex flex-col gap-1 items-start  text-left w-full">
                                                 <span className="font-medium text-left">{method.name}</span>
                                                 <span className="text-xs text-muted-foreground text-left">
                                                    {method.originCountry} • {method.processingTimeMin}-{method.processingTimeMax} days processing
@@ -514,7 +515,7 @@ export default function ProductForm({
                      control={productForm.control}
                      name="starred"
                      render={({ field }) => (
-                        <FormItem className="lg:flex-1 gap-3">
+                        <FormItem className="h-full gap-2">
                            <FormLabel>Starred</FormLabel>
                            <FormControl>
                               <div className="flex items-center gap-2">
