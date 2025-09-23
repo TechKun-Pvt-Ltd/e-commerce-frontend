@@ -6,9 +6,11 @@ export const createShippingMethod: ServiceFunction<ShippingMethodDTO, ShippingMe
     return servicesApiClient.post('/shipping-methods', { data: shippingMethodDto });
 };
 
-export const getAllShippingMethods: ServiceFunction<[],ShippingMethod[]> = () => {
+export const getAllShippingMethods: ServiceFunction<[], ShippingMethod[]> = async () => {
     return servicesApiClient.get(`/shipping-methods`);
 };
+
+
 
 export const updateShippingMethod: ServiceFunction<[shippingMethodId: number, shippingMethodDto: ShippingMethodDTO], ShippingMethod> = (shippingMethodId, shippingMethodDto) => {
     return servicesApiClient.put(`/shipping-methods/${shippingMethodId}`, { data: shippingMethodDto });

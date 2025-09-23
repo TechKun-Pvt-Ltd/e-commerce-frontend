@@ -15,6 +15,7 @@ import { Variation, VariationOption } from "@/types/domains/variation";
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
 import { Attribute, AttributeType } from "@/types/domains/attribute";
+import { ShippingMethod } from "@/types/domains/shipping_method";
 import { extractConsonants } from "@/lib/utils";
 import Spinner from "@/components/ui/spinner";
 import { RequestFunction } from "@/hooks/use-data-fetch";
@@ -32,6 +33,7 @@ const productFormSchema = z
       description: z.string().nonempty("Description is required."),
       starred: z.boolean(),
       categoryId: z.number().gt(0, "Category is required."),
+      shippingMethodId: z.number().gt(0, "Shipping method is required."),
       images: z.array(
          z.object({
             productImageId: z.number().optional(),
@@ -81,8 +83,10 @@ export default function ProductForm({
    categories,
    variations,
    attributes,
+   shippingMethods,
    loading,
    categoriesLoading,
+   shippingMethodsLoading,
    fetchCategoryDetails,
    onSubmit,
 }: {
@@ -91,8 +95,10 @@ export default function ProductForm({
    categories: CategoryTree[];
    variations: Variation[];
    attributes: Attribute[];
+   shippingMethods: ShippingMethod[];
    loading: boolean;
    categoriesLoading: boolean;
+   shippingMethodsLoading: boolean;
    fetchCategoryDetails: RequestFunction<[categoryId: number], CategoryDetails>;
    onSubmit: (data: Partial<ProductFormData>) => void;
 }) {
@@ -104,6 +110,7 @@ export default function ProductForm({
          code: "",
          description: "",
          starred: false,
+         shippingMethodId: 0,
          images: [],
          variants: [],
          attributes: [],
@@ -121,6 +128,7 @@ export default function ProductForm({
                description: product.description,
                starred: product.starred ?? false,
                categoryId: product.categoryId,
+               shippingMethodId: product.shippingMethodId || 0,
                images: product.images || [],
                variants: product.variants.map((v) => ({
                   ...v,
@@ -433,14 +441,14 @@ export default function ProductForm({
                   )}
                />
 
-               <div className="flex flex-col md:flex-row md:items-start gap-6 md:gap-4">
+               <div className="flex flex-col lg:flex-row lg:items-start gap-6 lg:gap-4">
                   <FormField
                      control={productForm.control}
                      name="categoryId"
                      disabled={loading || categoriesLoading}
                      render={({ field }) => {
                         return (
-                           <FormItem className="min-w-xs">
+                           <FormItem className="min-w-xs flex-1">
                               <FormLabel>Category</FormLabel>
                               <FormControl>
                                  <CategoriesDropdown
@@ -467,11 +475,46 @@ export default function ProductForm({
                   />
 
                   <FormField
+                     control={productForm.control}
+                     name="shippingMethodId"
+                     disabled={loading || shippingMethodsLoading}
+                     render={({ field }) => (
+                        <FormItem className="min-w-xs flex-1">
+                           <FormLabel>Shipping Method</FormLabel>
+                           <FormControl>
+                              <Select
+                                 disabled={field.disabled}
+                                 value={field.value ? field.value.toString() : ""}
+                                 onValueChange={(value) => field.onChange(parseInt(value))}
+                              >
+                                 <SelectTrigger>
+                                    <SelectValue placeholder="Select shipping method" />
+                                 </SelectTrigger>
+                                 <SelectContent>
+                                    {shippingMethods.map((method) => (
+                                       <SelectItem key={method.shippingMethodId} value={method.shippingMethodId.toString()}>
+                                           <div className="flex flex-col items-start text-left w-full">
+                                                <span className="font-medium text-left">{method.name}</span>
+                                                <span className="text-xs text-muted-foreground text-left">
+                                                   {method.originCountry} • {method.processingTimeMin}-{method.processingTimeMax} days processing
+                                                </span>
+                                             </div>
+                                       </SelectItem>
+                                    ))}
+                                 </SelectContent>
+                              </Select>
+                           </FormControl>
+                           <FormMessage />
+                        </FormItem>
+                     )}
+                  />
+
+                  <FormField
                      disabled={loading}
                      control={productForm.control}
                      name="starred"
                      render={({ field }) => (
-                        <FormItem className="md:flex-1 gap-3">
+                        <FormItem className="lg:flex-1 gap-3">
                            <FormLabel>Starred</FormLabel>
                            <FormControl>
                               <div className="flex items-center gap-2">
