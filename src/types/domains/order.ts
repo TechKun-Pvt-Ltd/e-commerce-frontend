@@ -1,3 +1,4 @@
+import { SortOption } from "../api";
 import { Address, AddressDTO } from "./address";
 import { PaymentMethod } from "./payment_method";
 import { Personalization } from "./personalization";
@@ -110,8 +111,8 @@ export interface ShopOrder {
 
 export interface OrderItem {
     orderItemId: number;
-    shopOrder: ShopOrder;
-    productVariant: ProductVariant;
+    // shopOrder: ShopOrder;
+    productVariantId: number;
     quantity: number;
     price: number;
     personalization?: Personalization;

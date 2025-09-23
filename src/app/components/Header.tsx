@@ -46,10 +46,12 @@ export default function Header() {
                     <span className="sr-only">Wishlist</span>
                 </Button>
                 {/* Cart Icon */}
-                <Button variant="ghost" size="icon" aria-label="Cart">
-                    <ShoppingCart className="h-5 w-5" />
-                    <span className="sr-only">Cart</span>
-                </Button>
+                <Link href="/cart">
+                    <Button variant="ghost" size="icon" aria-label="Cart">
+                        <ShoppingCart className="h-5 w-5" />
+                        <span className="sr-only">Cart</span>
+                    </Button>
+                </Link>
             </div>
         </nav>
     </>)

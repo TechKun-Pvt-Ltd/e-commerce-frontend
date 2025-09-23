@@ -1,16 +1,18 @@
 "use client";
 import React from 'react';
 import Image from 'next/image';
-import { CartItem } from '@/app/types/models';
 import { FiTrash2 } from 'react-icons/fi';
+import { CartItem, CartItemPreview } from '@/types/domains/cart';
+import placeholderImage from '@/../public/placeholder-image.jpeg';
 
 interface CartItemsProps {
-    items: CartItem[];
-    onQuantityChange: (variantId: number, newQuantity: number) => Promise<void>;
+    items: CartItemPreview[];
+    onQuantityChange: (cartItemId: number, newQuantity: number) => Promise<void>;
     onRemoveItem: (variantId: number) => Promise<void>;
 }
 
 const CartItems: React.FC<CartItemsProps> = ({ items, onQuantityChange, onRemoveItem }) => {
+    console.log("CartItems rendered with items:", items);
     if (items.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-16 px-4">
@@ -44,8 +46,8 @@ const CartItems: React.FC<CartItemsProps> = ({ items, onQuantityChange, onRemove
                 >
                     <div className="relative w-32 h-32 flex-shrink-0">
                         <Image
-                            src={`/product-image/canvas${item.productVariant.productVariantId % 4 + 1}.jpg`}
-                            alt={item.productVariant.name}
+                            src={item.imageUrl || placeholderImage}
+                            alt={item.title}
                             fill
                             className="object-cover rounded-lg"
                         />
@@ -54,21 +56,21 @@ const CartItems: React.FC<CartItemsProps> = ({ items, onQuantityChange, onRemove
                         <div className="flex justify-between items-start">
                             <div>
                                 <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                                    {item.productVariant.name}
+                                    {item.title}
                                 </h3>
                                 <div className="text-sm text-gray-500 space-y-1">
-                                    <p>Size: {item.productVariant.sizeOption.value}</p>
-                                    <p>Frame: {item.productVariant.frameOption.value}</p>
+                                    {/* <p>Size: {item.productVariant.sizeOption.value}</p> */}
+                                    {/* <p>Frame: {item.productVariant.frameOption.value}</p> */}
                                 </div>
                             </div>
                             <p className="text-xl font-semibold text-gray-900">
-                                ${(item.productVariant.price * item.quantity).toFixed(2)}
+                                ${(item.price * item.quantity).toFixed(2)}
                             </p>
                         </div>
                         <div className="flex items-center justify-between mt-4">
                             <div className="flex items-center gap-3">
                                 <button
-                                    onClick={() => onQuantityChange(item.productVariant.productVariantId, item.quantity - 1)}
+                                    onClick={() => onQuantityChange(item.cartItemId, item.quantity - 1)}
                                     disabled={item.quantity <= 1}
                                     className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full 
                                              hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -77,7 +79,7 @@ const CartItems: React.FC<CartItemsProps> = ({ items, onQuantityChange, onRemove
                                 </button>
                                 <span className="w-12 text-center font-medium">{item.quantity}</span>
                                 <button
-                                    onClick={() => onQuantityChange(item.productVariant.productVariantId, item.quantity + 1)}
+                                    onClick={() => onQuantityChange(item.cartItemId, item.quantity + 1)}
                                     className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full 
                                              hover:bg-gray-100"
                                 >
@@ -85,7 +87,7 @@ const CartItems: React.FC<CartItemsProps> = ({ items, onQuantityChange, onRemove
                                 </button>
                             </div>
                             <button
-                                onClick={() => onRemoveItem(item.productVariant.productVariantId)}
+                                onClick={() => onRemoveItem(item.cartItemId)}
                                 className="flex items-center gap-2 text-red-500 hover:text-red-700 transition-colors"
                             >
                                 <FiTrash2 className="w-5 h-5" />

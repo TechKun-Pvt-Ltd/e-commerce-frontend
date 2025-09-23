@@ -1,85 +1,77 @@
 "use client";
-import React, { useState, useEffect } from 'react';
-import CartItems from './components/CartItems';
-import CartSummary from './components/CartSummary';
-import ShippingCalculator from './components/ShippingCalculator';
+import React, { useState, useEffect } from "react";
+import CartItems from "./components/CartItems";
+import CartSummary from "./components/CartSummary";
+import ShippingCalculator from "./components/ShippingCalculator";
 import OrderSuccessModal from "../checkout/components/OrderSuccessModal";
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { fetchCartItems, updateCartItemAsync, removeFromCartAsync } from '@/store/slices/cartSlice';
-import { useRouter } from 'next/navigation';
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { fetchCartItems, updateCartItemAsync, removeFromCartAsync } from "@/store/slices/cartSlice";
+import { useRouter } from "next/navigation";
 
 const CartPage = () => {
-    const dispatch = useAppDispatch();
-    const router = useRouter();
-    const { items: cartItems, loading, error } = useAppSelector(state => state.cart);
-    const [showModal, setShowModal] = useState(false);
-    const [orderId, setOrderId] = useState("");
+   const dispatch = useAppDispatch();
+   const router = useRouter();
+   const { items: cartItems, loading, error } = useAppSelector((state) => state.cart);
+   const [showModal, setShowModal] = useState(false);
+   const [orderId, setOrderId] = useState("");
 
-    useEffect(() => {
-        dispatch(fetchCartItems());
-    }, [dispatch]);
+   useEffect(() => {
+      dispatch(fetchCartItems());
+   }, [dispatch]);
 
-    const handleQuantityChange = async (variantId: number, newQuantity: number) => {
-        await dispatch(updateCartItemAsync({ variantId, quantity: newQuantity }));
-    };
+   const handleQuantityChange = async (cartItemId: number, newQuantity: number) => {
+      await dispatch(updateCartItemAsync({ cartItemId, payload: { quantity: newQuantity } }));
+   };
 
-    const handleRemoveItem = async (variantId: number) => {
-        await dispatch(removeFromCartAsync(variantId));
-    };
+   const handleRemoveItem = async (variantId: number) => {
+      await dispatch(removeFromCartAsync(variantId));
+   };
 
-    const handleOrderPlacement = async () => {
-        try {
-            // const response = await fetch("/api/orders", { method: "POST" });
-            // const data = await response.json();
+   const handleOrderPlacement = async () => {
+      try {
+         // const response = await fetch("/api/orders", { method: "POST" });
+         // const data = await response.json();
 
-            // if (data.success) {
-            //     setOrderId(data.orderId);
-            //     setShowModal(true);
-            // }
-            router.push("/checkout");
-        } catch (error) {
-            console.error("Order placement failed:", error);
-        }
-    };
+         // if (data.success) {
+         //     setOrderId(data.orderId);
+         //     setShowModal(true);
+         // }
+         router.push("/checkout");
+      } catch (error) {
+         console.error("Order placement failed:", error);
+      }
+   };
 
-    if (loading) {
-        return <div className="text-center text-blue-500 text-2xl p-10">Loading...</div>;
-    }
+   if (loading) {
+      return <div className="text-center text-blue-500 text-2xl p-10">Loading...</div>;
+   }
 
-    if (error) {
-        return <div className="text-center text-red-500 text-2xl p-10">{error}</div>;
-    }
+   if (error) {
+      return <div className="text-center text-red-500 text-2xl p-10">{error}</div>;
+   }
 
-    return (
-        <div className="container mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold mb-8">Shopping Cart</h1>
-            <div className="flex flex-col lg:flex-row gap-8">
-                <div className="lg:w-2/3">
-                    <CartItems
-                        items={cartItems}
-                        onQuantityChange={handleQuantityChange}
-                        onRemoveItem={handleRemoveItem}
-                    />
-                </div>
-                <div className="lg:w-1/3">
-                    <CartSummary items={cartItems} />
-                    <ShippingCalculator />
-                    <button
-                        onClick={handleOrderPlacement}
-                        className="w-full bg-black text-white py-3 px-4 rounded-lg mt-4 hover:bg-gray-800 transition-colors"
-                    >
-                        Proceed to Checkout
-                    </button>
-                </div>
+   return (
+      <div className="container mx-auto px-4 py-8">
+         <h1 className="text-3xl font-bold mb-8">Shopping Cart</h1>
+         <div className="flex flex-col lg:flex-row gap-8">
+            <div className="lg:w-2/3">
+               <CartItems items={cartItems} onQuantityChange={handleQuantityChange} onRemoveItem={handleRemoveItem} />
             </div>
+            <div className="lg:w-1/3">
+               <CartSummary items={cartItems} />
+               <ShippingCalculator />
+               <button
+                  onClick={handleOrderPlacement}
+                  className="w-full bg-black text-white py-3 px-4 rounded-lg mt-4 hover:bg-gray-800 transition-colors"
+               >
+                  Proceed to Checkout
+               </button>
+            </div>
+         </div>
 
-            <OrderSuccessModal
-                isOpen={showModal}
-                onClose={() => setShowModal(false)}
-                orderId={orderId}
-            />
-        </div>
-    );
+         <OrderSuccessModal isOpen={showModal} onClose={() => setShowModal(false)} orderId={orderId} />
+      </div>
+   );
 };
 
 export default CartPage;

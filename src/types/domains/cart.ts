@@ -24,7 +24,7 @@ export type CartItemDTO = {
 
 export interface CartItemUpdatePayload {
     quantity: number;
-    personalization: Personalization;
+    personalization?: Personalization;
 };
 
 export type CartItem = {

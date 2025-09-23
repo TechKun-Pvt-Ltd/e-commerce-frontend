@@ -5,10 +5,10 @@ import PaymentForm from "./components/PaymentForm";
 import OrderReview from "./components/OrderReview";
 import OrderSuccessModal from "./components/OrderSuccessModal";
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { createOrder } from '@/store/slices/ordersSlice';
 import { clearCart } from '@/store/slices/cartSlice';
 import { useRouter } from 'next/navigation';
-import { ShopOrder, OrderItem, OrderStatus, ProductImage } from '@/app/types/models';
+import { OrderItem, OrderStatus, ShopOrder } from "@/types/domains/order";
+import { ProductImage } from "@/types/domains/product";
 
 interface ShippingFormData {
     address: string;
@@ -51,25 +51,26 @@ const CheckoutPage = () => {
             const orderData: Partial<ShopOrder> = {
                 orderItems: cartItems.map(item => ({
                     orderItemId: 0, // Will be set by the backend
-                    productVariant: item.productVariant,
+                    productVariantId: item.productVariantId,
                     image: {
                         productImageId: 0,
                         imageUrl: '/placeholder-image.jpg'
                     } as ProductImage,
-                    quantity: item.quantity
+                    quantity: item.quantity,
+                    price: item.price
                 } as OrderItem)),
-                paymentType: 'CREDIT_CARD',
-                orderDate: new Date().toISOString(),
-                orderTotal: cartItems.reduce((total, item) => total + (item.productVariant.price * item.quantity), 0),
+                // paymentType: 'CREDIT_CARD',
+                orderDate: new Date(),
+                // orderTotal: cartItems.reduce((total, item) => total + (item.productVariant.price * item.quantity), 0),
                 status: OrderStatus.PENDING
             };
 
-            const result = await dispatch(createOrder(orderData));
-            if (createOrder.fulfilled.match(result)) {
-                setOrderId(result.payload.orderId);
-                setIsSuccessModalOpen(true);
-                dispatch(clearCart());
-            }
+            // const result = await dispatch(createOrder(orderData));
+            // if (createOrder.fulfilled.match(result)) {
+            //     setOrderId(result.payload.orderId);
+            //     setIsSuccessModalOpen(true);
+            //     dispatch(clearCart());
+            // }
         } catch (error) {
             console.error("Order placement failed:", error);
         }
