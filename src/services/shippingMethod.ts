@@ -10,12 +10,14 @@ export const getAllShippingMethods: ServiceFunction<[], ShippingMethod[]> = asyn
     return servicesApiClient.get(`/shipping-methods`);
 };
 
-
-
 export const updateShippingMethod: ServiceFunction<[shippingMethodId: number, shippingMethodDto: ShippingMethodDTO], ShippingMethod> = (shippingMethodId, shippingMethodDto) => {
     return servicesApiClient.put(`/shipping-methods/${shippingMethodId}`, { data: shippingMethodDto });
 };
 
 export const deleteShippingMethod: ServiceFunction<[shippingMethodId: number], void> = (shippingMethodId) => {
     return servicesApiClient.delete(`/shipping-methods/${shippingMethodId}`);
+};
+
+export const orderShippingMethodByProductVariantId: ServiceFunction<[shippingMethodId: number], void> = (shippingMethodId) => {
+    return servicesApiClient.get(`/shipping-methods/${shippingMethodId}`);
 };

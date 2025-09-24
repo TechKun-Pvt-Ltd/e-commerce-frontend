@@ -1,134 +1,154 @@
 "use client";
-import React, { useState } from "react";
-import ShippingAddressForm from "./components/ShippingAddressForm";
-import PaymentForm from "./components/PaymentForm";
-import OrderReview from "./components/OrderReview";
-import OrderSuccessModal from "./components/OrderSuccessModal";
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { clearCart } from '@/store/slices/cartSlice';
+
+import React, { useCallback, useEffect, useState } from 'react';
+import CheckoutForm from './components/CheckoutForm';
+import { OrderCreatePayload } from '@/types/domains/order';
+import { ProductPreview } from '@/types/domains/product';
+import { ShippingMethod } from '@/types/domains/shipping_method';
+import * as productServices from '@/services/product';
+import * as shippingServices from '@/services/shippingMethod';
+import * as orderServices from '@/services/shopOrder';
+import useDataFetch from '@/hooks/use-data-fetch';
+import { toast } from "sonner";
 import { useRouter } from 'next/navigation';
-import { OrderItem, OrderStatus, ShopOrder } from "@/types/domains/order";
-import { ProductImage } from "@/types/domains/product";
 
-interface ShippingFormData {
-    address: string;
-    city: string;
-    state: string;
-    zipCode: string;
-    country: string;
-}
+// Mock cart items - you can replace this with actual cart state management
+const mockCartItems: (ProductPreview & { quantity: number })[] = [
+    {
+        productId: 1,
+        productVariantId: 101,
+        categoryId: 1,
+        shippingMethodId: 1,
+        dateAdded: new Date(),
+        quantityInStock: 10,
+        imageUrl: "/api/placeholder/60/60",
+        price: 55,
+        title: "Chicken Kheema Jumbo Lunchbox",
+        code: "CKJ001",
+        rating: 4.5,
+        starred: false,
+        quantity: 1
+    },
+    {
+        productId: 2,
+        productVariantId: 102,
+        categoryId: 1,
+        shippingMethodId: 1,
+        dateAdded: new Date(),
+        quantityInStock: 8,
+        imageUrl: "/api/placeholder/60/60",
+        price: 75,
+        title: "Smoked Butter Chicken Jumbo Lunchbox",
+        code: "SBC001",
+        rating: 4.7,
+        starred: true,
+        quantity: 1
+    },
+    {
+        productId: 3,
+        productVariantId: 103,
+        categoryId: 1,
+        shippingMethodId: 1,
+        dateAdded: new Date(),
+        quantityInStock: 5,
+        imageUrl: "/api/placeholder/60/60",
+        price: 60,
+        title: "Roasted Chicken Steak",
+        code: "RCS001",
+        rating: 4.3,
+        starred: false,
+        quantity: 1
+    }
+];
 
-interface PaymentFormData {
-    cardNumber: string;
-    expiryDate: string;
-    cvv: string;
-}
-
-const CheckoutPage = () => {
-    const dispatch = useAppDispatch();
+export default function CheckoutPage() {
     const router = useRouter();
-    const { items: cartItems } = useAppSelector(state => state.cart);
-    const [step, setStep] = useState(1);
-    const [shippingAddress, setShippingAddress] = useState<ShippingFormData | null>(null);
-    const [paymentDetails, setPaymentDetails] = useState<PaymentFormData | null>(null);
-    const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
-    const [orderId, setOrderId] = useState("");
+    const [cartItems, setCartItems] = useState<(ProductPreview & { quantity: number })[]>(mockCartItems);
+    
+    // Data fetching hooks
+    const productsData = useDataFetch(productServices.getAllProducts);
+    const shippingMethodsData = useDataFetch(shippingServices.getAllShippingMethods);
+    const createOrderData = useDataFetch(orderServices.createOrder);
 
-    const handleShippingSubmit = (data: ShippingFormData) => {
-        setShippingAddress(data);
-        setStep(2);
-    };
+    useEffect(() => {
+        // Load products and shipping methods on component mount
+        productsData.request({});
+        shippingMethodsData.request();
+    }, []);
 
-    const handlePaymentSubmit = (data: PaymentFormData) => {
-        setPaymentDetails(data);
-        setStep(3);
-    };
-
-    const handlePlaceOrder = async () => {
-        if (!shippingAddress || !paymentDetails) return;
-
-        try {
-            const orderData: Partial<ShopOrder> = {
-                orderItems: cartItems.map(item => ({
-                    orderItemId: 0, // Will be set by the backend
-                    productVariantId: item.productVariantId,
-                    image: {
-                        productImageId: 0,
-                        imageUrl: '/placeholder-image.jpg'
-                    } as ProductImage,
-                    quantity: item.quantity,
-                    price: item.price
-                } as OrderItem)),
-                // paymentType: 'CREDIT_CARD',
-                orderDate: new Date(),
-                // orderTotal: cartItems.reduce((total, item) => total + (item.productVariant.price * item.quantity), 0),
-                status: OrderStatus.PENDING
-            };
-
-            // const result = await dispatch(createOrder(orderData));
-            // if (createOrder.fulfilled.match(result)) {
-            //     setOrderId(result.payload.orderId);
-            //     setIsSuccessModalOpen(true);
-            //     dispatch(clearCart());
-            // }
-        } catch (error) {
-            console.error("Order placement failed:", error);
+    // Update cart items when products are loaded
+    useEffect(() => {
+        if (productsData.data && Array.isArray(productsData.data)) {
+            const updatedCartItems = cartItems.map(cartItem => {
+                const productFromApi = (productsData.data as ProductPreview[]).find(
+                    p => p.productVariantId === cartItem.productVariantId
+                );
+                return productFromApi ? { ...productFromApi, quantity: cartItem.quantity } : cartItem;
+            });
+            setCartItems(updatedCartItems);
         }
-        router.push('/orders');
-    };
+    }, [productsData.data]);
+
+    const handleOrderSubmit = useCallback((orderData: OrderCreatePayload) => {
+        createOrderData.request(orderData)
+            .onSuccess((response) => {
+                toast.success("Order placed successfully!");
+                // Redirect to order confirmation or orders page
+                router.push(`/orders/${response.orderId}`);
+            })
+            .onError((error) => {
+                toast.error("Failed to place order. Please try again.");
+                console.error("Order creation failed:", error);
+            });
+    }, [createOrderData, router]);
+
+    const updateCartItemQuantity = useCallback((productVariantId: number, newQuantity: number) => {
+        if (newQuantity <= 0) return;
+        
+        setCartItems(prev => 
+            prev.map(item => 
+                item.productVariantId === productVariantId 
+                    ? { ...item, quantity: newQuantity }
+                    : item
+            )
+        );
+    }, []);
+
+    const removeCartItem = useCallback((productVariantId: number) => {
+        setCartItems(prev => 
+            prev.filter(item => item.productVariantId !== productVariantId)
+        );
+    }, []);
+
+    // Show loading state while data is being fetched
+    if (productsData.isLoading || shippingMethodsData.isLoading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading checkout...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Show error state if data failed to load
+
+
+   
 
     return (
-        <div className="container mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold mb-8">Checkout</h1>
-
-            <div className="flex flex-col lg:flex-row gap-8">
-                <div className="lg:w-2/3 space-y-6">
-                    {step === 1 && <ShippingAddressForm onSubmit={handleShippingSubmit} />}
-                    {step === 2 && <PaymentForm onSubmit={handlePaymentSubmit} />}
-                    {step === 3 && (
-                        <OrderReview
-                            shippingAddress={shippingAddress}
-                            paymentDetails={paymentDetails}
-                            onPlaceOrder={handlePlaceOrder}
-                        />
-                    )}
-                </div>
-
-                <div className="lg:w-1/3">
-                    <div className="bg-white p-6 rounded-lg shadow-sm">
-                        <h2 className="text-lg font-medium text-gray-900 mb-4">Order Progress</h2>
-                        <div className="space-y-4">
-                            <div className={`flex items-center ${step >= 1 ? 'text-blue-500' : 'text-gray-400'}`}>
-                                <div className="w-8 h-8 rounded-full border-2 flex items-center justify-center mr-3">
-                                    1
-                                </div>
-                                Shipping Address
-                            </div>
-                            <div className={`flex items-center ${step >= 2 ? 'text-blue-500' : 'text-gray-400'}`}>
-                                <div className="w-8 h-8 rounded-full border-2 flex items-center justify-center mr-3">
-                                    2
-                                </div>
-                                Payment Details
-                            </div>
-                            <div className={`flex items-center ${step >= 3 ? 'text-blue-500' : 'text-gray-400'}`}>
-                                <div className="w-8 h-8 rounded-full border-2 flex items-center justify-center mr-3">
-                                    3
-                                </div>
-                                Review & Place Order
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
+        <div className="min-h-screen bg-gray-50 py-8 px-4">
+            <div className="container mx-auto">
+                <CheckoutForm
+                    cartItems={cartItems}
+                    shippingMethods={shippingMethodsData.data as ShippingMethod[] || []}
+                    loading={createOrderData.isLoading}
+                    onSubmit={handleOrderSubmit}
+                    onQuantityChange={updateCartItemQuantity}
+                    onRemoveItem={removeCartItem}
+                />
             </div>
-
-            <OrderSuccessModal
-                isOpen={isSuccessModalOpen}
-                onClose={() => setIsSuccessModalOpen(false)}
-                orderId={orderId}
-            />
         </div>
     );
-};
-
-export default CheckoutPage;
+}
