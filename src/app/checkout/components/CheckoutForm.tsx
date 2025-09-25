@@ -257,33 +257,57 @@ export default function CheckoutForm({
                            setAddressType(value);
                            checkoutForm.setValue("addressType", value);
                         }}
-                        className="space-y-3"
+                        className="flex space-x-4"
                      >
-                        <div className="flex items-start space-x-3 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                        <Label 
+                           htmlFor="current" 
+                           className={`flex items-start space-x-3 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer flex-1 transition-colors ${
+                              addressType === "current" ? "border-black bg-gray-50" : "border-gray-200"
+                           }`}
+                        >
                            <RadioGroupItem value="current" id="current" className="mt-1" />
-                           <Label htmlFor="current" className="flex-1 cursor-pointer">
+                           <div className="flex-1">
                               <div className="flex items-center gap-2 font-medium mb-1">
                                  <Home className="h-4 w-4" />
                                  Current Address
                               </div>
-                              {currentAddress && (
-                                 <div className="text-sm text-gray-600">
-                                    {currentAddress.street}, {currentAddress.city}, {currentAddress.pincode}, {currentAddress.country}
-                                 </div>
-                              )}
-                           </Label>
-                        </div>
-
-                        <div className="flex items-start space-x-3 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                           </div>
+                        </Label>
+                                                 
+                        <Label 
+                           htmlFor="custom" 
+                           className={`flex items-start space-x-3 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer flex-1 transition-colors ${
+                              addressType === "custom" ? "border-black bg-gray-50" : "border-gray-200"
+                           }`}
+                        >
                            <RadioGroupItem value="custom" id="custom" className="mt-1" />
-                           <Label htmlFor="custom" className="flex-1 cursor-pointer">
+                           <div className="flex-1">
                               <div className="flex items-center gap-2 font-medium">
                                  <MapPin className="h-4 w-4" />
                                  Custom Address
                               </div>
-                           </Label>
-                        </div>
+                           </div>
+                        </Label>
                      </RadioGroup>
+                     
+                     {/* Current address shown below radio button */}
+                     {addressType === "current" && currentAddress && (
+                        <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-4 rounded-lg border border-gray-200 shadow-sm">
+                           <div className="flex items-start gap-3">
+                              <div className="flex-shrink-0 mt-1">
+                                 <div className="w-1 h-8 bg-black rounded-full"></div>
+                              </div>
+                              <div>
+                                 <p className="font-medium text-gray-900 mb-1">Selected Address:</p>
+                                 <p className="text-sm text-gray-700 leading-relaxed">
+                                    {currentAddress.street}<br />
+                                    {currentAddress.city}, {currentAddress.pincode}<br />
+                                    {currentAddress.country}
+                                 </p>
+                              </div>
+                           </div>
+                        </div>
+                     )}
 
                      {/* Custom Address Form - Only shown when custom is selected */}
                      {addressType === "custom" && (
@@ -388,48 +412,65 @@ export default function CheckoutForm({
                                     setSelectedPaymentMethod(value);
                                     checkoutForm.setValue("paymentMethodId", value);
                                  }}
-                                 className="space-y-3 h-73 mt-5 overflow-y-auto"
+                                 className="space-y-4 max-h-72 overflow-y-auto"
                               >
                                  {paymentMethods.map((method) => (
-                                    <div 
+                                    <Label
                                        key={method.paymentMethodId}
-                                       className="relative"
+                                       htmlFor={`payment-${method.paymentMethodId}`}
+                                       className={`relative p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:shadow-md block ${
+                                          selectedPaymentMethod === method.paymentMethodId.toString()
+                                             ? 'border-black bg-gray-50 shadow-md'
+                                             : 'border-gray-200 bg-white hover:border-gray-300'
+                                       }`}
                                     >
                                        <RadioGroupItem
                                           value={method.paymentMethodId.toString()}
                                           id={`payment-${method.paymentMethodId}`}
-                                          className="absolute left-4 top-1/2 -translate-y-1/2"
-                                       />
-                                       <Label
-                                          htmlFor={`payment-${method.paymentMethodId}`}
-                                        className={`block pl-12 pr-4 py-4 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${
-                                             selectedPaymentMethod === method.paymentMethodId.toString() 
-                                                ? 'border-black' 
-                                                : 'border-gray-200'
+                                          className={`absolute right-4 top-4 ${
+                                             selectedPaymentMethod === method.paymentMethodId.toString()
+                                                ? 'border-black'
+                                                : ''
                                           }`}
-                                       >
-                                          <div className="flex items-center gap-3">
-                                             <div className="flex-shrink-0">
-                                                <CreditCard className="h-6 w-6 text-gray-600" />
-                                             </div>
-                                             <div className="flex-1">
-                                                <p className="font-medium">
-                                                   {method.cardHolderName} •••• {method.last4}
-                                                </p>
-                                                <p className="text-sm text-gray-500">
-                                                   Expires {method.expiryMonth}/{method.expiryYear}
-                                                </p>
-                                             </div>
+                                       />
+                                       
+                                       <div className="flex items-center gap-4 pr-8">
+                                          <div className={`flex-shrink-0 p-2 rounded-lg ${
+                                             selectedPaymentMethod === method.paymentMethodId.toString()
+                                                ? 'bg-gray-200'
+                                                : 'bg-gray-100'
+                                          }`}>
+                                             <CreditCard className={`h-6 w-6 ${
+                                                selectedPaymentMethod === method.paymentMethodId.toString()
+                                                   ? 'text-black'
+                                                   : 'text-gray-600'
+                                             }`} />
                                           </div>
-                                       </Label>
-                                    </div>
+                                          <div className="flex-1">
+                                             <p className="font-semibold text-gray-900">
+                                                {method.cardHolderName}
+                                             </p>
+                                             <p className="text-sm text-gray-600 mt-1">
+                                                •••• •••• •••• {method.last4}
+                                             </p>
+                                             <p className="text-xs text-gray-500 mt-1">
+                                                Expires {method.expiryMonth}/{method.expiryYear}
+                                             </p>
+                                          </div>
+                                       </div>
+                                    </Label>
                                  ))}
                               </RadioGroup>
                            )}
                         </TabsContent>
 
-                        <TabsContent value="custom" className="space-y-4 h-72  mt-5">
-                           <div className="p-4 border rounded-lg bg-gray-50">
+                        <TabsContent value="custom" className="space-y-4 max-h-72 overflow-y-auto">
+                           <div className="p-6 border rounded-xl bg-gradient-to-br from-gray-50 to-gray-100">
+                              <div className="flex items-center gap-2 mb-4">
+                                 <CreditCard className="h-5 w-5 text-gray-600" />
+                                 <h4 className="font-medium text-gray-900">Add New Payment Method</h4>
+                              </div>
+                              
                               <FormField
                                  control={formControl}
                                  name="nameOnCard"
@@ -437,7 +478,11 @@ export default function CheckoutForm({
                                     <FormItem>
                                        <FormLabel>Name On Card</FormLabel>
                                        <FormControl>
-                                          <Input placeholder="Harvey Olson" {...field} />
+                                          <Input 
+                                             placeholder="Harvey Olson" 
+                                             className="bg-white"
+                                             {...field} 
+                                          />
                                        </FormControl>
                                        <FormMessage />
                                     </FormItem>
@@ -452,7 +497,8 @@ export default function CheckoutForm({
                                        <FormLabel>Card Number</FormLabel>
                                        <FormControl>
                                           <Input
-                                             placeholder="3787-3449-3626-0712"
+                                             placeholder="3787 3449 3626 0712"
+                                             className="bg-white font-mono"
                                              {...field}
                                              onChange={(e) => {
                                                 const formatted = formatCardNumber(e.target.value);
@@ -476,6 +522,7 @@ export default function CheckoutForm({
                                           <FormControl>
                                              <Input
                                                 placeholder="04/24"
+                                                className="bg-white font-mono"
                                                 {...field}
                                                 onChange={(e) => {
                                                    const formatted = formatValidOn(e.target.value);
@@ -495,7 +542,13 @@ export default function CheckoutForm({
                                        <FormItem>
                                           <FormLabel>CVV Code</FormLabel>
                                           <FormControl>
-                                             <Input type="password" placeholder="***" {...field} maxLength={4} />
+                                             <Input 
+                                                type="password" 
+                                                placeholder="***" 
+                                                className="bg-white font-mono"
+                                                {...field} 
+                                                maxLength={4} 
+                                             />
                                           </FormControl>
                                           <FormMessage />
                                        </FormItem>
@@ -506,11 +559,12 @@ export default function CheckoutForm({
                               <Button
                                  type="button"
                                  variant="outline"
-                                 className="w-full mt-4"
+                                 className="w-full mt-6 bg-white hover:bg-gray-50 border-2 border-dashed border-gray-300 hover:border-gray-400 transition-colors"
                                  onClick={handleAddNewCard}
                                  disabled={createPaymentMethodLoading}
                               >
-                                 {createPaymentMethodLoading && <Spinner className="mr-2" />}
+                                 {createPaymentMethodLoading && <Spinner className="mr-2 h-4 w-4" />}
+                                 <CreditCard className="mr-2 h-4 w-4" />
                                  Add Card
                               </Button>
                            </div>
@@ -521,9 +575,9 @@ export default function CheckoutForm({
                   <Button
                      type="submit"
                      disabled={loading || paymentMethodsLoading}
-                     className="w-full bg-black hover:bg-gray-800 text-white py-6 text-lg font-semibold"
+                     className="w-full bg-black hover:bg-gray-800 text-white py-6 text-lg font-semibold rounded-xl transition-colors"
                   >
-                     {loading && <Spinner />}
+                     {loading && <Spinner className="mr-2" />}
                      Pay ${billTotal.toFixed(2)}
                   </Button>
                </form>
