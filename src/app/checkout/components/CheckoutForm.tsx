@@ -18,543 +18,557 @@ import * as paymentServices from "@/services/paymentMethod";
 import { toast } from "sonner";
 
 const checkoutSchema = z.object({
-  nameOnCard: z.string().min(1, "Name on card is required"),
-  cardNumber: z.string().min(16, "Card number must be at least 16 digits").max(19, "Card number is too long"),
-  validOn: z.string().min(5, "Valid date is required (MM/YY)"),
-  cvvCode: z.string().min(3, "CVV must be at least 3 digits").max(4, "CVV is too long"),
-  street: z.string().min(1, "Street address is required"),
-  city: z.string().min(1, "City is required"),
-  pincode: z.number().min(10000, "Pincode must be 5 digits").max(999999, "Invalid pincode"),
-  country: z.string().min(1, "Country is required"),
-  shippingMethodId: z.number().min(1, "Shipping method is required"),
-  items: z.array(
-    z.object({
-      orderItemId: z.number(),
-      productVariantId: z.number(),
-      estimatedDeliveryDate: z.date(),
-      price: z.number().min(0),
-      shippingMethodId: z.number(),
-      quantity: z.number().min(1),
-      personalization: z.any().optional()
-    })
-  ).min(1, "At least one item is required"),
-  paymentMethodId: z.string().min(1, "Payment method is required"),
-  saveCard: z.boolean().default(false)
+   nameOnCard: z.string().min(1, "Name on card is required"),
+   cardNumber: z.string().min(16, "Card number must be at least 16 digits").max(19, "Card number is too long"),
+   validOn: z.string().min(5, "Valid date is required (MM/YY)"),
+   cvvCode: z.string().min(3, "CVV must be at least 3 digits").max(4, "CVV is too long"),
+   street: z.string().min(1, "Street address is required"),
+   city: z.string().min(1, "City is required"),
+   pincode: z.number().min(10000, "Pincode must be 5 digits").max(999999, "Invalid pincode"),
+   country: z.string().min(1, "Country is required"),
+   shippingMethodId: z.number().min(1, "Shipping method is required"),
+   items: z
+      .array(
+         z.object({
+            orderItemId: z.number(),
+            productVariantId: z.number(),
+            estimatedDeliveryDate: z.date(),
+            price: z.number().min(0),
+            shippingMethodId: z.number(),
+            quantity: z.number().min(1),
+            personalization: z.any().optional(),
+         })
+      )
+      .min(1, "At least one item is required"),
+   paymentMethodId: z.string().min(1, "Payment method is required"),
+   saveCard: z.boolean().default(false),
 });
 
 type FieldValues = z.infer<typeof checkoutSchema>;
 
-const countries = ["US","CA","UK","NZ","JP","AU","IN","BR","MX","DE","FR","IT","ES","NL","SE","NO","DK","FI"];
+const countries = ["US", "CA", "UK", "NZ", "JP", "AU", "IN", "BR", "MX", "DE", "FR", "IT", "ES", "NL", "SE", "NO", "DK", "FI"];
 
 interface CheckoutFormProps {
-  cartItems: CartItemPreview[];
-  shippingMethods: Record<number, ShippingMethod>;
-  loading: boolean;
-  onSubmit: (data: OrderCreatePayload) => void;
+   cartItems: CartItemPreview[];
+   shippingMethods: Record<number, ShippingMethod>;
+   loading: boolean;
+   totalAmount: number;
+   onSubmit: (data: OrderCreatePayload) => void;
+}
+interface ShippingCalculationResult {
+   deliveryTimeMin: number;
+   deliveryTimeMax: number;
+   totalShippingCharges: number;
 }
 
-export default function CheckoutForm({ cartItems, shippingMethods, loading, onSubmit }: CheckoutFormProps) {
-  const [showAddCard, setShowAddCard] = useState(false);
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+export default function CheckoutForm({ cartItems, shippingMethods, loading, onSubmit, totalAmount }: CheckoutFormProps) {
+   const [showAddCard, setShowAddCard] = useState(false);
+   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
 
-  // API calls
-  const paymentMethodsData = useDataFetch(paymentServices.getAllPaymentMethods);
-  const createPaymentMethodData = useDataFetch(paymentServices.createPaymentMethod);
+   // API calls
+   const paymentMethodsData = useDataFetch(paymentServices.getAllPaymentMethods);
+   const createPaymentMethodData = useDataFetch(paymentServices.createPaymentMethod);
 
-  // Load payment methods on component mount
-  useEffect(() => {
-    paymentMethodsData.request().onSuccess((data) => {
-      setPaymentMethods(data || []);
-    }).onError((error) => {
-      console.error("Failed to load payment methods:", error);
-      toast.error("Failed to load payment methods");
-    });
-  }, []);
+   function calculateShippingSummary(
+      cartItems: CartItemPreview[],
+      shippingMethods: Record<number, ShippingMethod>
+   ): ShippingCalculationResult {
+      console.log("Calculating shipping summary with items:", cartItems, "and methods:", shippingMethods);
+      let deliveryTimeMin = Infinity;
+      let deliveryTimeMax = -Infinity;
+      let totalShippingCharges = 0;
 
-  const defaultValues: Partial<FieldValues> = {
-    nameOnCard: "",
-    cardNumber: "",
-    validOn: "",
-    cvvCode: "",
-    street: "",
-    city: "",
-    pincode: undefined,
-    country: "",
-    items: cartItems.map((item, index) => ({
-      orderItemId: index + 1,
-      productVariantId: item.productVariantId,
-      estimatedDeliveryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      price: item.price,
-      shippingMethodId: shippingMethods[0]?.shippingMethodId ?? 1,
-      quantity: item.quantity,
-      personalization: undefined
-    })),
-    paymentMethodId: paymentMethods.length > 0 ? paymentMethods[0].paymentMethodId.toString() : "",
-    saveCard: false
-  };
+      cartItems.forEach((item) => {
+         const method = shippingMethods[item.cartItemId];
+         if (!method) return;
 
-  const checkoutForm = useForm<FieldValues>({
-    defaultValues
-  });
+         // update delivery time ranges
+         deliveryTimeMin = Math.min(deliveryTimeMin, method.processingTimeMin);
+         deliveryTimeMax = Math.max(deliveryTimeMax, method.processingTimeMax);
 
-  // Type-safe control
-  const formControl = checkoutForm.control;
+         // pick shipping option based on destination country (assume first for now)
+         const option = method.shippingOptions[0];
+         if (!option) return;
 
-  // Update form when payment methods are loaded
-  useEffect(() => {
-    if (paymentMethods.length > 0 && !checkoutForm.getValues("paymentMethodId")) {
-      checkoutForm.setValue("paymentMethodId", paymentMethods[0].paymentMethodId.toString());
-    }
-  }, [paymentMethods, checkoutForm]);
-
-  // Totals
-  const itemTotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const taxesAndCharges = itemTotal * 0.08;
-  const deliveryFee = 10;
-  const discount = 0;
-  const billTotal = itemTotal + taxesAndCharges + deliveryFee - discount;
-
-  const formatCardNumber = (value: string) => {
-    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-    const matches = v.match(/\d{4,16}/g);
-    const match = matches && matches[0] || '';
-    const parts = [];
-    for (let i = 0, len = match.length; i < len; i += 4) {
-      parts.push(match.substring(i, i + 4));
-    }
-    return parts.length ? parts.join(' ') : v;
-  };
-
-  const formatValidOn = (value: string) => {
-    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-    if (v.length >= 2) return v.substring(0, 2) + '/' + v.substring(2, 4);
-    return v;
-  };
-
-  const handleAddNewCard = async () => {
-    const formData = checkoutForm.getValues();
-    
-    if (!formData.nameOnCard || !formData.cardNumber || !formData.validOn || !formData.cvvCode) {
-      toast.error("Please fill all card details");
-      return;
-    }
-
-    const [month, year] = formData.validOn.split('/');
-    const cardNumber = formData.cardNumber.replace(/\s/g, '');
-    
-    const newPaymentMethod: PaymentMethodDTO = {
-      last4: cardNumber.slice(-4),
-      providerToken: `token_${Date.now()}`, // In real app, this would come from payment processor
-      expiryMonth: month,
-      expiryYear: year,
-      isDefault: formData.saveCard,
-      cardHolderName: formData.nameOnCard,
-    };
-
-    createPaymentMethodData.request(newPaymentMethod)
-      .onSuccess((createdMethod) => {
-        toast.success("Payment method added successfully");
-        setPaymentMethods(prev => [...prev, createdMethod]);
-        checkoutForm.setValue("paymentMethodId", createdMethod.paymentMethodId.toString());
-        setShowAddCard(false);
-        
-        // Clear card form fields
-        checkoutForm.setValue("nameOnCard", "");
-        checkoutForm.setValue("cardNumber", "");
-        checkoutForm.setValue("validOn", "");
-        checkoutForm.setValue("cvvCode", "");
-      })
-      .onError((error) => {
-        console.error("Failed to create payment method:", error);
-        toast.error("Failed to add payment method");
+         let itemCharge = option.costFirstItem;
+         console.log(`Item ${item.cartItemId} initial charge for first item: $${itemCharge}`);
+         if (option.costAdditionalItem > 0 && item.quantity > 1) {
+            itemCharge += (item.quantity - 1) * option.costAdditionalItem;
+         }
+         totalShippingCharges += itemCharge;
       });
-  };
+      const result = {
+         deliveryTimeMin: deliveryTimeMin === Infinity ? 0 : deliveryTimeMin,
+         deliveryTimeMax: deliveryTimeMax === -Infinity ? 0 : deliveryTimeMax,
+         totalShippingCharges,
+      };
+      console.log("Shipping calculation result:", result);
 
-//   const getPaymentMethodIcon = (method: PaymentMethod) => {
-//     // You can customize this based on card type detection
-//     const cardType = detectCardType(method.last4);
-    
-//     switch (cardType) {
-//       case 'visa':
-//         return (
-//           <div className="bg-blue-600 w-12 h-8 rounded flex items-center justify-center">
-//             <span className="text-white font-bold text-xs">VISA</span>
-//           </div>
-//         );
-//       case 'mastercard':
-//         return (
-//           <div className="flex w-12 h-8 items-center justify-center">
-//             <div className="w-4 h-4 bg-red-500 rounded-full"></div>
-//             <div className="w-4 h-4 bg-yellow-500 rounded-full -ml-2"></div>
-//           </div>
-//         );
-//       default:
-//         return (
-//           <div className="bg-gray-600 w-12 h-8 rounded flex items-center justify-center">
-//             <span className="text-white font-bold text-xs">CARD</span>
-//           </div>
-//         );
-//     }
-//   };
+      return result;
+   }
 
-  const detectCardType = (last4: string) => {
-    // Simple card type detection - you can enhance this
-    return 'visa'; // Default to visa for now
-  };
+   // Load payment methods on component mount
+   useEffect(() => {
+      paymentMethodsData
+         .request()
+         .onSuccess((data) => {
+            setPaymentMethods(data || []);
+         })
+         .onError((error) => {
+            console.error("Failed to load payment methods:", error);
+            toast.error("Failed to load payment methods");
+         });
+   }, []);
 
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-      {/* Left Side */}
-      <div className="lg:col-span-2 space-y-6">
-        <h1 className="text-3xl font-bold text-gray-900">Checkout</h1>
-        
-        <Form {...checkoutForm}>
-          <form
-            onSubmit={checkoutForm.handleSubmit((data) => {
-              const orderPayload: OrderCreatePayload = {
-                items: data.items.map(item => ({
-                  orderItemId: item.orderItemId,
-                  productVariantId: item.productVariantId,
-                  estimatedDeliveryDate: item.estimatedDeliveryDate,
-                  personalization: item.personalization,
-                  price: item.price,
-                  shippingMethodId: item.shippingMethodId,
-                  quantity: item.quantity
-                })),
-                shippingAddressId: 0,
-                shippingAddress: {
-                  street: data.street,
-                  city: data.city,
-                  pincode: data.pincode,
-                  country: data.country
-                },
-                paymentMethodId: parseInt(data.paymentMethodId)
-              };
-              onSubmit(orderPayload);
-            })}
-            className="space-y-6"
-          >
-           
-            {/* Shipping Address */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-700">Shipping Address</h3>
-              
-              <FormField
-                control={formControl}
-                name="street"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Street Address</FormLabel>
-                    <FormControl>
-                      <Input placeholder="4864 Layman Avenue" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+   const defaultValues: Partial<FieldValues> = {
+      nameOnCard: "",
+      cardNumber: "",
+      validOn: "",
+      cvvCode: "",
+      street: "",
+      city: "",
+      pincode: undefined,
+      country: "",
+      items: cartItems.map((item, index) => ({
+         orderItemId: index + 1,
+         productVariantId: item.productVariantId,
+         estimatedDeliveryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+         price: item.price,
+         shippingMethodId: shippingMethods[0]?.shippingMethodId ?? 1,
+         quantity: item.quantity,
+         personalization: undefined,
+      })),
+      paymentMethodId: paymentMethods.length > 0 ? paymentMethods[0].paymentMethodId.toString() : "",
+      saveCard: false,
+   };
 
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={formControl}
-                  name="city"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>City</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Fayetteville" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+   const checkoutForm = useForm<FieldValues>({
+      defaultValues,
+   });
 
-                <FormField
-                  control={formControl}
-                  name="pincode"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Pincode</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number"
-                          placeholder="28314" 
-                          {...field}
-                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+   // Type-safe control
+   const formControl = checkoutForm.control;
+
+   // Update form when payment methods are loaded
+   useEffect(() => {
+      if (paymentMethods.length > 0 && !checkoutForm.getValues("paymentMethodId")) {
+         checkoutForm.setValue("paymentMethodId", paymentMethods[0].paymentMethodId.toString());
+      }
+   }, [paymentMethods, checkoutForm]);
+
+   const shippingSummary = calculateShippingSummary(cartItems, shippingMethods);
+   // Totals
+   const taxesAndCharges = totalAmount * 0.08;
+   const deliveryFee = shippingSummary.totalShippingCharges;
+   const discount = 0;
+   const billTotal = totalAmount + taxesAndCharges + deliveryFee - discount;
+
+   const formatCardNumber = (value: string) => {
+      const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "");
+      const matches = v.match(/\d{4,16}/g);
+      const match = (matches && matches[0]) || "";
+      const parts = [];
+      for (let i = 0, len = match.length; i < len; i += 4) {
+         parts.push(match.substring(i, i + 4));
+      }
+      return parts.length ? parts.join(" ") : v;
+   };
+
+   const formatValidOn = (value: string) => {
+      const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "");
+      if (v.length >= 2) return v.substring(0, 2) + "/" + v.substring(2, 4);
+      return v;
+   };
+
+   const handleAddNewCard = async () => {
+      const formData = checkoutForm.getValues();
+
+      if (!formData.nameOnCard || !formData.cardNumber || !formData.validOn || !formData.cvvCode) {
+         toast.error("Please fill all card details");
+         return;
+      }
+
+      const [month, year] = formData.validOn.split("/");
+      const cardNumber = formData.cardNumber.replace(/\s/g, "");
+
+      const newPaymentMethod: PaymentMethodDTO = {
+         last4: cardNumber.slice(-4),
+         providerToken: `token_${Date.now()}`, // In real app, this would come from payment processor
+         expiryMonth: month,
+         expiryYear: year,
+         isDefault: formData.saveCard,
+         cardHolderName: formData.nameOnCard,
+      };
+
+      createPaymentMethodData
+         .request(newPaymentMethod)
+         .onSuccess((createdMethod) => {
+            toast.success("Payment method added successfully");
+            setPaymentMethods((prev) => [...prev, createdMethod]);
+            checkoutForm.setValue("paymentMethodId", createdMethod.paymentMethodId.toString());
+            setShowAddCard(false);
+
+            // Clear card form fields
+            checkoutForm.setValue("nameOnCard", "");
+            checkoutForm.setValue("cardNumber", "");
+            checkoutForm.setValue("validOn", "");
+            checkoutForm.setValue("cvvCode", "");
+         })
+         .onError((error) => {
+            console.error("Failed to create payment method:", error);
+            toast.error("Failed to add payment method");
+         });
+   };
+
+   //   const getPaymentMethodIcon = (method: PaymentMethod) => {
+   //     // You can customize this based on card type detection
+   //     const cardType = detectCardType(method.last4);
+
+   //     switch (cardType) {
+   //       case 'visa':
+   //         return (
+   //           <div className="bg-blue-600 w-12 h-8 rounded flex items-center justify-center">
+   //             <span className="text-white font-bold text-xs">VISA</span>
+   //           </div>
+   //         );
+   //       case 'mastercard':
+   //         return (
+   //           <div className="flex w-12 h-8 items-center justify-center">
+   //             <div className="w-4 h-4 bg-red-500 rounded-full"></div>
+   //             <div className="w-4 h-4 bg-yellow-500 rounded-full -ml-2"></div>
+   //           </div>
+   //         );
+   //       default:
+   //         return (
+   //           <div className="bg-gray-600 w-12 h-8 rounded flex items-center justify-center">
+   //             <span className="text-white font-bold text-xs">CARD</span>
+   //           </div>
+   //         );
+   //     }
+   //   };
+
+   const detectCardType = (last4: string) => {
+      // Simple card type detection - you can enhance this
+      return "visa"; // Default to visa for now
+   };
+
+   return (
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+         {/* Left Side */}
+         <div className="lg:col-span-2 space-y-6">
+            <h1 className="text-3xl font-bold text-gray-900">Checkout</h1>
+
+            <Form {...checkoutForm}>
+               <form
+                  onSubmit={checkoutForm.handleSubmit((data) => {
+                     const orderPayload: OrderCreatePayload = {
+                        items: data.items.map((item) => ({
+                           orderItemId: item.orderItemId,
+                           productVariantId: item.productVariantId,
+                           estimatedDeliveryDate: item.estimatedDeliveryDate,
+                           personalization: item.personalization,
+                           price: item.price,
+                           shippingMethodId: item.shippingMethodId,
+                           quantity: item.quantity,
+                        })),
+                        shippingAddressId: 0,
+                        shippingAddress: {
+                           street: data.street,
+                           city: data.city,
+                           pincode: data.pincode,
+                           country: data.country,
+                        },
+                        paymentMethodId: parseInt(data.paymentMethodId),
+                     };
+                     onSubmit(orderPayload);
+                  })}
+                  className="space-y-6"
+               >
+                  {/* Shipping Address */}
+                  <div className="space-y-4">
+                     <h3 className="text-lg font-semibold text-gray-700">Shipping Address</h3>
+
+                     <FormField
+                        control={formControl}
+                        name="street"
+                        render={({ field }) => (
+                           <FormItem>
+                              <FormLabel>Street Address</FormLabel>
+                              <FormControl>
+                                 <Input placeholder="4864 Layman Avenue" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                           </FormItem>
+                        )}
+                     />
+
+                     <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                           control={formControl}
+                           name="city"
+                           render={({ field }) => (
+                              <FormItem>
+                                 <FormLabel>City</FormLabel>
+                                 <FormControl>
+                                    <Input placeholder="Fayetteville" {...field} />
+                                 </FormControl>
+                                 <FormMessage />
+                              </FormItem>
+                           )}
                         />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={formControl}
-                  name="country"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Country</FormLabel>
-                      <FormControl>
-                        <Select value={field.value} onValueChange={field.onChange}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select country" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {countries.map((country) => (
-                              <SelectItem key={country} value={country}>
-                                {country}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                        <FormField
+                           control={formControl}
+                           name="pincode"
+                           render={({ field }) => (
+                              <FormItem>
+                                 <FormLabel>Pincode</FormLabel>
+                                 <FormControl>
+                                    <Input
+                                       type="number"
+                                       placeholder="28314"
+                                       {...field}
+                                       onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                                    />
+                                 </FormControl>
+                                 <FormMessage />
+                              </FormItem>
+                           )}
+                        />
+                     </div>
 
-                <FormField
-                  control={formControl}
-                  name="shippingMethodId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Shipping Method</FormLabel>
-                      <FormControl>
-                        <Select 
-                          value={field.value?.toString()} 
-                          onValueChange={(value) => {
-                            const selectedMethodId = Number(value);
-                            field.onChange(selectedMethodId);
-                            
-                            // Update all items with the selected shipping method
-                            const currentItems = checkoutForm.getValues("items");
-                            const updatedItems = currentItems.map(item => ({
-                              ...item,
-                              shippingMethodId: selectedMethodId
-                            }));
-                            checkoutForm.setValue("items", updatedItems);
-                          }}
+                     <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                           control={formControl}
+                           name="country"
+                           render={({ field }) => (
+                              <FormItem>
+                                 <FormLabel>Country</FormLabel>
+                                 <FormControl>
+                                    <Select value={field.value} onValueChange={field.onChange}>
+                                       <SelectTrigger>
+                                          <SelectValue placeholder="Select country" />
+                                       </SelectTrigger>
+                                       <SelectContent>
+                                          {countries.map((country) => (
+                                             <SelectItem key={country} value={country}>
+                                                {country}
+                                             </SelectItem>
+                                          ))}
+                                       </SelectContent>
+                                    </Select>
+                                 </FormControl>
+                                 <FormMessage />
+                              </FormItem>
+                           )}
+                        />
+
+                     </div>
+                  </div>
+
+                  {/* Choose Payment - Enhanced Section */}
+                  <div className="space-y-4">
+                     <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold text-gray-700">Choose how to pay</h3>
+                        <Button
+                           type="button"
+                           variant="ghost"
+                           className="text-black text-sm p-0 h-auto"
+                           onClick={() => setShowAddCard(!showAddCard)}
                         >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select shipping method" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Object.values(shippingMethods).map((method) => (
-                              <SelectItem 
-                                key={method.shippingMethodId} 
-                                value={method.shippingMethodId.toString()}
-                              >
-                                {method.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
+                           + Add new method
+                        </Button>
+                     </div>
 
-            {/* Choose Payment - Enhanced Section */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-700">Choose how to pay</h3>
-                <Button 
-                  type="button"
-                  variant="ghost" 
-                  className="text-black text-sm p-0 h-auto"
-                  onClick={() => setShowAddCard(!showAddCard)}
-                >
-                  + Add new method
-                </Button>
-              </div>
-
-              {/* Payment Methods Loading State */}
-              {/* {paymentMethodsData.isLoading && (
+                     {/* Payment Methods Loading State */}
+                     {/* {paymentMethodsData.isLoading && (
                 <div className="flex items-center justify-center p-8">
                   <Spinner />
                   <span className="ml-2">Loading payment methods...</span>
                 </div>
               )} */}
 
-              {/* Payment Methods Dropdown */}
-              {!paymentMethodsData.isLoading && (
-                <FormField
-                  control={formControl}
-                  name="paymentMethodId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Select Payment Method</FormLabel>
-                      <FormControl>
-                        <Select value={field.value} onValueChange={field.onChange}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Choose a payment method" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {paymentMethods.map((method) => (
-                              <SelectItem 
-                                key={method.paymentMethodId} 
-                                value={method.paymentMethodId.toString()}
-                              >
-                                <div className="flex items-center gap-3 w-full">
-                                  <div className="flex-shrink-0">
-                                   <div className="bg-blue-600 w-12 h-8 rounded flex items-center justify-center">
-            <span className="text-white font-bold text-xs">VISA</span>
-          </div>
-                                  </div>
-                                  <div className="flex-1">
-                                    <p className="font-medium text-sm">
-                                      {method.cardHolderName} **** {method.last4}
-                                    </p>
-                                    <p className="text-xs text-gray-500">
-                                      Expires {method.expiryMonth}/{method.expiryYear}
-                                    </p>
-                                  </div>
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-
-              {/* Add Card Fields (toggle) */}
-              <div className={showAddCard ? "block space-y-4" : "hidden"}>
-                <FormField
-                  control={formControl}
-                  name="nameOnCard"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Name On Card</FormLabel>
-                      <FormControl><Input placeholder="Harvey Olson" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={formControl}
-                  name="cardNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Card Number</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="3787-3449-3626-0712"
-                          {...field}
-                          onChange={(e) => {
-                            const formatted = formatCardNumber(e.target.value);
-                            field.onChange(formatted);
-                          }}
-                          maxLength={19}
+                     {/* Payment Methods Dropdown */}
+                     {!paymentMethodsData.isLoading && (
+                        <FormField
+                           control={formControl}
+                           name="paymentMethodId"
+                           render={({ field }) => (
+                              <FormItem>
+                                 <FormLabel>Select Payment Method</FormLabel>
+                                 <FormControl>
+                                    <Select value={field.value} onValueChange={field.onChange}>
+                                       <SelectTrigger>
+                                          <SelectValue placeholder="Choose a payment method" />
+                                       </SelectTrigger>
+                                       <SelectContent>
+                                          {paymentMethods.map((method) => (
+                                             <SelectItem key={method.paymentMethodId} value={method.paymentMethodId.toString()}>
+                                                <div className="flex items-center gap-3 w-full">
+                                                   <div className="flex-shrink-0">
+                                                      <div className="bg-blue-600 w-12 h-8 rounded flex items-center justify-center">
+                                                         <span className="text-white font-bold text-xs">VISA</span>
+                                                      </div>
+                                                   </div>
+                                                   <div className="flex-1">
+                                                      <p className="font-medium text-sm">
+                                                         {method.cardHolderName} **** {method.last4}
+                                                      </p>
+                                                      <p className="text-xs text-gray-500">
+                                                         Expires {method.expiryMonth}/{method.expiryYear}
+                                                      </p>
+                                                   </div>
+                                                </div>
+                                             </SelectItem>
+                                          ))}
+                                       </SelectContent>
+                                    </Select>
+                                 </FormControl>
+                                 <FormMessage />
+                              </FormItem>
+                           )}
                         />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                     )}
 
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={formControl}
-                    name="validOn"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Valid On</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="04/24"
-                            {...field}
-                            onChange={(e) => {
-                              const formatted = formatValidOn(e.target.value);
-                              field.onChange(formatted);
-                            }}
-                            maxLength={5}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={formControl}
-                    name="cvvCode"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>CVV Code</FormLabel>
-                        <FormControl>
-                          <Input type="password" placeholder="***" {...field} maxLength={4}/>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <FormField
-                  control={formControl}
-                  name="saveCard"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
+                     {/* Add Card Fields (toggle) */}
+                     <div className={showAddCard ? "block space-y-4" : "hidden"}>
+                        <FormField
+                           control={formControl}
+                           name="nameOnCard"
+                           render={({ field }) => (
+                              <FormItem>
+                                 <FormLabel>Name On Card</FormLabel>
+                                 <FormControl>
+                                    <Input placeholder="Harvey Olson" {...field} />
+                                 </FormControl>
+                                 <FormMessage />
+                              </FormItem>
+                           )}
                         />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel>
-                          Save this card for future purchases
-                        </FormLabel>
-                      </div>
-                    </FormItem>
-                  )}
-                />
 
-                <Button 
-                  type="button"
-                  variant="outline"
-                  className="w-full"
-                  onClick={handleAddNewCard}
-                  disabled={createPaymentMethodData.isLoading}
-                >
-                  {createPaymentMethodData.isLoading && <Spinner className="mr-2" />}
-                  Add Card
-                </Button>
-              </div>
+                        <FormField
+                           control={formControl}
+                           name="cardNumber"
+                           render={({ field }) => (
+                              <FormItem>
+                                 <FormLabel>Card Number</FormLabel>
+                                 <FormControl>
+                                    <Input
+                                       placeholder="3787-3449-3626-0712"
+                                       {...field}
+                                       onChange={(e) => {
+                                          const formatted = formatCardNumber(e.target.value);
+                                          field.onChange(formatted);
+                                       }}
+                                       maxLength={19}
+                                    />
+                                 </FormControl>
+                                 <FormMessage />
+                              </FormItem>
+                           )}
+                        />
+
+                        <div className="grid grid-cols-2 gap-4">
+                           <FormField
+                              control={formControl}
+                              name="validOn"
+                              render={({ field }) => (
+                                 <FormItem>
+                                    <FormLabel>Valid On</FormLabel>
+                                    <FormControl>
+                                       <Input
+                                          placeholder="04/24"
+                                          {...field}
+                                          onChange={(e) => {
+                                             const formatted = formatValidOn(e.target.value);
+                                             field.onChange(formatted);
+                                          }}
+                                          maxLength={5}
+                                       />
+                                    </FormControl>
+                                    <FormMessage />
+                                 </FormItem>
+                              )}
+                           />
+                           <FormField
+                              control={formControl}
+                              name="cvvCode"
+                              render={({ field }) => (
+                                 <FormItem>
+                                    <FormLabel>CVV Code</FormLabel>
+                                    <FormControl>
+                                       <Input type="password" placeholder="***" {...field} maxLength={4} />
+                                    </FormControl>
+                                    <FormMessage />
+                                 </FormItem>
+                              )}
+                           />
+                        </div>
+
+                        <FormField
+                           control={formControl}
+                           name="saveCard"
+                           render={({ field }) => (
+                              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                                 <FormControl>
+                                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                 </FormControl>
+                                 <div className="space-y-1 leading-none">
+                                    <FormLabel>Save this card for future purchases</FormLabel>
+                                 </div>
+                              </FormItem>
+                           )}
+                        />
+
+                        <Button
+                           type="button"
+                           variant="outline"
+                           className="w-full"
+                           onClick={handleAddNewCard}
+                           disabled={createPaymentMethodData.isLoading}
+                        >
+                           {createPaymentMethodData.isLoading && <Spinner className="mr-2" />}
+                           Add Card
+                        </Button>
+                     </div>
+                  </div>
+
+                  <Button
+                     type="submit"
+                     disabled={loading || paymentMethodsData.isLoading}
+                     className="w-full bg-black hover:bg-gray-800 text-white py-6 text-lg font-semibold"
+                  >
+                     {loading && <Spinner />}
+                     Pay ${billTotal.toFixed(2)}
+                  </Button>
+               </form>
+            </Form>
+         </div>
+
+         {/* Right Side Summary */}
+         <div className="space-y-6">
+            <div className="bg-white rounded-lg border p-6">
+               <div className="space-y-3">
+                  <div className="flex justify-between">
+                     <span>Item Total</span>
+                     <span>${totalAmount.toFixed(0)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                     <span>Taxes and Charges</span>
+                     <span>${taxesAndCharges.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                     <span>Delivery Fee</span>
+                     <span>${deliveryFee}</span>
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between font-bold text-lg">
+                     <span>TOTAL</span>
+                     <span>${billTotal.toFixed(1)}</span>
+                  </div>
+               </div>
             </div>
-
-            <Button 
-              type="submit" 
-              disabled={loading || paymentMethodsData.isLoading}
-              className="w-full bg-black hover:bg-gray-800 text-white py-6 text-lg font-semibold"
-            >
-              {loading && <Spinner />}
-              Pay ${billTotal.toFixed(2)}
-            </Button>
-          </form>
-        </Form>
+         </div>
       </div>
-
-      {/* Right Side Summary */}
-      <div className="space-y-6">
-        <div className="bg-white rounded-lg border p-6">
-          <div className="space-y-3">
-            <div className="flex justify-between"><span>Item Total</span><span>${itemTotal.toFixed(0)}</span></div>
-            <div className="flex justify-between"><span>Taxes and Charges</span><span>${taxesAndCharges.toFixed(2)}</span></div>
-            <div className="flex justify-between"><span>Delivery Fee</span><span>${deliveryFee}</span></div>
-            <Separator />
-            <div className="flex justify-between font-bold text-lg"><span>TOTAL</span><span>${billTotal.toFixed(1)}</span></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+   );
 }

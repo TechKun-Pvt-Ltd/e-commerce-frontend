@@ -62,6 +62,7 @@ export default function CheckoutPage() {
             <div className="container mx-auto">
                 <CheckoutForm
                     cartItems={cartItems}
+                    totalAmount={totalAmount}
                     shippingMethods={shippingMethods}
                     loading={createOrderData.isLoading}
                     onSubmit={handleOrderSubmit}
