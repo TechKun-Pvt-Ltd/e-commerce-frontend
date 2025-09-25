@@ -18,6 +18,6 @@ export const deleteShippingMethod: ServiceFunction<[shippingMethodId: number], v
     return servicesApiClient.delete(`/shipping-methods/${shippingMethodId}`);
 };
 
-export const orderShippingMethodByProductVariantId: ServiceFunction<[shippingMethodId: number], void> = (shippingMethodId) => {
-    return servicesApiClient.get(`/shipping-methods/${shippingMethodId}`);
+export const getShippingMethodByVariantId: ServiceFunction<[productVariantId: number], ShippingMethod> = (productVariantId) => {
+   return servicesApiClient.get(`/shipping-methods/by-variant/${productVariantId}`);
 };

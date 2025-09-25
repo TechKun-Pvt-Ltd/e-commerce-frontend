@@ -15,6 +15,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { CartItemPreview } from "@/types/domains/cart";
 
 const checkoutSchema = z.object({
   nameOnCard: z.string().min(1, "Name on card is required"),
@@ -46,8 +47,8 @@ type FieldValues = z.infer<typeof checkoutSchema>;
 const countries = ["US","CA","UK","NZ","JP","AU","IN","BR","MX","DE","FR","IT","ES","NL","SE","NO","DK","FI"];
 
 interface CheckoutFormProps {
-  cartItems: (ProductPreview & { quantity: number })[];
-  shippingMethods: ShippingMethod[];
+  cartItems: CartItemPreview[];
+  shippingMethods: Record<number, ShippingMethod>;
   loading: boolean;
   onSubmit: (data: OrderCreatePayload) => void;
 }
