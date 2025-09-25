@@ -6,16 +6,16 @@ import Spinner from "@/components/ui/spinner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { OrderCreatePayload } from "@/types/domains/order";
-import { ProductPreview } from "@/types/domains/product";
 import { ShippingMethod } from "@/types/domains/shipping_method";
-
-import { zodResolver } from "@hookform/resolvers/zod";
-import React, { useState } from "react";
+import { PaymentMethod, PaymentMethodDTO } from "@/types/domains/payment_method";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { CartItemPreview } from "@/types/domains/cart";
+import useDataFetch from "@/hooks/use-data-fetch";
+import * as paymentServices from "@/services/paymentMethod";
+import { toast } from "sonner";
 
 const checkoutSchema = z.object({
   nameOnCard: z.string().min(1, "Name on card is required"),
@@ -55,36 +55,21 @@ interface CheckoutFormProps {
 
 export default function CheckoutForm({ cartItems, shippingMethods, loading, onSubmit }: CheckoutFormProps) {
   const [showAddCard, setShowAddCard] = useState(false);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
 
-  // Payment methods data
-  const paymentMethods = [
-    {
-      id: "1",
-      name: "Visa **** 0912",
-      description: "Wrap your items",
-      iconBg: "bg-blue-600",
-      icon: <span className="text-white font-bold text-xs">VISA</span>
-    },
-    {
-      id: "2", 
-      name: "Mastercard **** 0912",
-      description: "Wrap your items for",
-      iconBg: "",
-      icon: (
-        <div className="flex">
-          <div className="w-4 h-4 bg-red-500 rounded-full"></div>
-          <div className="w-4 h-4 bg-yellow-500 rounded-full -ml-2"></div>
-        </div>
-      )
-    },
-    {
-      id: "3",
-      name: "Pay with Tabby", 
-      description: "Wrap your items for",
-      iconBg: "bg-black",
-      icon: <span className="text-white font-bold text-xs">T</span>
-    }
-  ];
+  // API calls
+  const paymentMethodsData = useDataFetch(paymentServices.getAllPaymentMethods);
+  const createPaymentMethodData = useDataFetch(paymentServices.createPaymentMethod);
+
+  // Load payment methods on component mount
+  useEffect(() => {
+    paymentMethodsData.request().onSuccess((data) => {
+      setPaymentMethods(data || []);
+    }).onError((error) => {
+      console.error("Failed to load payment methods:", error);
+      toast.error("Failed to load payment methods");
+    });
+  }, []);
 
   const defaultValues: Partial<FieldValues> = {
     nameOnCard: "",
@@ -95,24 +80,32 @@ export default function CheckoutForm({ cartItems, shippingMethods, loading, onSu
     city: "",
     pincode: undefined,
     country: "",
-    shippingMethodId: shippingMethods[0]?.shippingMethodId ?? 1,
     items: cartItems.map((item, index) => ({
       orderItemId: index + 1,
       productVariantId: item.productVariantId,
       estimatedDeliveryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       price: item.price,
-      shippingMethodId: item.shippingMethodId ?? shippingMethods[0]?.shippingMethodId ?? 1,
+      shippingMethodId: shippingMethods[0]?.shippingMethodId ?? 1,
       quantity: item.quantity,
       personalization: undefined
     })),
-    paymentMethodId: "1",
+    paymentMethodId: paymentMethods.length > 0 ? paymentMethods[0].paymentMethodId.toString() : "",
     saveCard: false
   };
 
   const checkoutForm = useForm<FieldValues>({
-    resolver: zodResolver(checkoutSchema),
     defaultValues
   });
+
+  // Type-safe control
+  const formControl = checkoutForm.control;
+
+  // Update form when payment methods are loaded
+  useEffect(() => {
+    if (paymentMethods.length > 0 && !checkoutForm.getValues("paymentMethodId")) {
+      checkoutForm.setValue("paymentMethodId", paymentMethods[0].paymentMethodId.toString());
+    }
+  }, [paymentMethods, checkoutForm]);
 
   // Totals
   const itemTotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -138,6 +131,77 @@ export default function CheckoutForm({ cartItems, shippingMethods, loading, onSu
     return v;
   };
 
+  const handleAddNewCard = async () => {
+    const formData = checkoutForm.getValues();
+    
+    if (!formData.nameOnCard || !formData.cardNumber || !formData.validOn || !formData.cvvCode) {
+      toast.error("Please fill all card details");
+      return;
+    }
+
+    const [month, year] = formData.validOn.split('/');
+    const cardNumber = formData.cardNumber.replace(/\s/g, '');
+    
+    const newPaymentMethod: PaymentMethodDTO = {
+      last4: cardNumber.slice(-4),
+      providerToken: `token_${Date.now()}`, // In real app, this would come from payment processor
+      expiryMonth: month,
+      expiryYear: year,
+      isDefault: formData.saveCard,
+      cardHolderName: formData.nameOnCard,
+    };
+
+    createPaymentMethodData.request(newPaymentMethod)
+      .onSuccess((createdMethod) => {
+        toast.success("Payment method added successfully");
+        setPaymentMethods(prev => [...prev, createdMethod]);
+        checkoutForm.setValue("paymentMethodId", createdMethod.paymentMethodId.toString());
+        setShowAddCard(false);
+        
+        // Clear card form fields
+        checkoutForm.setValue("nameOnCard", "");
+        checkoutForm.setValue("cardNumber", "");
+        checkoutForm.setValue("validOn", "");
+        checkoutForm.setValue("cvvCode", "");
+      })
+      .onError((error) => {
+        console.error("Failed to create payment method:", error);
+        toast.error("Failed to add payment method");
+      });
+  };
+
+//   const getPaymentMethodIcon = (method: PaymentMethod) => {
+//     // You can customize this based on card type detection
+//     const cardType = detectCardType(method.last4);
+    
+//     switch (cardType) {
+//       case 'visa':
+//         return (
+//           <div className="bg-blue-600 w-12 h-8 rounded flex items-center justify-center">
+//             <span className="text-white font-bold text-xs">VISA</span>
+//           </div>
+//         );
+//       case 'mastercard':
+//         return (
+//           <div className="flex w-12 h-8 items-center justify-center">
+//             <div className="w-4 h-4 bg-red-500 rounded-full"></div>
+//             <div className="w-4 h-4 bg-yellow-500 rounded-full -ml-2"></div>
+//           </div>
+//         );
+//       default:
+//         return (
+//           <div className="bg-gray-600 w-12 h-8 rounded flex items-center justify-center">
+//             <span className="text-white font-bold text-xs">CARD</span>
+//           </div>
+//         );
+//     }
+//   };
+
+  const detectCardType = (last4: string) => {
+    // Simple card type detection - you can enhance this
+    return 'visa'; // Default to visa for now
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
       {/* Left Side */}
@@ -154,7 +218,7 @@ export default function CheckoutForm({ cartItems, shippingMethods, loading, onSu
                   estimatedDeliveryDate: item.estimatedDeliveryDate,
                   personalization: item.personalization,
                   price: item.price,
-                  shippingMethodId: item.shippingMethodId, // Use the shippingMethodId from each item
+                  shippingMethodId: item.shippingMethodId,
                   quantity: item.quantity
                 })),
                 shippingAddressId: 0,
@@ -176,7 +240,7 @@ export default function CheckoutForm({ cartItems, shippingMethods, loading, onSu
               <h3 className="text-lg font-semibold text-gray-700">Shipping Address</h3>
               
               <FormField
-                control={checkoutForm.control}
+                control={formControl}
                 name="street"
                 render={({ field }) => (
                   <FormItem>
@@ -191,7 +255,7 @@ export default function CheckoutForm({ cartItems, shippingMethods, loading, onSu
 
               <div className="grid grid-cols-2 gap-4">
                 <FormField
-                  control={checkoutForm.control}
+                  control={formControl}
                   name="city"
                   render={({ field }) => (
                     <FormItem>
@@ -205,7 +269,7 @@ export default function CheckoutForm({ cartItems, shippingMethods, loading, onSu
                 />
 
                 <FormField
-                  control={checkoutForm.control}
+                  control={formControl}
                   name="pincode"
                   render={({ field }) => (
                     <FormItem>
@@ -226,7 +290,7 @@ export default function CheckoutForm({ cartItems, shippingMethods, loading, onSu
 
               <div className="grid grid-cols-2 gap-4">
                 <FormField
-                  control={checkoutForm.control}
+                  control={formControl}
                   name="country"
                   render={({ field }) => (
                     <FormItem>
@@ -251,7 +315,7 @@ export default function CheckoutForm({ cartItems, shippingMethods, loading, onSu
                 />
 
                 <FormField
-                  control={checkoutForm.control}
+                  control={formControl}
                   name="shippingMethodId"
                   render={({ field }) => (
                     <FormItem>
@@ -276,7 +340,7 @@ export default function CheckoutForm({ cartItems, shippingMethods, loading, onSu
                             <SelectValue placeholder="Select shipping method" />
                           </SelectTrigger>
                           <SelectContent>
-                            {shippingMethods?.map((method) => (
+                            {Object.values(shippingMethods).map((method) => (
                               <SelectItem 
                                 key={method.shippingMethodId} 
                                 value={method.shippingMethodId.toString()}
@@ -294,7 +358,7 @@ export default function CheckoutForm({ cartItems, shippingMethods, loading, onSu
               </div>
             </div>
 
-            {/* Choose Payment */}
+            {/* Choose Payment - Enhanced Section */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-700">Choose how to pay</h3>
@@ -308,60 +372,63 @@ export default function CheckoutForm({ cartItems, shippingMethods, loading, onSu
                 </Button>
               </div>
 
-              {/* Payment Options with RadioGroup */}
-              <FormField
-                control={checkoutForm.control}
-                name="paymentMethodId"
-                render={({ field }) => (
-                  <FormItem className="w- ">
-                    <FormControl>
-                      <RadioGroup
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        className="space-y-3 "
-                      >
-                        {paymentMethods.map((method) => (
-                          <div 
-                            key={method.id}
-                            className={`border rounded-lg p-3 cursor-pointer transition-all ${
-                              field.value === method.id
-                                ? "border-black bg-gray-50" 
-                                : "border-gray-200 hover:border-gray-300"
-                            }`}
-                          >
-                            <label 
-                              htmlFor={`payment-${method.id}`} 
-                              className="flex  items-center justify-between cursor-pointer"
-                            >
-                              <div className="flex items-center gap-3">
-                                {/* Dynamic Icon */}
-                                <div className={`w-12 h-8 rounded flex items-center justify-center ${method.iconBg}`}>
-                                  {method.icon}
+              {/* Payment Methods Loading State */}
+              {/* {paymentMethodsData.isLoading && (
+                <div className="flex items-center justify-center p-8">
+                  <Spinner />
+                  <span className="ml-2">Loading payment methods...</span>
+                </div>
+              )} */}
+
+              {/* Payment Methods Dropdown */}
+              {!paymentMethodsData.isLoading && (
+                <FormField
+                  control={formControl}
+                  name="paymentMethodId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Select Payment Method</FormLabel>
+                      <FormControl>
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choose a payment method" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {paymentMethods.map((method) => (
+                              <SelectItem 
+                                key={method.paymentMethodId} 
+                                value={method.paymentMethodId.toString()}
+                              >
+                                <div className="flex items-center gap-3 w-full">
+                                  <div className="flex-shrink-0">
+                                   <div className="bg-blue-600 w-12 h-8 rounded flex items-center justify-center">
+            <span className="text-white font-bold text-xs">VISA</span>
+          </div>
+                                  </div>
+                                  <div className="flex-1">
+                                    <p className="font-medium text-sm">
+                                      {method.cardHolderName} **** {method.last4}
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                      Expires {method.expiryMonth}/{method.expiryYear}
+                                    </p>
+                                  </div>
                                 </div>
-                                <div>
-                                  <p className="font-medium text-sm">{method.name}</p>
-                                  <p className="text-xs text-gray-500">{method.description}</p>
-                                </div>
-                              </div>
-                              <RadioGroupItem 
-                                id={`payment-${method.id}`}
-                                value={method.id} 
-                                className="border-black data-[state=checked]:bg-black data-[state=checked]:border-black" 
-                              />
-                            </label>
-                          </div>
-                        ))}
-                      </RadioGroup>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               {/* Add Card Fields (toggle) */}
               <div className={showAddCard ? "block space-y-4" : "hidden"}>
                 <FormField
-                  control={checkoutForm.control}
+                  control={formControl}
                   name="nameOnCard"
                   render={({ field }) => (
                     <FormItem>
@@ -373,7 +440,7 @@ export default function CheckoutForm({ cartItems, shippingMethods, loading, onSu
                 />
 
                 <FormField
-                  control={checkoutForm.control}
+                  control={formControl}
                   name="cardNumber"
                   render={({ field }) => (
                     <FormItem>
@@ -396,7 +463,7 @@ export default function CheckoutForm({ cartItems, shippingMethods, loading, onSu
 
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
-                    control={checkoutForm.control}
+                    control={formControl}
                     name="validOn"
                     render={({ field }) => (
                       <FormItem>
@@ -417,7 +484,7 @@ export default function CheckoutForm({ cartItems, shippingMethods, loading, onSu
                     )}
                   />
                   <FormField
-                    control={checkoutForm.control}
+                    control={formControl}
                     name="cvvCode"
                     render={({ field }) => (
                       <FormItem>
@@ -430,12 +497,43 @@ export default function CheckoutForm({ cartItems, shippingMethods, loading, onSu
                     )}
                   />
                 </div>
+
+                <FormField
+                  control={formControl}
+                  name="saveCard"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>
+                          Save this card for future purchases
+                        </FormLabel>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
+                <Button 
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={handleAddNewCard}
+                  disabled={createPaymentMethodData.isLoading}
+                >
+                  {createPaymentMethodData.isLoading && <Spinner className="mr-2" />}
+                  Add Card
+                </Button>
               </div>
             </div>
 
             <Button 
               type="submit" 
-              disabled={loading}
+              disabled={loading || paymentMethodsData.isLoading}
               className="w-full bg-black hover:bg-gray-800 text-white py-6 text-lg font-semibold"
             >
               {loading && <Spinner />}
