@@ -16,6 +16,8 @@ import { CartItemPreview } from "@/types/domains/cart";
 import useDataFetch from "@/hooks/use-data-fetch";
 import * as paymentServices from "@/services/paymentMethod";
 import { toast } from "sonner";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Truck } from "lucide-react";
 
 const checkoutSchema = z.object({
    nameOnCard: z.string().min(1, "Name on card is required"),
@@ -569,6 +571,47 @@ export default function CheckoutForm({ cartItems, shippingMethods, loading, onSu
                </div>
             </div>
          </div>
+            <Card className="sticky top-8">
+              <CardHeader>
+                <CardTitle>Order Summary</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex justify-between">
+                  <span>Subtotal</span>
+                  <span>₹{totalAmount.toFixed(0)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Delivery Fee</span>
+                  <span>${deliveryFee}</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between text-lg font-semibold">
+                  <span>Total</span>
+                  <span>${billTotal.toFixed(1)}</span>
+                </div>
+
+                <div className="mt-6 p-4 bg-muted rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Truck className="h-4 w-4 text-primary" />
+                    <span className="font-medium">Estimated Delivery</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {getDeliveryEstimation()}
+                  </p>
+
+                  {getSelectedShippingMethod() && (
+                    <div className="mt-2 pt-2 border-t border-muted-foreground/20">
+                      <p className="text-xs text-muted-foreground">
+                        via {getSelectedShippingMethod()?.service}
+                      </p>
+                      <p className="text-xs font-medium">
+                        ₹{getSelectedShippingMethod()?.price}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
       </div>
    );
 }
