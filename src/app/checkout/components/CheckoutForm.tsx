@@ -22,31 +22,27 @@ import { CreditCard, Truck, MapPin, Home } from "lucide-react";
 
 const checkoutSchema = z.object({
    addressType: z.enum(["current", "custom"]),
-   shippingAddressId: z.number().optional(),
-   nameOnCard: z.string().min(1, "Name on card is required"),
-   cardNumber: z.string().min(16, "Card number must be at least 16 digits").max(19, "Card number is too long"),
-   validOn: z.string().min(5, "Valid date is required (MM/YY)"),
-   cvvCode: z.string().min(3, "CVV must be at least 3 digits").max(4, "CVV is too long"),
-   street: z.string().min(1, "Street address is required"),
-   city: z.string().min(1, "City is required"),
-   pincode: z.number().min(10000, "Pincode must be 5 digits").max(999999, "Invalid pincode"),
-   country: z.string().min(1, "Country is required"),
+   shippingAddress: z
+      .object({
+         street: z.string().min(1, "Street address is required"),
+         city: z.string().min(1, "City is required"),
+         pincode: z.number().min(10000, "Pincode must be 5 digits").max(999999, "Invalid pincode"),
+         country: z.string().min(1, "Country is required"),
+      })
+      .optional(),
+   paymentMethodId: z.string().optional(),
+   paymentMethod: z
+      .object({
+         cardNumber: z.string().length(4),
+         providerToken: z.string().min(1),
+         expiryMonth: z.string().min(1),
+         expiryYear: z.string().min(1),
+         isDefault: z.boolean().default(false),
+         cardHolderName: z.string().min(1, "Cardholder name is required"),
+         cvvCode: z.string().min(3, "CVV must be at least 3 digits").max(4, "CVV can't be more than 4 digits"),
+      })
+      .optional(),
    shippingMethodId: z.number().min(1, "Shipping method is required"),
-   items: z
-      .array(
-         z.object({
-            orderItemId: z.number(),
-            productVariantId: z.number(),
-            estimatedDeliveryDate: z.date(),
-            price: z.number().min(0),
-            shippingMethodId: z.number(),
-            quantity: z.number().min(1),
-            personalization: z.any().optional(),
-         })
-      )
-      .min(1, "At least one item is required"),
-   paymentMethodId: z.string().min(1, "Payment method is required"),
-   saveCard: z.boolean().default(false),
 });
 
 type FieldValues = z.infer<typeof checkoutSchema>;
@@ -57,13 +53,13 @@ interface CheckoutFormProps {
    cartItems: CartItemPreview[];
    shippingMethods: Record<number, ShippingMethod>;
    loading: boolean;
-   totalAmount: number;
+   subtotalAmount: number;
    onSubmit: (data: OrderCreatePayload) => void;
    paymentMethods: PaymentMethod[];
    paymentMethodsLoading: boolean;
    createPaymentMethodLoading: boolean;
    onAddPaymentMethod: (paymentMethod: PaymentMethodDTO) => Promise<PaymentMethod>;
-   currentAddress?: Address
+   currentAddress?: Address;
 }
 
 interface ShippingCalculationResult {
@@ -72,19 +68,18 @@ interface ShippingCalculationResult {
    totalShippingCharges: number;
 }
 
-export default function CheckoutForm({ 
-   cartItems, 
-   shippingMethods, 
-   loading, 
-   onSubmit, 
-   totalAmount, 
-   paymentMethods, 
-   paymentMethodsLoading, 
-   createPaymentMethodLoading, 
+export default function CheckoutForm({
+   cartItems,
+   shippingMethods,
+   loading,
+   onSubmit,
+   subtotalAmount,
+   paymentMethods,
+   paymentMethodsLoading,
+   createPaymentMethodLoading,
    onAddPaymentMethod,
-   currentAddress 
+   currentAddress,
 }: CheckoutFormProps) {
-   const [addressType, setAddressType] = useState<"current" | "custom">("current");
    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("");
    const [paymentTab, setPaymentTab] = useState<"select" | "custom">("select");
 
@@ -119,29 +114,14 @@ export default function CheckoutForm({
          totalShippingCharges,
       };
    }
-
+   const shippingSummary = calculateShippingSummary(cartItems, shippingMethods);
+   const taxesAndCharges = 0;
+   const shippingAmount = shippingSummary.totalShippingCharges;
+   const discount = 0;
+   const billTotal = subtotalAmount + taxesAndCharges + shippingAmount - discount;
    const defaultValues: Partial<FieldValues> = {
       addressType: "current",
-      shippingAddressId: currentAddress?.addressId || undefined,
-      nameOnCard: "",
-      cardNumber: "",
-      validOn: "",
-      cvvCode: "",
-      street: "",
-      city: "",
-      pincode: 0,
-      country: "",
-      items: cartItems.map((item, index) => ({
-         orderItemId: index + 1,
-         productVariantId: item.productVariantId,
-         estimatedDeliveryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-         price: item.price,
-         shippingMethodId: shippingMethods[0]?.shippingMethodId ?? 1,
-         quantity: item.quantity,
-         personalization: undefined,
-      })),
-      paymentMethodId: paymentMethods.length > 0 ? paymentMethods[0].paymentMethodId.toString() : "",
-      saveCard: false,
+      paymentMethodId: "",
    };
 
    const checkoutForm = useForm<FieldValues>({
@@ -156,12 +136,6 @@ export default function CheckoutForm({
          checkoutForm.setValue("paymentMethodId", paymentMethods[0].paymentMethodId.toString());
       }
    }, [paymentMethods, checkoutForm, selectedPaymentMethod]);
-
-   const shippingSummary = calculateShippingSummary(cartItems, shippingMethods);
-   const taxesAndCharges = totalAmount * 0.08;
-   const deliveryFee = shippingSummary.totalShippingCharges;
-   const discount = 0;
-   const billTotal = totalAmount + taxesAndCharges + deliveryFee - discount;
 
    const formatCardNumber = (value: string) => {
       const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "");
@@ -183,21 +157,27 @@ export default function CheckoutForm({
    const handleAddNewCard = async () => {
       const formData = checkoutForm.getValues();
 
-      if (!formData.nameOnCard || !formData.cardNumber || !formData.validOn || !formData.cvvCode) {
+      if (
+         !formData.paymentMethod?.cardHolderName ||
+         !formData.paymentMethod.cardNumber ||
+         !formData.paymentMethod.expiryMonth ||
+         !formData.paymentMethod.expiryMonth ||
+         !formData.paymentMethod.cvvCode
+      ) {
          toast.error("Please fill all card details");
          return;
       }
-
-      const [month, year] = formData.validOn.split("/");
-      const cardNumber = formData.cardNumber.replace(/\s/g, "");
+      const month = formData.paymentMethod.expiryMonth;
+      const year = formData.paymentMethod.expiryYear;
+      const cardNumber = formData.paymentMethod.cardNumber.replace(/\s/g, "");
 
       const newPaymentMethod: PaymentMethodDTO = {
          last4: cardNumber.slice(-4),
          providerToken: `token_${Date.now()}`,
          expiryMonth: month,
          expiryYear: year,
-         isDefault: formData.saveCard,
-         cardHolderName: formData.nameOnCard,
+         isDefault: formData.paymentMethod.isDefault || false,
+         cardHolderName: formData.paymentMethod.cardHolderName,
       };
 
       try {
@@ -206,10 +186,11 @@ export default function CheckoutForm({
          setSelectedPaymentMethod(createdMethod.paymentMethodId.toString());
          setPaymentTab("select");
 
-         checkoutForm.setValue("nameOnCard", "");
-         checkoutForm.setValue("cardNumber", "");
-         checkoutForm.setValue("validOn", "");
-         checkoutForm.setValue("cvvCode", "");
+         checkoutForm.setValue("paymentMethod.cardHolderName", "");
+         checkoutForm.setValue("paymentMethod.cardNumber", "");
+         checkoutForm.setValue("paymentMethod.cvvCode", "");
+         checkoutForm.setValue("paymentMethod.expiryMonth", "");
+         checkoutForm.setValue("paymentMethod.expiryYear", "");
       } catch (error) {
          // Error handled in parent
       }
@@ -225,44 +206,41 @@ export default function CheckoutForm({
                <form
                   onSubmit={checkoutForm.handleSubmit((data) => {
                      const orderPayload: OrderCreatePayload = {
-                        items: data.items.map((item) => ({
-                           orderItemId: item.orderItemId,
+                        items: cartItems.map((item) => ({
                            productVariantId: item.productVariantId,
-                           estimatedDeliveryDate: item.estimatedDeliveryDate,
-                           personalization: item.personalization,
                            price: item.price,
-                           shippingMethodId: item.shippingMethodId,
+                           shippingMethodId: shippingMethods[item.cartItemId]?.shippingMethodId,
                            quantity: item.quantity,
+                           personalization: undefined,
                         })),
-                        shippingAddressId: addressType === "current" ? (data.shippingAddressId || 0) : 0,
-                        shippingAddress: addressType === "custom" ? {
-                           street: data.street,
-                           city: data.city,
-                           pincode: data.pincode,
-                           country: data.country,
-                        } : undefined,
-                        paymentMethodId: parseInt(data.paymentMethodId),
+                        shippingAddressId: data.addressType === "current" ? currentAddress?.addressId : undefined,
+                        shippingAddress: data.addressType === "custom" ? data.shippingAddress : undefined,
+                        discountAmount: 0,
+                        taxAmount: taxesAndCharges,
+                        shippingAmount: shippingSummary.totalShippingCharges,
+                        subtotalAmount: subtotalAmount,
+                        totalAmount: billTotal,
+                        paymentMethodId: data.paymentMethodId ? parseInt(data.paymentMethodId) : undefined,
                      };
-                     onSubmit(orderPayload);
+                     console.log("Submitting order:", orderPayload);
+                     // onSubmit(orderPayload);
                   })}
                   className="space-y-6"
                >
-                  {/* Shipping Address Section */}
                   <div className="space-y-4">
                      <h3 className="text-lg font-semibold text-gray-700">Shipping Address</h3>
 
-                     <RadioGroup 
-                        value={addressType} 
+                     <RadioGroup
+                        value={checkoutForm.watch("addressType")}
                         onValueChange={(value: "current" | "custom") => {
-                           setAddressType(value);
                            checkoutForm.setValue("addressType", value);
                         }}
                         className="flex space-x-4"
                      >
-                        <Label 
-                           htmlFor="current" 
+                        <Label
+                           htmlFor="current"
                            className={`flex items-start space-x-3 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer flex-1 transition-colors ${
-                              addressType === "current" ? "border-black bg-gray-50" : "border-gray-200"
+                              checkoutForm.watch("addressType") === "current" ? "border-black bg-gray-50" : "border-gray-200"
                            }`}
                         >
                            <RadioGroupItem value="current" id="current" className="mt-1" />
@@ -273,11 +251,11 @@ export default function CheckoutForm({
                               </div>
                            </div>
                         </Label>
-                                                 
-                        <Label 
-                           htmlFor="custom" 
+
+                        <Label
+                           htmlFor="custom"
                            className={`flex items-start space-x-3 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer flex-1 transition-colors ${
-                              addressType === "custom" ? "border-black bg-gray-50" : "border-gray-200"
+                              checkoutForm.watch("addressType") === "custom" ? "border-black bg-gray-50" : "border-gray-200"
                            }`}
                         >
                            <RadioGroupItem value="custom" id="custom" className="mt-1" />
@@ -289,32 +267,27 @@ export default function CheckoutForm({
                            </div>
                         </Label>
                      </RadioGroup>
-                     
-                     {/* Current address shown below radio button */}
-                     {addressType === "current" && currentAddress && (
+
+                     {/* Current address display */}
+                     {checkoutForm.watch("addressType") === "current" && currentAddress && (
                         <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-4 rounded-lg border border-gray-200 shadow-sm">
-                           <div className="flex items-start gap-3">
-                              <div className="flex-shrink-0 mt-1">
-                                 <div className="w-1 h-8 bg-black rounded-full"></div>
-                              </div>
-                              <div>
-                                 <p className="font-medium text-gray-900 mb-1">Selected Address:</p>
-                                 <p className="text-sm text-gray-700 leading-relaxed">
-                                    {currentAddress.street}<br />
-                                    {currentAddress.city}, {currentAddress.pincode}<br />
-                                    {currentAddress.country}
-                                 </p>
-                              </div>
-                           </div>
+                           <p className="font-medium text-gray-900 mb-1">Selected Address:</p>
+                           <p className="text-sm text-gray-700 leading-relaxed">
+                              {currentAddress.street}
+                              <br />
+                              {currentAddress.city}, {currentAddress.pincode}
+                              <br />
+                              {currentAddress.country}
+                           </p>
                         </div>
                      )}
 
-                     {/* Custom Address Form - Only shown when custom is selected */}
-                     {addressType === "custom" && (
+                     {/* Custom address form */}
+                     {checkoutForm.watch("addressType") === "custom" && (
                         <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
                            <FormField
                               control={formControl}
-                              name="street"
+                              name="shippingAddress.street"
                               render={({ field }) => (
                                  <FormItem>
                                     <FormLabel>Street Address</FormLabel>
@@ -329,7 +302,7 @@ export default function CheckoutForm({
                            <div className="grid grid-cols-2 gap-4">
                               <FormField
                                  control={formControl}
-                                 name="city"
+                                 name="shippingAddress.city"
                                  render={({ field }) => (
                                     <FormItem>
                                        <FormLabel>City</FormLabel>
@@ -343,7 +316,7 @@ export default function CheckoutForm({
 
                               <FormField
                                  control={formControl}
-                                 name="pincode"
+                                 name="shippingAddress.pincode"
                                  render={({ field }) => (
                                     <FormItem>
                                        <FormLabel>Pincode</FormLabel>
@@ -363,7 +336,7 @@ export default function CheckoutForm({
 
                            <FormField
                               control={formControl}
-                              name="country"
+                              name="shippingAddress.country"
                               render={({ field }) => (
                                  <FormItem>
                                     <FormLabel>Country</FormLabel>
@@ -396,9 +369,10 @@ export default function CheckoutForm({
                      <Tabs value={paymentTab} onValueChange={(value) => setPaymentTab(value as "select" | "custom")}>
                         <TabsList className="grid w-full grid-cols-2">
                            <TabsTrigger value="select">Select Payment Method</TabsTrigger>
-                           <TabsTrigger value="custom">Custom Payment Method</TabsTrigger>
+                           <TabsTrigger value="custom">Add New Payment Method</TabsTrigger>
                         </TabsList>
 
+                        {/* Existing Payment Methods Tab */}
                         <TabsContent value="select" className="space-y-4">
                            {paymentMethodsLoading ? (
                               <div className="flex items-center justify-center p-8">
@@ -406,7 +380,7 @@ export default function CheckoutForm({
                                  <span className="ml-2">Loading payment methods...</span>
                               </div>
                            ) : (
-                              <RadioGroup 
+                              <RadioGroup
                                  value={selectedPaymentMethod}
                                  onValueChange={(value) => {
                                     setSelectedPaymentMethod(value);
@@ -420,39 +394,37 @@ export default function CheckoutForm({
                                        htmlFor={`payment-${method.paymentMethodId}`}
                                        className={`relative p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:shadow-md block ${
                                           selectedPaymentMethod === method.paymentMethodId.toString()
-                                             ? 'border-black bg-gray-50 shadow-md'
-                                             : 'border-gray-200 bg-white hover:border-gray-300'
+                                             ? "border-black bg-gray-50 shadow-md"
+                                             : "border-gray-200 bg-white hover:border-gray-300"
                                        }`}
                                     >
                                        <RadioGroupItem
                                           value={method.paymentMethodId.toString()}
                                           id={`payment-${method.paymentMethodId}`}
                                           className={`absolute right-4 top-4 ${
-                                             selectedPaymentMethod === method.paymentMethodId.toString()
-                                                ? 'border-black'
-                                                : ''
+                                             selectedPaymentMethod === method.paymentMethodId.toString() ? "border-black" : ""
                                           }`}
                                        />
-                                       
+
                                        <div className="flex items-center gap-4 pr-8">
-                                          <div className={`flex-shrink-0 p-2 rounded-lg ${
-                                             selectedPaymentMethod === method.paymentMethodId.toString()
-                                                ? 'bg-gray-200'
-                                                : 'bg-gray-100'
-                                          }`}>
-                                             <CreditCard className={`h-6 w-6 ${
+                                          <div
+                                             className={`flex-shrink-0 p-2 rounded-lg ${
                                                 selectedPaymentMethod === method.paymentMethodId.toString()
-                                                   ? 'text-black'
-                                                   : 'text-gray-600'
-                                             }`} />
+                                                   ? "bg-gray-200"
+                                                   : "bg-gray-100"
+                                             }`}
+                                          >
+                                             <CreditCard
+                                                className={`h-6 w-6 ${
+                                                   selectedPaymentMethod === method.paymentMethodId.toString()
+                                                      ? "text-black"
+                                                      : "text-gray-600"
+                                                }`}
+                                             />
                                           </div>
                                           <div className="flex-1">
-                                             <p className="font-semibold text-gray-900">
-                                                {method.cardHolderName}
-                                             </p>
-                                             <p className="text-sm text-gray-600 mt-1">
-                                                •••• •••• •••• {method.last4}
-                                             </p>
+                                             <p className="font-semibold text-gray-900">{method.cardHolderName}</p>
+                                             <p className="text-sm text-gray-600 mt-1">•••• •••• •••• {method.last4}</p>
                                              <p className="text-xs text-gray-500 mt-1">
                                                 Expires {method.expiryMonth}/{method.expiryYear}
                                              </p>
@@ -464,25 +436,22 @@ export default function CheckoutForm({
                            )}
                         </TabsContent>
 
+                        {/* Add New Payment Method Tab */}
                         <TabsContent value="custom" className="space-y-4 max-h-72 overflow-y-auto">
                            <div className="p-6 border rounded-xl bg-gradient-to-br from-gray-50 to-gray-100">
                               <div className="flex items-center gap-2 mb-4">
                                  <CreditCard className="h-5 w-5 text-gray-600" />
                                  <h4 className="font-medium text-gray-900">Add New Payment Method</h4>
                               </div>
-                              
+
                               <FormField
                                  control={formControl}
-                                 name="nameOnCard"
+                                 name="paymentMethod.cardHolderName"
                                  render={({ field }) => (
                                     <FormItem>
-                                       <FormLabel>Name On Card</FormLabel>
+                                       <FormLabel>Cardholder Name</FormLabel>
                                        <FormControl>
-                                          <Input 
-                                             placeholder="Harvey Olson" 
-                                             className="bg-white"
-                                             {...field} 
-                                          />
+                                          <Input placeholder="Harvey Olson" className="bg-white" {...field} />
                                        </FormControl>
                                        <FormMessage />
                                     </FormItem>
@@ -491,7 +460,7 @@ export default function CheckoutForm({
 
                               <FormField
                                  control={formControl}
-                                 name="cardNumber"
+                                 name="paymentMethod.cardNumber"
                                  render={({ field }) => (
                                     <FormItem className="mt-4">
                                        <FormLabel>Card Number</FormLabel>
@@ -512,24 +481,15 @@ export default function CheckoutForm({
                                  )}
                               />
 
-                              <div className="grid grid-cols-2 gap-4 mt-4">
+                              <div className="grid grid-cols-3 gap-4 mt-4">
                                  <FormField
                                     control={formControl}
-                                    name="validOn"
+                                    name="paymentMethod.expiryMonth"
                                     render={({ field }) => (
                                        <FormItem>
-                                          <FormLabel>Valid On</FormLabel>
+                                          <FormLabel>Expiry Month</FormLabel>
                                           <FormControl>
-                                             <Input
-                                                placeholder="04/24"
-                                                className="bg-white font-mono"
-                                                {...field}
-                                                onChange={(e) => {
-                                                   const formatted = formatValidOn(e.target.value);
-                                                   field.onChange(formatted);
-                                                }}
-                                                maxLength={5}
-                                             />
+                                             <Input placeholder="MM" className="bg-white font-mono" {...field} maxLength={2} />
                                           </FormControl>
                                           <FormMessage />
                                        </FormItem>
@@ -537,17 +497,30 @@ export default function CheckoutForm({
                                  />
                                  <FormField
                                     control={formControl}
-                                    name="cvvCode"
+                                    name="paymentMethod.expiryYear"
+                                    render={({ field }) => (
+                                       <FormItem>
+                                          <FormLabel>Expiry Year</FormLabel>
+                                          <FormControl>
+                                             <Input placeholder="YY" className="bg-white font-mono" {...field} maxLength={2} />
+                                          </FormControl>
+                                          <FormMessage />
+                                       </FormItem>
+                                    )}
+                                 />
+                                 <FormField
+                                    control={formControl}
+                                    name="paymentMethod.cvvCode"
                                     render={({ field }) => (
                                        <FormItem>
                                           <FormLabel>CVV Code</FormLabel>
                                           <FormControl>
-                                             <Input 
-                                                type="password" 
-                                                placeholder="***" 
+                                             <Input
+                                                type="password"
+                                                placeholder="***"
                                                 className="bg-white font-mono"
-                                                {...field} 
-                                                maxLength={4} 
+                                                {...field}
+                                                maxLength={4}
                                              />
                                           </FormControl>
                                           <FormMessage />
@@ -555,6 +528,25 @@ export default function CheckoutForm({
                                     )}
                                  />
                               </div>
+
+                              <FormField
+                                 control={formControl}
+                                 name="paymentMethod.isDefault"
+                                 render={({ field }) => (
+                                    <FormItem className="flex items-center space-x-2 mt-4">
+                                       <input
+                                          type="checkbox"
+                                          checked={field.value ?? false}
+                                          onChange={(e) => field.onChange(e.target.checked)}
+                                          id="isDefault"
+                                       />
+                                       <FormLabel htmlFor="isDefault" className="mb-0">
+                                          Set as default payment method
+                                       </FormLabel>
+                                       <FormMessage />
+                                    </FormItem>
+                                 )}
+                              />
 
                               <Button
                                  type="button"
@@ -586,38 +578,32 @@ export default function CheckoutForm({
 
          {/* Right Side Summary */}
          <div className="space-y-6">
-            
             <Card className="sticky top-20">
                <CardHeader>
                   <CardTitle className="text-lg font-semibold">Order Summary</CardTitle>
-                   <div className="mt-6 p-4 bg-muted rounded-lg">
+                  <div className="mt-6 p-4 bg-muted rounded-lg">
                      <div className="flex items-center gap-2 mb-2">
                         <Truck className="h-4 w-4 text-primary" />
                         <span className="font-medium">Estimated Delivery</span>
                      </div>
-                     <p className="text-sm text-muted-foreground">
-                        5-7 business days
-                     </p>
+                     <p className="text-sm text-muted-foreground">5-7 business days</p>
                   </div>
                </CardHeader>
-               
+
                <CardContent className="space-y-4">
-                  
                   <div className="flex justify-between">
                      <span>Subtotal</span>
-                     <span>${totalAmount.toFixed(0)}</span>
+                     <span>${subtotalAmount.toFixed(0)}</span>
                   </div>
                   <div className="flex justify-between">
                      <span>Delivery Fee</span>
-                     <span>${deliveryFee}</span>
+                     <span>${shippingAmount}</span>
                   </div>
                   <Separator />
                   <div className="flex justify-between text-lg font-semibold">
                      <span>Total</span>
                      <span>${billTotal.toFixed(1)}</span>
                   </div>
-
-                 
                </CardContent>
             </Card>
          </div>

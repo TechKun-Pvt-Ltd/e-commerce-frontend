@@ -28,14 +28,6 @@ export default function CheckoutPage() {
     const [shippingMethods, setShippingMethods] = useState<Record<number, ShippingMethod>>({});
     const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
 
-    // Mock current address - You should fetch this from your user service
-    const currentAddress = {
-        id: 1,
-        street: "123 Main Street",
-        city: "New York",
-        pincode: 10001,
-        country: "US"
-    };
 
     useEffect(() => {
         paymentMethodsData
@@ -110,7 +102,7 @@ export default function CheckoutPage() {
             <div className="container mx-auto">
                 <CheckoutForm
                     cartItems={cartItems}
-                    totalAmount={totalAmount}
+                    subtotalAmount={totalAmount}
                     shippingMethods={shippingMethods}
                     loading={createOrderData.isLoading}
                     onSubmit={handleOrderSubmit}

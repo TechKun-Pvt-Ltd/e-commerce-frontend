@@ -7,16 +7,19 @@ import { CustomerContact, ShopUser } from "./user";
 
 export interface OrderCreatePayload {
     items: OrderItemDTO[];
-    shippingAddressId: number;
-    shippingAddress: AddressDTO;
-    paymentMethodId: number;
+    shippingAddressId?: number;
+    shippingAddress?: AddressDTO;
+    paymentMethodId?: number;
+    subtotalAmount: number
+    shippingAmount: number;
+    taxAmount?: number;
+    discountAmount?: number;
+    totalAmount: number;
 }
 
 export interface OrderItemDTO {
-    orderItemId: number;
     productVariantId: number;
-    estimatedDeliveryDate: Date;
-    personalization: Personalization;
+    personalization?: Personalization;
     price: number;
     shippingMethodId: number;
     quantity: number;
