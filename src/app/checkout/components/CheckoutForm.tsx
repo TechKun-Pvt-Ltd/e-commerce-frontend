@@ -244,11 +244,11 @@ export default function CheckoutForm({
          shippingAddress:
             data.addressType === "custom" && data.shippingAddress
                ? {
-                    street: data.shippingAddress.street ?? "",
-                    city: data.shippingAddress.city ?? "",
-                    pincode: Number(data.shippingAddress.pincode),
-                    country: data.shippingAddress.country ?? "",
-                 }
+                  street: data.shippingAddress.street ?? "",
+                  city: data.shippingAddress.city ?? "",
+                  pincode: Number(data.shippingAddress.pincode),
+                  country: data.shippingAddress.country ?? "",
+               }
                : undefined,
          discountAmount: 0,
          taxAmount: taxesAndCharges,
@@ -281,13 +281,12 @@ export default function CheckoutForm({
                      >
                         <Label
                            htmlFor="current"
-                           className={`flex items-start space-x-3 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer flex-1 transition-colors ${
-                              checkoutForm.watch("addressType") === "current" ? "border-black bg-gray-50" : "border-gray-200"
-                           }`}
+                           className={`flex items-center justify-center space-x-3 p-4 border rounded-lg bg-white hover:bg-gray-50 cursor-pointer flex-1 transition-colors ${checkoutForm.watch("addressType") === "current" ? "border-black bg-gray-50" : "border-gray-200"
+                              }`}
                         >
-                           <RadioGroupItem value="current" id="current" className="mt-1" />
+                           <RadioGroupItem value="current" id="current" />
                            <div className="flex-1">
-                              <div className="flex items-center gap-2 font-medium mb-1">
+                              <div className="flex items-center gap-2 font-medium ">
                                  <Home className="h-4 w-4" />
                                  Current Address
                               </div>
@@ -296,11 +295,10 @@ export default function CheckoutForm({
 
                         <Label
                            htmlFor="custom"
-                           className={`flex items-start space-x-3 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer flex-1 transition-colors ${
-                              checkoutForm.watch("addressType") === "custom" ? "border-black bg-gray-50" : "border-gray-200"
-                           }`}
+                           className={`flex items-center justify-center space-x-3 p-4 border rounded-lg bg-white hover:bg-gray-50 cursor-pointer flex-1 transition-colors ${checkoutForm.watch("addressType") === "custom" ? "border-black bg-gray-50" : "border-gray-200"
+                              }`}
                         >
-                           <RadioGroupItem value="custom" id="custom" className="mt-1" />
+                           <RadioGroupItem value="custom" id="custom" />
                            <div className="flex-1">
                               <div className="flex items-center gap-2 font-medium">
                                  <MapPin className="h-4 w-4" />
@@ -312,21 +310,18 @@ export default function CheckoutForm({
 
                      {/* Current address display */}
                      {checkoutForm.watch("addressType") === "current" && currentAddress && (
-                        <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-4 rounded-lg border border-gray-200 shadow-sm">
-                           <p className="font-medium text-gray-900 mb-1">Selected Address:</p>
-                           <p className="text-sm text-gray-700 leading-relaxed">
-                              {currentAddress.street}
-                              <br />
-                              {currentAddress.city}, {currentAddress.pincode}
-                              <br />
-                              {currentAddress.country}
-                           </p>
+                        <div className="flex items-center gap-2 p-4  bg-white rounded-lg border border-gray-200 ">
+                           <span className="font-medium text-gray-900 ">Selected Address:
+                           </span>
+                              <span className="text-sm text-gray-700">
+                                 {currentAddress.street} {currentAddress.city}, {currentAddress.pincode} {currentAddress.country}
+                              </span>
                         </div>
                      )}
 
                      {/* Custom address form */}
                      {checkoutForm.watch("addressType") === "custom" && (
-                        <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
+                        <div className="space-y-4 p-4 border rounded-lg shadow-sm bg-white">
                            <FormField
                               control={formControl}
                               name="shippingAddress.street"
@@ -409,7 +404,7 @@ export default function CheckoutForm({
                      <h3 className="text-lg font-semibold text-gray-700">Choose how to pay</h3>
 
                      <Tabs value={paymentTab} onValueChange={(value) => setPaymentTab(value as "select" | "custom")}>
-                        <TabsList className="grid w-full grid-cols-2">
+                        <TabsList className="grid w-full mb-5 grid-cols-2">
                            <TabsTrigger value="select">Select Payment Method</TabsTrigger>
                            <TabsTrigger value="custom">Add New Payment Method</TabsTrigger>
                         </TabsList>
@@ -428,40 +423,36 @@ export default function CheckoutForm({
                                     setSelectedPaymentMethod(value);
                                     checkoutForm.setValue("paymentMethodId", value);
                                  }}
-                                 className="space-y-4 max-h-72 overflow-y-auto"
+                                 className="space-y-4  h-82 overflow-y-auto"
                               >
                                  {paymentMethods.map((method) => (
                                     <Label
                                        key={method.paymentMethodId}
                                        htmlFor={`payment-${method.paymentMethodId}`}
-                                       className={`relative p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:shadow-md block ${
-                                          selectedPaymentMethod === method.paymentMethodId.toString()
-                                             ? "border-black bg-gray-50 shadow-md"
-                                             : "border-gray-200 bg-white hover:border-gray-300"
-                                       }`}
+                                       className={`relative p-4 border rounded-xl cursor-pointer transition-all duration-200 hover:shadow-md block ${selectedPaymentMethod === method.paymentMethodId.toString()
+                                          ? "border-black  shadow-md"
+                                          : "border-gray-200  hover:border-gray-300"
+                                          }`}
                                     >
                                        <RadioGroupItem
                                           value={method.paymentMethodId.toString()}
                                           id={`payment-${method.paymentMethodId}`}
-                                          className={`absolute right-4 top-4 ${
-                                             selectedPaymentMethod === method.paymentMethodId.toString() ? "border-black" : ""
-                                          }`}
+                                          className={`absolute right-4 top-4 ${selectedPaymentMethod === method.paymentMethodId.toString() ? "border-black" : ""
+                                             }`}
                                        />
 
                                        <div className="flex items-center gap-4 pr-8">
                                           <div
-                                             className={`flex-shrink-0 p-2 rounded-lg ${
-                                                selectedPaymentMethod === method.paymentMethodId.toString()
-                                                   ? "bg-gray-200"
-                                                   : "bg-gray-100"
-                                             }`}
+                                             className={`flex-shrink-0 p-2 rounded-lg ${selectedPaymentMethod === method.paymentMethodId.toString()
+                                                ? "bg-gray-200"
+                                                : "bg-gray-100"
+                                                }`}
                                           >
                                              <CreditCard
-                                                className={`h-6 w-6 ${
-                                                   selectedPaymentMethod === method.paymentMethodId.toString()
-                                                      ? "text-black"
-                                                      : "text-gray-600"
-                                                }`}
+                                                className={`h-6 w-6 ${selectedPaymentMethod === method.paymentMethodId.toString()
+                                                   ? "text-black"
+                                                   : "text-gray-600"
+                                                   }`}
                                              />
                                           </div>
                                           <div className="flex-1">
@@ -479,8 +470,8 @@ export default function CheckoutForm({
                         </TabsContent>
 
                         {/* Add New Payment Method Tab */}
-                        <TabsContent value="custom" className="space-y-4 max-h-72 overflow-y-auto">
-                           <div className="p-6 border rounded-xl bg-gradient-to-br from-gray-50 to-gray-100">
+                        <TabsContent value="custom" className="space-y-4 ">
+                           <div className="p-6 border rounded-xl shadow-sm bg-white">
                               <div className="flex items-center gap-2 mb-4">
                                  <CreditCard className="h-5 w-5 text-gray-600" />
                                  <h4 className="font-medium text-gray-900">Add New Payment Method</h4>
@@ -571,24 +562,6 @@ export default function CheckoutForm({
                                  />
                               </div>
 
-                              <FormField
-                                 control={formControl}
-                                 name="paymentMethod.isDefault"
-                                 render={({ field }) => (
-                                    <FormItem className="flex items-center space-x-2 mt-4">
-                                       <input
-                                          type="checkbox"
-                                          checked={field.value ?? false}
-                                          onChange={(e) => field.onChange(e.target.checked)}
-                                          id="isDefault"
-                                       />
-                                       <FormLabel htmlFor="isDefault" className="mb-0">
-                                          Set as default payment method
-                                       </FormLabel>
-                                       <FormMessage />
-                                    </FormItem>
-                                 )}
-                              />
 
                               <Button
                                  type="button"
