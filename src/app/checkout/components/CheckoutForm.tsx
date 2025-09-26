@@ -17,7 +17,7 @@ import { z } from "zod";
 import { CartItemPreview } from "@/types/domains/cart";
 import { Address } from "@/types/domains/address";
 import { toast } from "sonner";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { CreditCard, Truck, MapPin, Home } from "lucide-react";
 
 const checkoutSchema = z.object({
@@ -262,13 +262,13 @@ export default function CheckoutForm({
    };
 
    return (
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-         {/* Left Side */}
-         <div className="lg:col-span-2 space-y-6">
-            <h1 className="text-3xl font-bold text-gray-900">Checkout</h1>
+      <Form {...checkoutForm}>
+         <form onSubmit={checkoutForm.handleSubmit(handleCheckoutSubmit)} className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+               {/* Left Side */}
+               <div className="lg:col-span-2 space-y-6">
+                  <h1 className="text-3xl font-bold text-gray-900">Checkout</h1>
 
-            <Form {...checkoutForm}>
-               <form onSubmit={checkoutForm.handleSubmit(handleCheckoutSubmit)} className="space-y-6">
                   <div className="space-y-4">
                      <h3 className="text-lg font-semibold text-gray-700">Shipping Address</h3>
 
@@ -605,50 +605,51 @@ export default function CheckoutForm({
                         </TabsContent>
                      </Tabs>
                   </div>
+               </div>
 
-                  <Button
-                     type="submit"
-                     disabled={loading || paymentMethodsLoading}
-                     className="w-full bg-black hover:bg-gray-800 text-white py-6 text-lg font-semibold rounded-xl transition-colors"
-                  >
-                     {loading && <Spinner className="mr-2" />}
-                     Pay ${billTotal.toFixed(2)}
-                  </Button>
-               </form>
-            </Form>
-         </div>
+               {/* Right Side Summary */}
+               <div className="space-y-6">
+                  <Card className="sticky top-20">
+                     <CardHeader>
+                        <CardTitle className="text-lg font-semibold">Order Summary</CardTitle>
+                        <div className="mt-6 p-4 bg-muted rounded-lg">
+                           <div className="flex items-center gap-2 mb-2">
+                              <Truck className="h-4 w-4 text-primary" />
+                              <span className="font-medium">Estimated Delivery</span>
+                           </div>
+                           <p className="text-sm text-muted-foreground">5-7 business days</p>
+                        </div>
+                     </CardHeader>
 
-         {/* Right Side Summary */}
-         <div className="space-y-6">
-            <Card className="sticky top-20">
-               <CardHeader>
-                  <CardTitle className="text-lg font-semibold">Order Summary</CardTitle>
-                  <div className="mt-6 p-4 bg-muted rounded-lg">
-                     <div className="flex items-center gap-2 mb-2">
-                        <Truck className="h-4 w-4 text-primary" />
-                        <span className="font-medium">Estimated Delivery</span>
-                     </div>
-                     <p className="text-sm text-muted-foreground">5-7 business days</p>
-                  </div>
-               </CardHeader>
-
-               <CardContent className="space-y-4">
-                  <div className="flex justify-between">
-                     <span>Subtotal</span>
-                     <span>${subtotalAmount.toFixed(0)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                     <span>Delivery Fee</span>
-                     <span>${shippingAmount}</span>
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between text-lg font-semibold">
-                     <span>Total</span>
-                     <span>${billTotal.toFixed(1)}</span>
-                  </div>
-               </CardContent>
-            </Card>
-         </div>
-      </div>
+                     <CardContent className="space-y-4">
+                        <div className="flex justify-between">
+                           <span>Subtotal</span>
+                           <span>${subtotalAmount.toFixed(0)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                           <span>Delivery Fee</span>
+                           <span>${shippingAmount}</span>
+                        </div>
+                        <Separator />
+                        <div className="flex justify-between text-lg font-semibold">
+                           <span>Total</span>
+                           <span>${billTotal.toFixed(1)}</span>
+                        </div>
+                     </CardContent>
+                     <CardFooter>
+                        <Button
+                           type="submit"
+                           disabled={loading || paymentMethodsLoading}
+                           className="w-full bg-black hover:bg-gray-800 text-white py-6 text-lg font-semibold rounded-xl transition-colors"
+                        >
+                           {loading && <Spinner className="mr-2" />}
+                           Pay ${billTotal.toFixed(2)}
+                        </Button>
+                     </CardFooter>
+                  </Card>
+               </div>
+            </div>
+         </form>
+      </Form>
    );
 }
