@@ -313,9 +313,9 @@ export default function CheckoutForm({
                         <div className="flex items-center gap-2 p-4  bg-white rounded-lg border border-gray-200 ">
                            <span className="font-medium text-gray-900 ">Selected Address:
                            </span>
-                              <span className="text-sm text-gray-700">
-                                 {currentAddress.street} {currentAddress.city}, {currentAddress.pincode} {currentAddress.country}
-                              </span>
+                           <span className="text-sm text-gray-700">
+                              {currentAddress.street} {currentAddress.city}, {currentAddress.pincode} {currentAddress.country}
+                           </span>
                         </div>
                      )}
 
@@ -329,7 +329,7 @@ export default function CheckoutForm({
                                  <FormItem>
                                     <FormLabel>Street Address</FormLabel>
                                     <FormControl>
-                                       <Input placeholder="4864 Layman Avenue" {...field} />
+                                       <Input placeholder="Enter your street address" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                  </FormItem>
@@ -344,7 +344,7 @@ export default function CheckoutForm({
                                     <FormItem>
                                        <FormLabel>City</FormLabel>
                                        <FormControl>
-                                          <Input placeholder="Fayetteville" {...field} />
+                                          <Input placeholder="Enter city" {...field} />
                                        </FormControl>
                                        <FormMessage />
                                     </FormItem>
@@ -360,7 +360,7 @@ export default function CheckoutForm({
                                        <FormControl>
                                           <Input
                                              type="number"
-                                             placeholder="28314"
+                                             placeholder="Enter pincode"
                                              {...field}
                                              onChange={(e) => field.onChange(e.target.value)}
                                           />
@@ -484,7 +484,7 @@ export default function CheckoutForm({
                                     <FormItem>
                                        <FormLabel>Cardholder Name</FormLabel>
                                        <FormControl>
-                                          <Input placeholder="Harvey Olson" className="bg-white" {...field} />
+                                          <Input placeholder="Enter cardholder name" className="bg-white" {...field} />
                                        </FormControl>
                                        <FormMessage />
                                     </FormItem>
@@ -499,7 +499,7 @@ export default function CheckoutForm({
                                        <FormLabel>Card Number</FormLabel>
                                        <FormControl>
                                           <Input
-                                             placeholder="3787 3449 3626 0712"
+                                             placeholder="•••• •••• •••• ••••"
                                              className="bg-white font-mono"
                                              {...field}
                                              onChange={(e) => {
@@ -550,7 +550,7 @@ export default function CheckoutForm({
                                           <FormControl>
                                              <Input
                                                 type="password"
-                                                placeholder="***"
+                                                placeholder="•••"
                                                 className="bg-white font-mono"
                                                 {...field}
                                                 maxLength={4}
