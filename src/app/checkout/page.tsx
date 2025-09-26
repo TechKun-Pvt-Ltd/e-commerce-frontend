@@ -1,22 +1,23 @@
 "use client";
 
-import React, { use, useCallback, useEffect, useState } from "react";
-import CheckoutForm from "./components/CheckoutForm";
-import { OrderCreatePayload } from "@/types/domains/order";
-import { ProductPreview } from "@/types/domains/product";
-import { ShippingMethod } from "@/types/domains/shipping_method";
-import { PaymentMethod, PaymentMethodDTO } from "@/types/domains/payment_method";
+import useDataFetch from "@/hooks/use-data-fetch";
+import * as paymentServices from "@/services/paymentMethod";
 import * as shippingServices from "@/services/shippingMethod";
 import * as orderServices from "@/services/shopOrder";
-import * as paymentServices from "@/services/paymentMethod";
-import useDataFetch from "@/hooks/use-data-fetch";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import { useAppSelector } from "@/store/hooks";
+import { OrderCreatePayload } from "@/types/domains/order";
+import { PaymentMethod, PaymentMethodDTO } from "@/types/domains/payment_method";
+import { ShippingMethod } from "@/types/domains/shipping_method";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
+import CheckoutForm from "./components/CheckoutForm";
+
+const shippingMethodsMap: Record<number, ShippingMethod> = {};
 
 export default function CheckoutPage() {
    const router = useRouter();
-   const { items: cartItems, totalAmount, totalItems } = useAppSelector((state) => state.cart);
+   const { items: cartItems, totalAmount } = useAppSelector((state) => state.cart);
    const { user } = useAppSelector((state) => state.auth);
    const createOrderData = useDataFetch(orderServices.createOrder);
    const getShippingMethodByVariant = useDataFetch(shippingServices.getShippingMethodByVariantId);
@@ -25,27 +26,14 @@ export default function CheckoutPage() {
    const paymentMethodsData = useDataFetch(paymentServices.getAllPaymentMethods);
    const createPaymentMethodData = useDataFetch(paymentServices.createPaymentMethod);
 
-   const [shippingMethods, setShippingMethods] = useState<Record<number, ShippingMethod>>({});
    const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
 
    useEffect(() => {
-      paymentMethodsData
-         .request()
-         .onSuccess((data) => {
-            setPaymentMethods(data || []);
-         })
-         .onError((error) => {
-            console.error("Failed to load payment methods:", error);
-            toast.error("Failed to load payment methods");
-         });
       const fetchShippingMethods = async () => {
          for (const item of cartItems) {
             try {
                getShippingMethodByVariant.request(item.productVariantId).onSuccess((shippingMethod) => {
-                  setShippingMethods((prev) => ({
-                     ...prev,
-                     [item.cartItemId]: shippingMethod,
-                  }));
+                  shippingMethodsMap[item.cartItemId] = shippingMethod;
                });
             } catch (error) {
                console.error(`Failed to fetch shipping method for variant ${item.productVariantId}:`, error);
@@ -57,6 +45,18 @@ export default function CheckoutPage() {
          fetchShippingMethods();
       }
    }, [cartItems]);
+
+   useEffect(() => {
+      paymentMethodsData
+         .request()
+         .onSuccess((data) => {
+            setPaymentMethods(data || []);
+         })
+         .onError((error) => {
+            console.error("Failed to load payment methods:", error);
+            toast.error("Failed to load payment methods");
+         });
+   }, []);
 
    const handleOrderSubmit = useCallback(
       (orderData: OrderCreatePayload) => {
@@ -101,7 +101,7 @@ export default function CheckoutPage() {
             <CheckoutForm
                cartItems={cartItems}
                subtotalAmount={totalAmount}
-               shippingMethods={shippingMethods}
+               shippingMethods={shippingMethodsMap}
                loading={createOrderData.isLoading}
                onSubmit={handleOrderSubmit}
                paymentMethods={paymentMethods}
