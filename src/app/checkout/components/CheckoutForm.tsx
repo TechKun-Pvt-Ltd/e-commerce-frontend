@@ -26,7 +26,7 @@ const checkoutSchema = z.object({
       .object({
          street: z.string().min(1, "Street address is required"),
          city: z.string().min(1, "City is required"),
-         pincode: z.number().min(10000, "Pincode must be 5 digits").max(999999, "Invalid pincode"),
+         pincode: z.string().min(1, "Pincode is required"),
          country: z.string().min(1, "Country is required"),
       })
       .optional(),
@@ -121,6 +121,12 @@ export default function CheckoutForm({
    const billTotal = subtotalAmount + taxesAndCharges + shippingAmount - discount;
    const defaultValues: Partial<FieldValues> = {
       addressType: "current",
+      shippingAddress: {
+         street: "",
+         city: "",
+         pincode: "",
+         country: "",
+      },
       paymentMethodId: "",
    };
 
@@ -196,6 +202,65 @@ export default function CheckoutForm({
       }
    };
 
+   // Handle checkout form submit
+   const handleCheckoutSubmit = (data: FieldValues) => {
+      // Validate custom shipping address fields if addressType is "custom"
+      if (data.addressType === "custom") {
+         const shipping = data.shippingAddress;
+         const missingFields: string[] = [];
+         if (!shipping?.street || shipping.street.trim() === "") {
+            missingFields.push("Street");
+         }
+         if (!shipping?.city || shipping.city.trim() === "") {
+            missingFields.push("City");
+         }
+         if (
+            shipping?.pincode === undefined ||
+            shipping.pincode === null ||
+            isNaN(Number(shipping.pincode)) ||
+            Number(shipping.pincode) < 10000 ||
+            Number(shipping.pincode) > 999999
+         ) {
+            missingFields.push("Pincode");
+         }
+         if (!shipping?.country || shipping.country.trim() === "") {
+            missingFields.push("Country");
+         }
+         if (missingFields.length > 0) {
+            toast.error(`Please fill the following fields: ${missingFields.join(", ")}`);
+            return;
+         }
+      }
+
+      const orderPayload: OrderCreatePayload = {
+         items: cartItems.map((item) => ({
+            productVariantId: item.productVariantId,
+            price: item.price,
+            shippingMethodId: shippingMethods[item.cartItemId]?.shippingMethodId,
+            quantity: item.quantity,
+            personalization: undefined,
+         })),
+         shippingAddressId: data.addressType === "current" ? currentAddress?.addressId : undefined,
+         shippingAddress:
+            data.addressType === "custom" && data.shippingAddress
+               ? {
+                    street: data.shippingAddress.street ?? "",
+                    city: data.shippingAddress.city ?? "",
+                    pincode: Number(data.shippingAddress.pincode),
+                    country: data.shippingAddress.country ?? "",
+                 }
+               : undefined,
+         discountAmount: 0,
+         taxAmount: taxesAndCharges,
+         shippingAmount: shippingSummary.totalShippingCharges,
+         subtotalAmount: subtotalAmount,
+         totalAmount: billTotal,
+         paymentMethodId: data.paymentMethodId ? parseInt(data.paymentMethodId) : undefined,
+      };
+      console.log("Submitting order:", orderPayload);
+      onSubmit(orderPayload);
+   };
+
    return (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
          {/* Left Side */}
@@ -203,30 +268,7 @@ export default function CheckoutForm({
             <h1 className="text-3xl font-bold text-gray-900">Checkout</h1>
 
             <Form {...checkoutForm}>
-               <form
-                  onSubmit={checkoutForm.handleSubmit((data) => {
-                     const orderPayload: OrderCreatePayload = {
-                        items: cartItems.map((item) => ({
-                           productVariantId: item.productVariantId,
-                           price: item.price,
-                           shippingMethodId: shippingMethods[item.cartItemId]?.shippingMethodId,
-                           quantity: item.quantity,
-                           personalization: undefined,
-                        })),
-                        shippingAddressId: data.addressType === "current" ? currentAddress?.addressId : undefined,
-                        shippingAddress: data.addressType === "custom" ? data.shippingAddress : undefined,
-                        discountAmount: 0,
-                        taxAmount: taxesAndCharges,
-                        shippingAmount: shippingSummary.totalShippingCharges,
-                        subtotalAmount: subtotalAmount,
-                        totalAmount: billTotal,
-                        paymentMethodId: data.paymentMethodId ? parseInt(data.paymentMethodId) : undefined,
-                     };
-                     console.log("Submitting order:", orderPayload);
-                     // onSubmit(orderPayload);
-                  })}
-                  className="space-y-6"
-               >
+               <form onSubmit={checkoutForm.handleSubmit(handleCheckoutSubmit)} className="space-y-6">
                   <div className="space-y-4">
                      <h3 className="text-lg font-semibold text-gray-700">Shipping Address</h3>
 
@@ -325,7 +367,7 @@ export default function CheckoutForm({
                                              type="number"
                                              placeholder="28314"
                                              {...field}
-                                             onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                                             onChange={(e) => field.onChange(e.target.value)}
                                           />
                                        </FormControl>
                                        <FormMessage />
