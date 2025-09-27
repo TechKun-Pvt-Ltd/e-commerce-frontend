@@ -8,6 +8,7 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { CartItemPreview } from "@/types/domains/cart";
 import { updateCart } from "@/store/slices/cartSlice";
 import placeholderImage from "@/../public/placeholder-image.jpeg";
+import Link from "next/link";
 
 const mockCartItems: CartItemPreview[] = [
    {
@@ -96,11 +97,10 @@ export default function CartToast() {
             {cartItems.map((item, i) => (
                <li
                   key={item.cartItemId}
-                  className={`w-full ${
-                     i === exitAnimationIndex
+                  className={`w-full ${i === exitAnimationIndex
                         ? "animate-out zoom-out-95 fade-out-0 duration-300"
                         : "animate-in zoom-in-95 fade-in-0 slide-in-from-top-2 duration-500"
-                  } flex items-center justify-between py-4`}
+                     } flex items-center justify-between py-4`}
                   onAnimationEnd={(animationEvent) => {
                      if (animationEvent.animationName !== "exit") return;
 
@@ -168,12 +168,16 @@ export default function CartToast() {
                <div className="text-lg text-right">{formatter.format(totalAmount)}</div>
             </div>
             <div className="flex gap-2">
-               <Button className="flex-1" variant="outline" size="sm">
-                  Go to Cart
-               </Button>
-               <Button className="flex-1" variant="default" size="sm">
-                  Place Order
-               </Button>
+               <Link href={"/cart"}  className="flex-1" >
+                  <Button  className="w-full" variant="outline" size="sm">
+                     Go to Cart
+                  </Button>
+               </Link>
+               <Link href={"/checkout"} className="flex-1" >
+                  <Button className="w-full" variant="default" size="sm">
+                     Place Order
+                  </Button>
+               </Link>
             </div>
          </div>
       </div>
