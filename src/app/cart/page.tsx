@@ -7,6 +7,7 @@ import OrderSuccessModal from "../checkout/components/OrderSuccessModal";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchCartItems, updateCartItemAsync, removeFromCartAsync } from "@/store/slices/cartSlice";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const CartPage = () => {
    const dispatch = useAppDispatch();
@@ -60,12 +61,14 @@ const CartPage = () => {
             <div className="lg:w-1/3">
                <CartSummary items={cartItems} />
                <ShippingCalculator />
-               <button
-                  onClick={handleOrderPlacement}
-                  className="w-full bg-black text-white py-3 px-4 rounded-lg mt-4 hover:bg-gray-800 transition-colors"
-               >
-                  Proceed to Checkout
-               </button>
+               <Link href={"/checkout"} >
+                  <button
+                     onClick={handleOrderPlacement}
+                     className="w-full bg-black text-white py-3 px-4 rounded-lg mt-4 hover:bg-gray-800 transition-colors"
+                  >
+                     Proceed to Checkout
+                  </button>
+               </Link>
             </div>
          </div>
 

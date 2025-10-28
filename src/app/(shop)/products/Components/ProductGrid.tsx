@@ -14,15 +14,49 @@ import FilterSidebar from "./FilterSidebar";
 import useDataFetch from "@/hooks/use-data-fetch";
 import * as productServices from "@/services/product";
 import { ProductQueryOptions } from "@/types/domains/product";
+import { CategoryTree } from "@/types/domains/category";
 
-const ProductGrid = () => {
+interface ProductGridProps {
+   categories: CategoryTree[];
+}
+
+const ProductGrid = ({ categories }: ProductGridProps) => {
    const productsData = useDataFetch(productServices.getAllProducts);
    const [gridColumns, setGridColumns] = useState(4);
-   const filters: ProductQueryOptions = {};
+   const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
+   const [currentCategory, setCurrentCategory] = useState<CategoryTree | null>(null);
+
    useEffect(() => {
+      const filters: ProductQueryOptions = {};
+      if (selectedCategoryIds.length > 0) {
+         // Use first selected category for filtering (can be extended to multiple)
+         filters.categoryId = selectedCategoryIds[0];
+      }
       productsData.request(filters);
-   }, []);
-   console.log(productsData.data);
+   }, [selectedCategoryIds]);
+
+   const handleCategoryChange = (categoryIds: number[]) => {
+      setSelectedCategoryIds(categoryIds);
+      // Set current category for breadcrumbs
+      if (categoryIds.length > 0) {
+         const foundCategory = findCategoryById(categories, categoryIds[0]);
+         setCurrentCategory(foundCategory || null);
+      } else {
+         setCurrentCategory(null);
+      }
+   };
+
+   const findCategoryById = (cats: CategoryTree[], id: number): CategoryTree | null => {
+      for (const cat of cats) {
+         if (cat.categoryId === id) return cat;
+         if (cat.subcategories && cat.subcategories.length > 0) {
+            const found = findCategoryById(cat.subcategories, id);
+            if (found) return found;
+         }
+      }
+      return null;
+   };
+
 
    const getGridClass = () => {
       switch (gridColumns) {
@@ -48,17 +82,21 @@ const ProductGrid = () => {
                         Home
                      </BreadcrumbLink>
                   </BreadcrumbItem>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                     <BreadcrumbPage>Clothes</BreadcrumbPage>
-                  </BreadcrumbItem>
+                  {(currentCategory || selectedCategoryIds.length > 0) && (
+                     <>
+                        <BreadcrumbSeparator />
+                        <BreadcrumbItem>
+                           <BreadcrumbPage>{currentCategory?.name || "Products"}</BreadcrumbPage>
+                        </BreadcrumbItem>
+                     </>
+                  )}
                </BreadcrumbList>
             </Breadcrumb>
 
             <div className="flex gap-6">
                {/* Sidebar */}
                <aside className="flex-shrink-0">
-                  <FilterSidebar />
+                  <FilterSidebar categories={categories} onCategoryChange={handleCategoryChange} />
                </aside>
 
                <main className="flex-1">
@@ -68,9 +106,8 @@ const ProductGrid = () => {
                         {/* 2 columns */}
                         <button
                            onClick={() => setGridColumns(2)}
-                           className={`cursor-pointer transition-colors duration-300 ${
-                              gridColumns === 2 ? "text-gray-900" : "text-gray-300 hover:text-gray-600"
-                           }`}
+                           className={`cursor-pointer transition-colors duration-300 ${gridColumns === 2 ? "text-gray-900" : "text-gray-300 hover:text-gray-600"
+                              }`}
                         >
                            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 17 18" fill="none">
                               <rect width="8" height="8" rx="2" fill="currentColor"></rect>
@@ -83,9 +120,8 @@ const ProductGrid = () => {
                         {/* 3 columns */}
                         <button
                            onClick={() => setGridColumns(3)}
-                           className={`cursor-pointer transition-colors duration-300 ${
-                              gridColumns === 3 ? "text-gray-900" : "text-gray-300 hover:text-gray-600"
-                           }`}
+                           className={`cursor-pointer transition-colors duration-300 ${gridColumns === 3 ? "text-gray-900" : "text-gray-300 hover:text-gray-600"
+                              }`}
                         >
                            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="17" viewBox="0 0 26 18" fill="none">
                               <rect width="8" height="8" rx="2" fill="currentColor"></rect>
@@ -100,9 +136,8 @@ const ProductGrid = () => {
                         {/* 4 columns */}
                         <button
                            onClick={() => setGridColumns(4)}
-                           className={`cursor-pointer transition-colors duration-300 ${
-                              gridColumns === 4 ? "text-gray-900" : "text-gray-300 hover:text-gray-600"
-                           }`}
+                           className={`cursor-pointer transition-colors duration-300 ${gridColumns === 4 ? "text-gray-900" : "text-gray-300 hover:text-gray-600"
+                              }`}
                         >
                            <svg xmlns="http://www.w3.org/2000/svg" width="23" height="17" viewBox="0 0 23 18" fill="none">
                               <rect y="12" width="5" height="5" rx="1" fill="currentColor"></rect>

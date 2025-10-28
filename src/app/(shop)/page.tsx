@@ -1,5 +1,6 @@
 'use client';
 import React, { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import FeaturedByCategory from '../components/FeaturedByCategory';
 import { CategoryTree } from '@/types/domains/category';
 import { PromotionDetails, PromotionType } from '@/types/domains/promotion';
@@ -11,6 +12,8 @@ import { TestimonialCard } from '../components/TestimonialCard';
 import PromoBannerCard from '../components/PromoBannerCard';
 import { FeatureProducts } from '../components/FeatureProducts';
 import { CategoryCard } from '../components/CategoriesCard';
+import useDataFetch from '@/hooks/use-data-fetch';
+import * as categoryServices from "@/services/category";
 
 const categories: CategoryTree[] = [
     {
@@ -231,33 +234,7 @@ const testimonials = [
 
 
 
-const categoriescards: any[] = [
-    {
-        id: "bath",
-        image: "https://i.pinimg.com/736x/b0/1b/09/b01b0990f1ac187bf29d742e53e02e33.jpg",
-        title: "Bath",
-    },
-    {
-        id: "bed",
-        image: "https://i.pinimg.com/736x/75/1a/f1/751af1ac8f5723f907c9b9d47deccf55.jpg",
-        title: "Bed",
-    },
-    {
-        id: "bedroom",
-        image: "https://i.pinimg.com/736x/49/d5/0d/49d50d513f7c359e47b1df9aab86d350.jpg",
-        title: "Bedroom",
-    },
-    {
-        id: "decoration",
-        image: "https://i.pinimg.com/736x/da/92/5d/da925d8a4b4500f16aa5cecd87064ffd.jpg",
-        title: "Decoration",
-    },
-    {
-        id: "home",
-        image: "https://i.pinimg.com/1200x/e9/b4/dc/e9b4dcf87e3861f16709f0bd1f2efbcc.jpg",
-        title: "Home",
-    },
-];
+
 const mockReviews: ReviewDetails[] = [
     {
         reviewId: 1,
@@ -289,17 +266,20 @@ const mockReviews: ReviewDetails[] = [
 ];
 
 export default function LandingPage() {
+    const router = useRouter();
     // const { items: categories } = useAppSelector(state => state.categories);
     // const { items: promotions } = useAppSelector(state => state.promotions);
     // const productsData = useDataFetch(getAllProducts);
+    const allCategories = useDataFetch(categoryServices.getAllCategories);
 
     useEffect(() => {
         // useAppDispatch(fetchCategories());
         // useAppDispatch(fetchPromotions());
         // productsData.request({});
+        allCategories.request();
     }, []);
     // const products = productsData.response;
-
+    const categoriesData = allCategories.data;
     return (
         <>
             {/* Banner */}
@@ -311,12 +291,12 @@ export default function LandingPage() {
                     <h2 className="text-3xl text-center font-bold my-16"> Popular Categories</h2>
 
                     <div className="flex justify-center items-center gap-20 flex-wrap mb-28">
-                        {categoriescards.map((category) => (
+                        {categoriesData && categoriesData.map((category) => (
                             <CategoryCard
-                                key={category.id}
-                                image={category.image}
-                                title={category.title}
-                                onClick={() => console.log(`Clicked on ${category.title}`)}
+                                key={category.categoryId}
+                                image={category.imageUrl || 'https://i.pinimg.com/736x/b0/1b/09/b01b0990f1ac187bf29d742e53e02e33.jpg'}
+                                title={category.name}
+                                onClick={() => router.push(`/products/${category.name}`)}
                             />
                         ))}
                     </div>

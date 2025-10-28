@@ -5,21 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
+import { CategoryTree } from "@/types/domains/category";
 
-// Categories list
-const Categories = [
-    { name: "Shoes", count: 156 },
-    { name: "Clothing", count: 89 },
-    { name: "Electronics", count: 34 },
-    { name: "Accessories", count: 67 },
-    { name: "Sports", count: 123 },
-    { name: "Home", count: 45 },
-];
+interface FilterSidebarProps {
+    categories: CategoryTree[];
+    onCategoryChange: (categoryIds: number[]) => void;
+}
 
-const FilterSidebar = () => {
+const FilterSidebar = ({ categories, onCategoryChange }: FilterSidebarProps) => {
     const [priceRange, setPriceRange] = useState([0, 100000]);
     const [categorySearch, setCategorySearch] = useState("");
-    const [selectedCategories, setSelectedCategories] = useState(new Set());
+    const [selectedCategories, setSelectedCategories] = useState<Set<number>>(new Set());
     const [selectedSizes, setSelectedSizes] = useState(new Set());
     const [selectedColors, setSelectedColors] = useState(new Set());
     const [openSections, setOpenSections] = useState({
@@ -32,13 +28,16 @@ const FilterSidebar = () => {
         setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
     };
 
-    const toggleCategory = (categoryName: string) => {
+    const toggleCategory = (categoryId: number) => {
         const newSelected = new Set(selectedCategories);
-        newSelected.has(categoryName) ? newSelected.delete(categoryName) : newSelected.add(categoryName);
+        newSelected.has(categoryId) ? newSelected.delete(categoryId) : newSelected.add(categoryId);
         setSelectedCategories(newSelected);
+        onCategoryChange(Array.from(newSelected));
     };
 
-    const filteredCategories = Categories.filter(cat =>
+    // Flatten categories and subcategories for filtering
+    const allCategories = categories.flatMap(cat => [cat, ...(cat.subcategories || [])]);
+    const filteredCategories = allCategories.filter(cat =>
         cat.name.toLowerCase().includes(categorySearch.toLowerCase())
     );
 
@@ -56,6 +55,7 @@ const FilterSidebar = () => {
                             setSelectedSizes(new Set());
                             setSelectedColors(new Set());
                             setPriceRange([0, 100000]);
+                            onCategoryChange([]);
                         }}
                     >
                         Clear
@@ -88,19 +88,18 @@ const FilterSidebar = () => {
                             </div>
                             <div className="space-y-2">
                                 {filteredCategories.map((cat) => (
-                                    <div key={cat.name} className="flex items-center space-x-3">
+                                    <div key={cat.categoryId} className="flex items-center space-x-3">
                                         <Checkbox
-                                            id={cat.name}
-                                            checked={selectedCategories.has(cat.name)}
-                                            onCheckedChange={() => toggleCategory(cat.name)}
+                                            id={`cat-${cat.categoryId}`}
+                                            checked={selectedCategories.has(cat.categoryId)}
+                                            onCheckedChange={() => toggleCategory(cat.categoryId)}
                                         />
                                         <label
-                                            htmlFor={cat.name}
+                                            htmlFor={`cat-${cat.categoryId}`}
                                             className="flex-1 flex items-center justify-between text-sm cursor-pointer"
-                                            onClick={() => toggleCategory(cat.name)}
+                                            onClick={() => toggleCategory(cat.categoryId)}
                                         >
                                             <span className="text-gray-700">{cat.name}</span>
-                                            <span className="text-gray-400 text-xs">({cat.count})</span>
                                         </label>
                                     </div>
                                 ))}
