@@ -18,31 +18,35 @@ import { CategoryTree } from "@/types/domains/category";
 
 interface ProductGridProps {
    categories: CategoryTree[];
+   onCategoryChange?: (categoryId: number | null) => void;
 }
 
-const ProductGrid = ({ categories }: ProductGridProps) => {
+const ProductGrid = ({ categories, onCategoryChange: onCategoryChangeProp }: ProductGridProps) => {
    const productsData = useDataFetch(productServices.getAllProducts);
    const [gridColumns, setGridColumns] = useState(4);
-   const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
+   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
    const [currentCategory, setCurrentCategory] = useState<CategoryTree | null>(null);
 
    useEffect(() => {
       const filters: ProductQueryOptions = {};
-      if (selectedCategoryIds.length > 0) {
-         // Use first selected category for filtering (can be extended to multiple)
-         filters.categoryId = selectedCategoryIds[0];
+      if (selectedCategoryId !== null) {
+         filters.categoryId = selectedCategoryId;
       }
       productsData.request(filters);
-   }, [selectedCategoryIds]);
+   }, [selectedCategoryId]);
 
-   const handleCategoryChange = (categoryIds: number[]) => {
-      setSelectedCategoryIds(categoryIds);
+   const handleCategoryChange = (categoryId: number | null) => {
+      setSelectedCategoryId(categoryId);
       // Set current category for breadcrumbs
-      if (categoryIds.length > 0) {
-         const foundCategory = findCategoryById(categories, categoryIds[0]);
+      if (categoryId !== null) {
+         const foundCategory = findCategoryById(categories, categoryId);
          setCurrentCategory(foundCategory || null);
       } else {
          setCurrentCategory(null);
+      }
+      // Notify parent component about category change
+      if (onCategoryChangeProp) {
+         onCategoryChangeProp(categoryId);
       }
    };
 
@@ -82,7 +86,7 @@ const ProductGrid = ({ categories }: ProductGridProps) => {
                         Home
                      </BreadcrumbLink>
                   </BreadcrumbItem>
-                  {(currentCategory || selectedCategoryIds.length > 0) && (
+                  {(currentCategory || selectedCategoryId !== null) && (
                      <>
                         <BreadcrumbSeparator />
                         <BreadcrumbItem>

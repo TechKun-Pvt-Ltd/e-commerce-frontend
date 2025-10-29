@@ -9,13 +9,13 @@ import { CategoryTree } from "@/types/domains/category";
 
 interface FilterSidebarProps {
     categories: CategoryTree[];
-    onCategoryChange: (categoryIds: number[]) => void;
+    onCategoryChange: (categoryId: number | null) => void;
 }
 
 const FilterSidebar = ({ categories, onCategoryChange }: FilterSidebarProps) => {
     const [priceRange, setPriceRange] = useState([0, 100000]);
     const [categorySearch, setCategorySearch] = useState("");
-    const [selectedCategories, setSelectedCategories] = useState<Set<number>>(new Set());
+    const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
     const [selectedSizes, setSelectedSizes] = useState(new Set());
     const [selectedColors, setSelectedColors] = useState(new Set());
     const [openSections, setOpenSections] = useState({
@@ -29,10 +29,10 @@ const FilterSidebar = ({ categories, onCategoryChange }: FilterSidebarProps) => 
     };
 
     const toggleCategory = (categoryId: number) => {
-        const newSelected = new Set(selectedCategories);
-        newSelected.has(categoryId) ? newSelected.delete(categoryId) : newSelected.add(categoryId);
-        setSelectedCategories(newSelected);
-        onCategoryChange(Array.from(newSelected));
+        // Single selection: if same category is clicked, deselect it; otherwise select the new one
+        const newCategoryId = selectedCategoryId === categoryId ? null : categoryId;
+        setSelectedCategoryId(newCategoryId);
+        onCategoryChange(newCategoryId);
     };
 
     // Flatten categories and subcategories for filtering
@@ -46,16 +46,16 @@ const FilterSidebar = ({ categories, onCategoryChange }: FilterSidebarProps) => 
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
                 <h2 className="font-medium text-gray-900">Filter</h2>
-                {(selectedCategories.size > 0 || selectedSizes.size > 0 || selectedColors.size > 0) && (
+                {(selectedCategoryId !== null || selectedSizes.size > 0 || selectedColors.size > 0) && (
                     <Button
                         variant="outline"
                         size="sm"
                         onClick={() => {
-                            setSelectedCategories(new Set());
+                            setSelectedCategoryId(null);
                             setSelectedSizes(new Set());
                             setSelectedColors(new Set());
                             setPriceRange([0, 100000]);
-                            onCategoryChange([]);
+                            onCategoryChange(null);
                         }}
                     >
                         Clear
@@ -91,7 +91,7 @@ const FilterSidebar = ({ categories, onCategoryChange }: FilterSidebarProps) => 
                                     <div key={cat.categoryId} className="flex items-center space-x-3">
                                         <Checkbox
                                             id={`cat-${cat.categoryId}`}
-                                            checked={selectedCategories.has(cat.categoryId)}
+                                            checked={selectedCategoryId === cat.categoryId}
                                             onCheckedChange={() => toggleCategory(cat.categoryId)}
                                         />
                                         <label
