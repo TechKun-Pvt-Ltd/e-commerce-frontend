@@ -26,6 +26,7 @@ const ProductGrid = ({ categories, onCategoryChange: onCategoryChangeProp }: Pro
    const [gridColumns, setGridColumns] = useState(4);
    const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
    const [currentCategory, setCurrentCategory] = useState<CategoryTree | null>(null);
+   const [sortBy, setSortBy] = useState<string>("popular");
 
    useEffect(() => {
       const filters: ProductQueryOptions = {};
@@ -74,6 +75,32 @@ const ProductGrid = ({ categories, onCategoryChange: onCategoryChangeProp }: Pro
             return "grid-cols-4";
       }
    };
+
+   // Sort products based on selected sort option
+   const sortedProducts = productsData.data ? [...productsData.data].sort((a, b) => {
+      switch (sortBy) {
+         case "popular":
+            // Sort by rating (descending)
+            return b.rating - a.rating;
+
+         case "newest":
+            // Sort by dateAdded (descending - newest first)
+            const dateA = new Date(a.dateAdded).getTime();
+            const dateB = new Date(b.dateAdded).getTime();
+            return dateB - dateA;
+
+         case "price-low":
+            // Sort by price (ascending)
+            return a.price - b.price;
+
+         case "price-high":
+            // Sort by price (descending)
+            return b.price - a.price;
+
+         default:
+            return 0;
+      }
+   }) : [];
 
    return (
       <section className="bg-white">
@@ -162,8 +189,8 @@ const ProductGrid = ({ categories, onCategoryChange: onCategoryChangeProp }: Pro
 
                      <div className="flex items-center gap-2 text-sm">
                         <span>Sort by:</span>
-                        <Select defaultValue="popular">
-                           <SelectTrigger className="w-24 h-8 text-sm border-gray-300">
+                        <Select value={sortBy} onValueChange={setSortBy}>
+                           <SelectTrigger className="w-48 h-8 text-sm border-gray-300">
                               <SelectValue />
                            </SelectTrigger>
                            <SelectContent>
@@ -178,7 +205,7 @@ const ProductGrid = ({ categories, onCategoryChange: onCategoryChangeProp }: Pro
 
                   {/* Products Grid */}
                   <div className={`grid ${getGridClass()} gap-6 py-6 ${gridColumns === 2 ? "justify-center" : ""}`}>
-                     {productsData.data?.slice(0, 8).map((product) => (
+                     {sortedProducts.slice(0, 8).map((product) => (
                         <ProductCard key={product.productId} product={product} promo={null} />
                      ))}
                   </div>
