@@ -14,6 +14,7 @@ import { FeatureProducts } from '../components/FeatureProducts';
 import { CategoryCard } from '../components/CategoriesCard';
 import useDataFetch from '@/hooks/use-data-fetch';
 import * as categoryServices from "@/services/category";
+import * as productServices from "@/services/product";
 
 const categories: CategoryTree[] = [
     {
@@ -269,17 +270,18 @@ export default function LandingPage() {
     const router = useRouter();
     // const { items: categories } = useAppSelector(state => state.categories);
     // const { items: promotions } = useAppSelector(state => state.promotions);
-    // const productsData = useDataFetch(getAllProducts);
+    const allProductsData = useDataFetch(productServices.getAllProducts);
     const allCategories = useDataFetch(categoryServices.getAllCategories);
 
     useEffect(() => {
         // useAppDispatch(fetchCategories());
         // useAppDispatch(fetchPromotions());
-        // productsData.request({});
+        allProductsData.request({});
         allCategories.request();
     }, []);
     // const products = productsData.response;
     const categoriesData = allCategories.data;
+    const productsData = allProductsData.data;
     return (
         <>
             {/* Banner */}
@@ -349,7 +351,7 @@ export default function LandingPage() {
             </section>
             <div className='responsive-container'>
                 <section>
-                    <FeatureProducts />
+                    <FeatureProducts products={productsData} />
                 </section>
             </div>
             <div className=' bg-[#F1F3E7] my-16'>
