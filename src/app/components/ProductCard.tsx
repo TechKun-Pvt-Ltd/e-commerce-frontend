@@ -12,10 +12,11 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import placeholderImage from "@/../public/placeholder-image.jpeg";
+import { useRouter } from "next/navigation";
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { addToCart } from "@/store/slices/cartSlice";
-import { toggleWishlist } from "@/store/slices/wishlistSlice";
+import { addToWishlistAsync, removeFromWishlistAsync } from "@/store/slices/wishlistSlice";
 
 function getDiscountedPrice(price: number, promotion: PromotionDetails | null): number {
    if (!promotion) return price;
@@ -29,10 +30,35 @@ function getDiscountedPrice(price: number, promotion: PromotionDetails | null): 
 
 export default function ProductCard({ product, promo }: { product: ProductPreview; promo: PromotionDetails | null }) {
    const dispatch = useAppDispatch();
+   const router = useRouter();
    const wishlistItems = useAppSelector((state) => state.wishlist.items);
+   const { authenticated } = useAppSelector((state) => state.auth);
    const isInWishlist = wishlistItems.some(item => item.productVariantId === product.productVariantId);
+   const wishlistItem = wishlistItems.find(item => item.productVariantId === product.productVariantId);
    const discounted = getDiscountedPrice(product.price, promo);
    const isDiscounted = promo && discounted < product.price;
+
+   const handleWishlistToggle = async () => {
+      if (!authenticated) {
+         toast.error("Please login to add items to wishlist");
+         router.push("/auth/login");
+         return;
+      }
+
+      try {
+         if (isInWishlist && wishlistItem?.wishlistItemId) {
+            // Remove from wishlist via API
+            await dispatch(removeFromWishlistAsync(wishlistItem.wishlistItemId));
+            toast.success("Removed from wishlist");
+         } else {
+            // Add to wishlist via API
+            await dispatch(addToWishlistAsync({ product, productVariantId: product.productVariantId }));
+            toast.success("Added to wishlist");
+         }
+      } catch (error) {
+         toast.error("Failed to update wishlist");
+      }
+   };
 
    return (
       <div key={product.productId} className=" w-full border  overflow-hidden  p-0">
@@ -82,9 +108,7 @@ export default function ProductCard({ product, promo }: { product: ProductPrevie
                      size="icon"
                      variant="secondary"
                      className="size-8 absolute shadow-md right-2 rounded-full top-14 z-10 bg-white hover:bg-gray-100"
-                     onClick={() => {
-                        dispatch(toggleWishlist(product));
-                     }}
+                     onClick={handleWishlistToggle}
                   >
                      <Heart className={`h-4 w-4 transition-colors ${isInWishlist ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} />
                   </Button>

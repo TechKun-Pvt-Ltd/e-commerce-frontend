@@ -1,15 +1,16 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Heart, ShoppingCart, Trash2, X } from "lucide-react";
 import Image from "next/image";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { removeFromWishlist } from "@/store/slices/wishlistSlice";
+import { removeFromWishlistAsync, fetchWishlistItems } from "@/store/slices/wishlistSlice";
 import { addToCart } from "@/store/slices/cartSlice";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import placeholderImage from "@/../public/placeholder-image.jpeg";
 import { toast } from "sonner";
 import CartToast from "./CartToast";
+import { useRouter } from "next/navigation";
 
 interface WishlistDrawerProps {
     open: boolean;
@@ -18,10 +19,29 @@ interface WishlistDrawerProps {
 
 export default function WishlistDrawer({ open, onOpenChange }: WishlistDrawerProps) {
     const dispatch = useAppDispatch();
+    const router = useRouter();
     const wishlistItems = useAppSelector((state) => state.wishlist.items);
+    const { authenticated, loading: authLoading } = useAppSelector((state) => state.auth);
+    const { loading: wishlistLoading } = useAppSelector((state) => state.wishlist);
 
-    const handleRemoveFromWishlist = (productVariantId: number) => {
-        dispatch(removeFromWishlist(productVariantId));
+    // Load wishlist items when drawer opens and user is authenticated
+    useEffect(() => {
+        if (open && authenticated && !authLoading) {
+            dispatch(fetchWishlistItems());
+        } else if (open && !authenticated && !authLoading) {
+            toast.error("Please login to view wishlist");
+            router.push("/auth/login");
+            onOpenChange(false);
+        }
+    }, [open, authenticated, authLoading, dispatch, router, onOpenChange]);
+
+    const handleRemoveFromWishlist = (wishlistItemId: number) => {
+        if (!authenticated) {
+            toast.error("Please login to manage wishlist");
+            router.push("/auth/login");
+            return;
+        }
+        dispatch(removeFromWishlistAsync(wishlistItemId));
     };
 
     const handleAddToCart = async (productVariantId: number) => {
@@ -56,7 +76,12 @@ export default function WishlistDrawer({ open, onOpenChange }: WishlistDrawerPro
                 </SheetHeader>
 
                 <div className="mt-6">
-                    {wishlistItems.length === 0 ? (
+                    {wishlistLoading ? (
+                        <div className="flex flex-col items-center justify-center py-12 text-center">
+                            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                            <p className="text-sm text-muted-foreground">Loading wishlist...</p>
+                        </div>
+                    ) : wishlistItems.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-12 text-center">
                             <Heart className="h-16 w-16 text-muted-foreground mb-4" />
                             <p className="text-lg font-semibold text-muted-foreground">Your wishlist is empty</p>
@@ -66,7 +91,7 @@ export default function WishlistDrawer({ open, onOpenChange }: WishlistDrawerPro
                         <div className="space-y-4">
                             {wishlistItems.map((item) => (
                                 <div
-                                    key={item.productVariantId}
+                                    key={item.wishlistItemId || item.productVariantId}
                                     className="flex gap-4 p-4 border rounded-lg hover:bg-gray-50 transition-colors"
                                 >
                                     <div className="relative w-24 h-24 flex-shrink-0 rounded-md overflow-hidden">
@@ -79,25 +104,32 @@ export default function WishlistDrawer({ open, onOpenChange }: WishlistDrawerPro
                                     </div>
 
                                     <div className="flex-1 min-w-0">
-                                        <h3 className="font-semibold text-sm line-clamp-2 mb-1">{item.title}</h3>
+                                        <h3 className="font-semibold text-sm line-clamp-2 mb-1">{item.title || item.code}</h3>
                                         <p className="text-xs text-muted-foreground mb-2">{item.code}</p>
                                         <p className="text-base font-bold text-foreground">${item.price.toFixed(2)}</p>
 
                                         <div className="flex gap-2 mt-3">
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                className="flex-1"
-                                                onClick={() => handleAddToCart(item.productVariantId)}
-                                            >
-                                                <ShoppingCart className="h-4 w-4 mr-2" />
-                                                Add to Cart
-                                            </Button>
+                                            {item.productVariantId > 0 && (
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="flex-1"
+                                                    onClick={() => handleAddToCart(item.productVariantId)}
+                                                >
+                                                    <ShoppingCart className="h-4 w-4 mr-2" />
+                                                    Add to Cart
+                                                </Button>
+                                            )}
                                             <Button
                                                 size="sm"
                                                 variant="outline"
                                                 className="px-3"
-                                                onClick={() => handleRemoveFromWishlist(item.productVariantId)}
+                                                onClick={() => {
+                                                    if (item.wishlistItemId) {
+                                                        handleRemoveFromWishlist(item.wishlistItemId);
+                                                    }
+                                                }}
+                                                disabled={!item.wishlistItemId}
                                             >
                                                 <Trash2 className="h-4 w-4 text-destructive" />
                                             </Button>
