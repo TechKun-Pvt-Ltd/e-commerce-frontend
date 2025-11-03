@@ -14,10 +14,38 @@ interface WishlistState {
     error: string | null;
 }
 
+// Load from localStorage on init
+const loadWishlistFromStorage = (): WishlistItemWithId[] => {
+    if (typeof window === 'undefined') return [];
+    try {
+        const stored = localStorage.getItem('wishlistItems');
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            // Only restore items with full data (productVariantId > 0)
+            return parsed.filter((item: WishlistItemWithId) => item.productVariantId > 0);
+        }
+    } catch (error) {
+        console.error('Failed to load wishlist from storage:', error);
+    }
+    return [];
+};
+
 const initialState: WishlistState = {
-    items: [],
+    items: loadWishlistFromStorage(),
     loading: false,
     error: null
+};
+
+// Helper to save to localStorage
+const saveWishlistToStorage = (items: WishlistItemWithId[]) => {
+    if (typeof window === 'undefined') return;
+    try {
+        // Only save items with full data
+        const itemsToSave = items.filter(item => item.productVariantId > 0);
+        localStorage.setItem('wishlistItems', JSON.stringify(itemsToSave));
+    } catch (error) {
+        console.error('Failed to save wishlist to storage:', error);
+    }
 };
 
 type ThunkApiConfig = { rejectValue: string };
@@ -42,7 +70,7 @@ export const fetchWishlistItems = createAsyncThunk<WishlistItemWithId[], void, T
                     title: dto.productVariant.sku, // Using SKU as fallback for title
                     code: dto.productVariant.sku,
                     rating: 0,
-                    starred: false,
+                    starred: true, // Items from wishlist API are starred
                     wishlistItemId: dto.wishlistItemId
                 }));
             }
@@ -55,12 +83,12 @@ export const fetchWishlistItems = createAsyncThunk<WishlistItemWithId[], void, T
 
 // Add to wishlist via API
 export const addToWishlistAsync = createAsyncThunk<
-    WishlistItemWithId[], 
+    WishlistItemWithId, 
     { product: ProductPreview; productVariantId: number }, 
     ThunkApiConfig
 >(
     'wishlist/addToWishlistAsync',
-    async ({ product, productVariantId }, { dispatch, rejectWithValue }) => {
+    async ({ product, productVariantId }, { rejectWithValue }) => {
         try {
             const response = await wishlistServices.addToWishlist(productVariantId);
             if (response.success) {
@@ -75,28 +103,12 @@ export const addToWishlistAsync = createAsyncThunk<
                 };
                 const newItem: WishlistItemWithId = {
                     ...serializedProduct,
+                    starred: true, // Mark as starred when added to wishlist
                     wishlistItemId: wishlistItem.wishlistItemId,
                     productVariantId: wishlistItem.productVariant.productVariantId
                 };
                 
-                // After adding, fetch updated list to sync with server
-                const fetchAction = await dispatch(fetchWishlistItems());
-                if (fetchAction.meta.requestStatus === "fulfilled") {
-                    // Merge with local product data for items that match
-                    const fetchedItems = fetchAction.payload as WishlistItemWithId[];
-                    return fetchedItems.map(item => {
-                        // If we can match by productVariantId, use full product data
-                        if (item.wishlistItemId === newItem.wishlistItemId && product.productVariantId === wishlistItem.productVariant.productVariantId) {
-                            const serializedProduct = {
-                                ...product,
-                                dateAdded: product.dateAdded instanceof Date ? product.dateAdded.toISOString() : product.dateAdded
-                            };
-                            return { ...serializedProduct, wishlistItemId: item.wishlistItemId };
-                        }
-                        return item;
-                    });
-                }
-                return fetchAction.payload as WishlistItemWithId[];
+                return newItem;
             }
             return rejectWithValue(response.error);
         } catch (error: any) {
@@ -160,6 +172,7 @@ const wishlistSlice = createSlice({
         },
         clearWishlist: (state) => {
             state.items = [];
+            saveWishlistToStorage([]);
         },
     },
     extraReducers: (builder) => {
@@ -171,26 +184,59 @@ const wishlistSlice = createSlice({
             })
             .addCase(fetchWishlistItems.fulfilled, (state, action) => {
                 state.loading = false;
-                // Merge with existing items to preserve full product data
-                const existingItems = state.items.filter(item => item.wishlistItemId);
                 const fetchedItems = action.payload;
                 
-                // Merge: use fetched items as base, but keep full product data from existing items if available
-                const merged = fetchedItems.map(fetched => {
-                    const existing = existingItems.find(e => e.wishlistItemId === fetched.wishlistItemId);
-                    if (existing && existing.productVariantId > 0) {
-                        // Ensure dateAdded is serialized (already should be string, but just in case)
-                        const serializedExisting: WishlistItemWithId = {
-                            ...existing,
-                            dateAdded: typeof existing.dateAdded === 'string' ? existing.dateAdded : String(existing.dateAdded),
-                            wishlistItemId: fetched.wishlistItemId
-                        };
-                        return serializedExisting;
+                // Separate existing items with full data vs limited data
+                const existingItemsWithFullData = state.items.filter(item => item.productVariantId > 0);
+                
+                // Create maps for lookup by wishlistItemId and by SKU/code
+                const existingByWishlistId = new Map<number, WishlistItemWithId>();
+                const existingBySku = new Map<string, WishlistItemWithId>();
+                existingItemsWithFullData.forEach(item => {
+                    if (item.wishlistItemId) {
+                        existingByWishlistId.set(item.wishlistItemId, item);
                     }
-                    return fetched;
+                    if (item.code) {
+                        existingBySku.set(item.code, item);
+                    }
+                });
+                
+                // Start with existing items that have full data - these are the source of truth
+                const merged: WishlistItemWithId[] = [...existingItemsWithFullData];
+                
+                // For fetched items, try to match with existing items
+                fetchedItems.forEach(fetched => {
+                    if (fetched.wishlistItemId) {
+                        // First try matching by wishlistItemId
+                        const existingById = existingByWishlistId.get(fetched.wishlistItemId);
+                        if (existingById) {
+                            // Update existing item with latest wishlistItemId if needed
+                            const index = merged.findIndex(item => item.productVariantId === existingById.productVariantId);
+                            if (index !== -1 && merged[index].wishlistItemId !== fetched.wishlistItemId) {
+                                merged[index] = { ...merged[index], wishlistItemId: fetched.wishlistItemId };
+                            }
+                        } else if (fetched.code) {
+                            // Try matching by SKU/code
+                            const existingByCode = existingBySku.get(fetched.code);
+                            if (existingByCode) {
+                                // Update existing item with wishlistItemId from fetched
+                                const index = merged.findIndex(item => item.productVariantId === existingByCode.productVariantId);
+                                if (index !== -1) {
+                                    merged[index] = { ...merged[index], wishlistItemId: fetched.wishlistItemId };
+                                }
+                            } else {
+                                // No match found, add fetched item (will have limited data)
+                                merged.push(fetched);
+                            }
+                        } else {
+                            // No code, just add it
+                            merged.push(fetched);
+                        }
+                    }
                 });
                 
                 state.items = merged;
+                saveWishlistToStorage(merged);
             })
             .addCase(fetchWishlistItems.rejected, (state, action) => {
                 state.loading = false;
@@ -203,7 +249,25 @@ const wishlistSlice = createSlice({
             })
             .addCase(addToWishlistAsync.fulfilled, (state, action) => {
                 state.loading = false;
-                state.items = action.payload;
+                const newItem = action.payload;
+                // Check if item already exists (by productVariantId or wishlistItemId)
+                const exists = state.items.some(
+                    item => item.productVariantId === newItem.productVariantId || 
+                    (newItem.wishlistItemId && item.wishlistItemId === newItem.wishlistItemId)
+                );
+                if (!exists) {
+                    // Add new item to existing items, preserving all existing items
+                    state.items.push(newItem);
+                } else {
+                    // Update existing item with new wishlistItemId if needed
+                    const index = state.items.findIndex(
+                        item => item.productVariantId === newItem.productVariantId
+                    );
+                    if (index !== -1) {
+                        state.items[index] = { ...state.items[index], ...newItem };
+                    }
+                }
+                saveWishlistToStorage(state.items);
             })
             .addCase(addToWishlistAsync.rejected, (state, action) => {
                 state.loading = false;
@@ -217,6 +281,7 @@ const wishlistSlice = createSlice({
             .addCase(removeFromWishlistAsync.fulfilled, (state, action) => {
                 state.loading = false;
                 state.items = state.items.filter(item => item.wishlistItemId !== action.payload);
+                saveWishlistToStorage(state.items);
             })
             .addCase(removeFromWishlistAsync.rejected, (state, action) => {
                 state.loading = false;

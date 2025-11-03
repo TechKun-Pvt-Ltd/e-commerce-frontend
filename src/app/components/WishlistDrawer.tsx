@@ -25,15 +25,20 @@ export default function WishlistDrawer({ open, onOpenChange }: WishlistDrawerPro
     const { loading: wishlistLoading } = useAppSelector((state) => state.wishlist);
 
     // Load wishlist items when drawer opens and user is authenticated
+    // Only fetch if we don't have items with full data, or if drawer first opens
     useEffect(() => {
         if (open && authenticated && !authLoading) {
-            dispatch(fetchWishlistItems());
+            // Only fetch if we have no items or all items have productVariantId = 0 (limited data)
+            const hasItemsWithFullData = wishlistItems.some(item => item.productVariantId > 0);
+            if (!hasItemsWithFullData || wishlistItems.length === 0) {
+                dispatch(fetchWishlistItems());
+            }
         } else if (open && !authenticated && !authLoading) {
             toast.error("Please login to view wishlist");
             router.push("/auth/login");
             onOpenChange(false);
         }
-    }, [open, authenticated, authLoading, dispatch, router, onOpenChange]);
+    }, [open, authenticated, authLoading, dispatch, router, onOpenChange, wishlistItems.length]);
 
     const handleRemoveFromWishlist = (wishlistItemId: number) => {
         if (!authenticated) {
@@ -109,17 +114,25 @@ export default function WishlistDrawer({ open, onOpenChange }: WishlistDrawerPro
                                         <p className="text-base font-bold text-foreground">${item.price.toFixed(2)}</p>
 
                                         <div className="flex gap-2 mt-3">
-                                            {item.productVariantId > 0 && (
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    className="flex-1"
-                                                    onClick={() => handleAddToCart(item.productVariantId)}
-                                                >
-                                                    <ShoppingCart className="h-4 w-4 mr-2" />
-                                                    Add to Cart
-                                                </Button>
-                                            )}
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="flex-1"
+                                                onClick={() => {
+                                                    if (item.productVariantId > 0) {
+                                                        handleAddToCart(item.productVariantId);
+                                                    } else if (item.starred) {
+                                                        // If starred but no productVariantId, show message
+                                                        toast.error("Please refresh page to load product details");
+                                                    } else {
+                                                        toast.error("Product information not available");
+                                                    }
+                                                }}
+                                                disabled={item.productVariantId === 0}
+                                            >
+                                                <ShoppingCart className="h-4 w-4 mr-2" />
+                                                Add to Cart
+                                            </Button>
                                             <Button
                                                 size="sm"
                                                 variant="outline"
