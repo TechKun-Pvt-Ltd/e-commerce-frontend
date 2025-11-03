@@ -44,7 +44,7 @@ const FilterSidebar = ({ categories, onCategoryChange }: FilterSidebarProps) => 
     return (
         <div className="w-72 bg-white border-r border-gray-200">
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+            <div className="flex items-center justify-between p-4 h-16 border-b border-gray-200">
                 <h2 className="font-medium text-gray-900">Filter</h2>
                 {(selectedCategoryId !== null || selectedSizes.size > 0 || selectedColors.size > 0) && (
                     <Button
