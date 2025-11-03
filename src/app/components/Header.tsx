@@ -6,8 +6,13 @@ import { ShoppingCart, Search, Heart, UserRound } from "lucide-react"
 import UserMenuContent from "./UserMenuContent";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { NAVBAR_HEIGHT } from "@/lib/constants";
+import WishlistDrawer from "./WishlistDrawer";
+import { useState } from "react";
+import { useAppSelector } from "@/store/hooks";
 
 export default function Header() {
+    const [wishlistOpen, setWishlistOpen] = useState(false);
+    const wishlistItems = useAppSelector((state) => state.wishlist.items);
 
     return (<>
         <nav className="sticky top-0 z-50 w-full border-b bg-background px-4 md:px-8 flex items-center justify-between gap-4" style={{ height: NAVBAR_HEIGHT }}>
@@ -41,8 +46,19 @@ export default function Header() {
                     </DropdownMenuContent>
                 </DropdownMenu>
 
-                <Button variant="ghost" size="icon" aria-label="Wishlist">
-                    <Heart className="h-5 w-5" />
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Wishlist"
+                    onClick={() => setWishlistOpen(true)}
+                    className="relative"
+                >
+                    <Heart className={`h-5 w-5 ${wishlistItems.length > 0 ? 'fill-red-500 text-red-500' : ''}`} />
+                    {wishlistItems.length > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                            {wishlistItems.length}
+                        </span>
+                    )}
                     <span className="sr-only">Wishlist</span>
                 </Button>
                 {/* Cart Icon */}
@@ -54,5 +70,6 @@ export default function Header() {
                 </Link>
             </div>
         </nav>
+        <WishlistDrawer open={wishlistOpen} onOpenChange={setWishlistOpen} />
     </>)
 }

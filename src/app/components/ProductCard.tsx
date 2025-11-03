@@ -8,13 +8,14 @@ import { PromotionDetails } from "@/types/domains/promotion";
 import { toast } from "sonner";
 import { CartItemPreview } from "@/types/domains/cart";
 import CartToast from "./CartToast";
-import { useAppDispatch } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import placeholderImage from "@/../public/placeholder-image.jpeg";
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { addToCart } from "@/store/slices/cartSlice";
+import { toggleWishlist } from "@/store/slices/wishlistSlice";
 
 function getDiscountedPrice(price: number, promotion: PromotionDetails | null): number {
    if (!promotion) return price;
@@ -28,6 +29,8 @@ function getDiscountedPrice(price: number, promotion: PromotionDetails | null): 
 
 export default function ProductCard({ product, promo }: { product: ProductPreview; promo: PromotionDetails | null }) {
    const dispatch = useAppDispatch();
+   const wishlistItems = useAppSelector((state) => state.wishlist.items);
+   const isInWishlist = wishlistItems.some(item => item.productVariantId === product.productVariantId);
    const discounted = getDiscountedPrice(product.price, promo);
    const isDiscounted = promo && discounted < product.price;
 
@@ -75,12 +78,19 @@ export default function ProductCard({ product, promo }: { product: ProductPrevie
             {/* Wishlist icon */}
             <Tooltip>
                <TooltipTrigger asChild>
-                  <Button size="icon" variant="secondary" className="size-8 absolute shadow-md right-2 rounded-full top-14 z-10">
-                     <Heart className="h-4 w-4 text-muted-foreground" />
+                  <Button
+                     size="icon"
+                     variant="secondary"
+                     className="size-8 absolute shadow-md right-2 rounded-full top-14 z-10 bg-white hover:bg-gray-100"
+                     onClick={() => {
+                        dispatch(toggleWishlist(product));
+                     }}
+                  >
+                     <Heart className={`h-4 w-4 transition-colors ${isInWishlist ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} />
                   </Button>
                </TooltipTrigger>
                <TooltipContent side="left">
-                  <span> Add to Wishlist </span>
+                  <span>{isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}</span>
                </TooltipContent>
             </Tooltip>
             {/* <img
@@ -109,9 +119,8 @@ export default function ProductCard({ product, promo }: { product: ProductPrevie
                      {[...Array(5)].map((_, i) => (
                         <Star
                            key={i}
-                           className={`h-3 w-3 ${
-                              i < Math.floor(product.rating) ? "fill-primary text-primary" : "text-muted-foreground"
-                           }`}
+                           className={`h-3 w-3 ${i < Math.floor(product.rating) ? "fill-primary text-primary" : "text-muted-foreground"
+                              }`}
                         />
                      ))}
                   </div>

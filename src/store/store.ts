@@ -5,6 +5,7 @@ import cartReducer from './slices/cartSlice';
 import authReducer from './slices/authSlice';
 import variationsReducer from './slices/variationSlice';
 import attributesReducer from './slices/attributeSlice';
+import wishlistReducer from './slices/wishlistSlice';
 
 export const store = configureStore({
     reducer: {
@@ -13,7 +14,8 @@ export const store = configureStore({
         categories: categoriesReducer,
         promotions: promotionsReducer,
         variations: variationsReducer,
-        attributes: attributesReducer
+        attributes: attributesReducer,
+        wishlist: wishlistReducer
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({
