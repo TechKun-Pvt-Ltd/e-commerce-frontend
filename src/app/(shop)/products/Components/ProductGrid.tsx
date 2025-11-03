@@ -9,32 +9,22 @@ import {
    BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import FilterSidebar from "./FilterSidebar";
-import useDataFetch from "@/hooks/use-data-fetch";
-import * as productServices from "@/services/product";
-import { ProductQueryOptions } from "@/types/domains/product";
+import { ProductPreview } from "@/types/domains/product";
 import { CategoryTree } from "@/types/domains/category";
 
 interface ProductGridProps {
    categories: CategoryTree[];
+   products: ProductPreview[];
    onCategoryChange?: (categoryId: number | null) => void;
 }
 
-const ProductGrid = ({ categories, onCategoryChange: onCategoryChangeProp }: ProductGridProps) => {
-   const productsData = useDataFetch(productServices.getAllProducts);
+const ProductGrid = ({ categories, products, onCategoryChange: onCategoryChangeProp }: ProductGridProps) => {
    const [gridColumns, setGridColumns] = useState(4);
    const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
    const [currentCategory, setCurrentCategory] = useState<CategoryTree | null>(null);
    const [sortBy, setSortBy] = useState<string>("popular");
-
-   useEffect(() => {
-      const filters: ProductQueryOptions = {};
-      if (selectedCategoryId !== null) {
-         filters.categoryId = selectedCategoryId;
-      }
-      productsData.request(filters);
-   }, [selectedCategoryId]);
 
    const handleCategoryChange = (categoryId: number | null) => {
       setSelectedCategoryId(categoryId);
@@ -77,7 +67,7 @@ const ProductGrid = ({ categories, onCategoryChange: onCategoryChangeProp }: Pro
    };
 
    // Sort products based on selected sort option
-   const sortedProducts = productsData.data ? [...productsData.data].sort((a, b) => {
+   const sortedProducts = products ? [...products].sort((a, b) => {
       switch (sortBy) {
          case "popular":
             // Sort by rating (descending)
