@@ -17,17 +17,13 @@ export default function Header() {
     const wishlistItems = useAppSelector((state) => state.wishlist.items);
     const { authenticated, loading: authLoading } = useAppSelector((state) => state.auth);
 
-    // Load wishlist items when user is authenticated (on mount and when auth state changes)
-    // Only fetch once when authenticated, not on every auth change
+    // Load wishlist items from API when user is authenticated
     useEffect(() => {
         if (authenticated && !authLoading) {
-            // Only fetch if we don't have items with full data
-            const hasItemsWithFullData = wishlistItems.some(item => item.productVariantId > 0);
-            if (!hasItemsWithFullData && wishlistItems.length === 0) {
-                dispatch(fetchWishlistItems());
-            }
+            // Always fetch fresh data from API
+            dispatch(fetchWishlistItems());
         }
-    }, [authenticated, authLoading, dispatch, wishlistItems.length]);
+    }, [authenticated, authLoading, dispatch]);
 
     return (<>
         <nav className="sticky top-0 z-50 w-full border-b bg-background px-4 md:px-8 flex items-center justify-between gap-4" style={{ height: NAVBAR_HEIGHT }}>

@@ -12,8 +12,6 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import placeholderImage from "@/../public/placeholder-image.jpeg";
-import { useRouter } from "next/navigation";
-
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { addToCart } from "@/store/slices/cartSlice";
 import { addToWishlistAsync, removeFromWishlistAsync } from "@/store/slices/wishlistSlice";
@@ -30,7 +28,6 @@ function getDiscountedPrice(price: number, promotion: PromotionDetails | null): 
 
 export default function ProductCard({ product, promo }: { product: ProductPreview; promo: PromotionDetails | null }) {
    const dispatch = useAppDispatch();
-   const router = useRouter();
    const wishlistItems = useAppSelector((state) => state.wishlist.items);
    const { authenticated } = useAppSelector((state) => state.auth);
    // Check wishlist using wishlistItems first (from localStorage/state), then fallback to product.starred
@@ -43,7 +40,6 @@ export default function ProductCard({ product, promo }: { product: ProductPrevie
    const handleWishlistToggle = async () => {
       if (!authenticated) {
          toast.error("Please login to add items to wishlist");
-         router.push("/auth/login");
          return;
       }
 

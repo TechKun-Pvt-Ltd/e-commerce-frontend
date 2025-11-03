@@ -2,6 +2,7 @@ import { ProductPreview } from '@/types/domains/product';
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import * as wishlistServices from '@/services/wishlist';
 import { WishlistItemDTO, WishlistItem } from '@/types/domains/wishlist_item';
+import { login, logout, getMyInformation } from './authSlice';
 
 export interface WishlistItemWithId extends Omit<ProductPreview, 'dateAdded'> {
     dateAdded: string; // Store as ISO string for Redux serialization
@@ -12,40 +13,14 @@ interface WishlistState {
     items: WishlistItemWithId[];
     loading: boolean;
     error: string | null;
+    currentUserId: number | null;
 }
 
-// Load from localStorage on init
-const loadWishlistFromStorage = (): WishlistItemWithId[] => {
-    if (typeof window === 'undefined') return [];
-    try {
-        const stored = localStorage.getItem('wishlistItems');
-        if (stored) {
-            const parsed = JSON.parse(stored);
-            // Only restore items with full data (productVariantId > 0)
-            return parsed.filter((item: WishlistItemWithId) => item.productVariantId > 0);
-        }
-    } catch (error) {
-        console.error('Failed to load wishlist from storage:', error);
-    }
-    return [];
-};
-
 const initialState: WishlistState = {
-    items: loadWishlistFromStorage(),
+    items: [], // Start empty - will be loaded from API
     loading: false,
-    error: null
-};
-
-// Helper to save to localStorage
-const saveWishlistToStorage = (items: WishlistItemWithId[]) => {
-    if (typeof window === 'undefined') return;
-    try {
-        // Only save items with full data
-        const itemsToSave = items.filter(item => item.productVariantId > 0);
-        localStorage.setItem('wishlistItems', JSON.stringify(itemsToSave));
-    } catch (error) {
-        console.error('Failed to save wishlist to storage:', error);
-    }
+    error: null,
+    currentUserId: null
 };
 
 type ThunkApiConfig = { rejectValue: string };
@@ -172,7 +147,6 @@ const wishlistSlice = createSlice({
         },
         clearWishlist: (state) => {
             state.items = [];
-            saveWishlistToStorage([]);
         },
     },
     extraReducers: (builder) => {
@@ -184,59 +158,8 @@ const wishlistSlice = createSlice({
             })
             .addCase(fetchWishlistItems.fulfilled, (state, action) => {
                 state.loading = false;
-                const fetchedItems = action.payload;
-                
-                // Separate existing items with full data vs limited data
-                const existingItemsWithFullData = state.items.filter(item => item.productVariantId > 0);
-                
-                // Create maps for lookup by wishlistItemId and by SKU/code
-                const existingByWishlistId = new Map<number, WishlistItemWithId>();
-                const existingBySku = new Map<string, WishlistItemWithId>();
-                existingItemsWithFullData.forEach(item => {
-                    if (item.wishlistItemId) {
-                        existingByWishlistId.set(item.wishlistItemId, item);
-                    }
-                    if (item.code) {
-                        existingBySku.set(item.code, item);
-                    }
-                });
-                
-                // Start with existing items that have full data - these are the source of truth
-                const merged: WishlistItemWithId[] = [...existingItemsWithFullData];
-                
-                // For fetched items, try to match with existing items
-                fetchedItems.forEach(fetched => {
-                    if (fetched.wishlistItemId) {
-                        // First try matching by wishlistItemId
-                        const existingById = existingByWishlistId.get(fetched.wishlistItemId);
-                        if (existingById) {
-                            // Update existing item with latest wishlistItemId if needed
-                            const index = merged.findIndex(item => item.productVariantId === existingById.productVariantId);
-                            if (index !== -1 && merged[index].wishlistItemId !== fetched.wishlistItemId) {
-                                merged[index] = { ...merged[index], wishlistItemId: fetched.wishlistItemId };
-                            }
-                        } else if (fetched.code) {
-                            // Try matching by SKU/code
-                            const existingByCode = existingBySku.get(fetched.code);
-                            if (existingByCode) {
-                                // Update existing item with wishlistItemId from fetched
-                                const index = merged.findIndex(item => item.productVariantId === existingByCode.productVariantId);
-                                if (index !== -1) {
-                                    merged[index] = { ...merged[index], wishlistItemId: fetched.wishlistItemId };
-                                }
-                            } else {
-                                // No match found, add fetched item (will have limited data)
-                                merged.push(fetched);
-                            }
-                        } else {
-                            // No code, just add it
-                            merged.push(fetched);
-                        }
-                    }
-                });
-                
-                state.items = merged;
-                saveWishlistToStorage(merged);
+                // Directly use API data - no localStorage merge
+                state.items = action.payload;
             })
             .addCase(fetchWishlistItems.rejected, (state, action) => {
                 state.loading = false;
@@ -267,7 +190,6 @@ const wishlistSlice = createSlice({
                         state.items[index] = { ...state.items[index], ...newItem };
                     }
                 }
-                saveWishlistToStorage(state.items);
             })
             .addCase(addToWishlistAsync.rejected, (state, action) => {
                 state.loading = false;
@@ -281,11 +203,39 @@ const wishlistSlice = createSlice({
             .addCase(removeFromWishlistAsync.fulfilled, (state, action) => {
                 state.loading = false;
                 state.items = state.items.filter(item => item.wishlistItemId !== action.payload);
-                saveWishlistToStorage(state.items);
             })
             .addCase(removeFromWishlistAsync.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string ?? null;
+            })
+            // Listen to auth actions to clear wishlist per user
+            .addCase(login.fulfilled, (state, action) => {
+                // Set userId and clear items - will be fetched from API
+                const userId = action.payload.user?.userId;
+                if (userId) {
+                    state.currentUserId = userId;
+                    state.items = []; // Clear - API will fetch fresh data
+                }
+            })
+            .addCase(getMyInformation.fulfilled, (state, action) => {
+                // Set userId when user info is fetched
+                const userId = action.payload?.userId;
+                if (userId) {
+                    // If user changed, clear old data
+                    if (state.currentUserId && state.currentUserId !== userId) {
+                        state.items = [];
+                    }
+                    state.currentUserId = userId;
+                    // Clear items - API will fetch fresh data
+                    if (state.items.length === 0) {
+                        // Items will be fetched by Header/Drawer components
+                    }
+                }
+            })
+            .addCase(logout.fulfilled, (state) => {
+                // Clear wishlist on logout
+                state.items = [];
+                state.currentUserId = null;
             });
     },
 });
