@@ -32,7 +32,7 @@ export default function WishlistDrawer({ open, onOpenChange }: WishlistDrawerPro
     // Load wishlist items from API when drawer opens and user is authenticated
     useEffect(() => {
         if (open && authenticated && !authLoading) {
-            // Fetch fresh data from API using useDataFetch
+          
             getAllWishlist.request()
                 .onSuccess((data: WishlistItemDTO[]) => {
                     setWishlistItems(data);
@@ -46,7 +46,6 @@ export default function WishlistDrawer({ open, onOpenChange }: WishlistDrawerPro
     const handleRemoveFromWishlist = (wishlistItemId: number) => {
         dispatch(removeFromWishlistAsync(wishlistItemId))
             .then(() => {
-                // Refresh wishlist after removal
                 getAllWishlist.request()
                     .onSuccess((data: WishlistItemDTO[]) => {
                         setWishlistItems(data);
