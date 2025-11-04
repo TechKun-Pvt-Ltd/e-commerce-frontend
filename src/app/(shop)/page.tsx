@@ -298,7 +298,7 @@ export default function LandingPage() {
                                 key={category.categoryId}
                                 image={category.imageUrl || 'https://i.pinimg.com/736x/b0/1b/09/b01b0990f1ac187bf29d742e53e02e33.jpg'}
                                 title={category.name}
-                                onClick={() => router.push(`/products/${category.name}`)}
+                                onClick={() => router.push(`/products?categoryId=${category.categoryId}`)}
                             />
                         ))}
                     </div>

@@ -9,7 +9,7 @@ import {
    BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import FilterSidebar from "./FilterSidebar";
 import { ProductPreview } from "@/types/domains/product";
 import { CategoryTree } from "@/types/domains/category";
@@ -18,13 +18,28 @@ interface ProductGridProps {
    categories: CategoryTree[];
    products: ProductPreview[];
    onCategoryChange?: (categoryId: number | null) => void;
+   selectedCategoryId?: number | null;
 }
 
-const ProductGrid = ({ categories, products, onCategoryChange: onCategoryChangeProp }: ProductGridProps) => {
+const ProductGrid = ({ categories, products, onCategoryChange: onCategoryChangeProp, selectedCategoryId: selectedCategoryIdProp }: ProductGridProps) => {
    const [gridColumns, setGridColumns] = useState(4);
-   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(selectedCategoryIdProp || null);
    const [currentCategory, setCurrentCategory] = useState<CategoryTree | null>(null);
    const [sortBy, setSortBy] = useState<string>("popular");
+
+   // Sync internal state with prop when it changes
+   useEffect(() => {
+      if (selectedCategoryIdProp !== undefined) {
+         setSelectedCategoryId(selectedCategoryIdProp);
+         // Set current category for breadcrumbs
+         if (selectedCategoryIdProp !== null) {
+            const foundCategory = findCategoryById(categories, selectedCategoryIdProp);
+            setCurrentCategory(foundCategory || null);
+         } else {
+            setCurrentCategory(null);
+         }
+      }
+   }, [selectedCategoryIdProp, categories]);
 
    const handleCategoryChange = (categoryId: number | null) => {
       setSelectedCategoryId(categoryId);
@@ -117,7 +132,11 @@ const ProductGrid = ({ categories, products, onCategoryChange: onCategoryChangeP
             <div className="flex gap-6">
                {/* Sidebar */}
                <aside className="flex-shrink-0">
-                  <FilterSidebar categories={categories} onCategoryChange={handleCategoryChange} />
+                  <FilterSidebar 
+                     categories={categories} 
+                     onCategoryChange={handleCategoryChange}
+                     selectedCategoryId={selectedCategoryId}
+                  />
                </aside>
 
                <main className="flex-1">

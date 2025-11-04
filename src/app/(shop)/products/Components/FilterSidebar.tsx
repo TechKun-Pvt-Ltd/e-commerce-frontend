@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronDown, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,19 +10,24 @@ import { CategoryTree } from "@/types/domains/category";
 interface FilterSidebarProps {
     categories: CategoryTree[];
     onCategoryChange: (categoryId: number | null) => void;
+    selectedCategoryId?: number | null;
 }
 
-const FilterSidebar = ({ categories, onCategoryChange }: FilterSidebarProps) => {
+const FilterSidebar = ({ categories, onCategoryChange, selectedCategoryId: selectedCategoryIdProp }: FilterSidebarProps) => {
     const [priceRange, setPriceRange] = useState([0, 100000]);
     const [categorySearch, setCategorySearch] = useState("");
-    const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
-    const [selectedSizes, setSelectedSizes] = useState(new Set());
-    const [selectedColors, setSelectedColors] = useState(new Set());
+    const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(selectedCategoryIdProp || null);
     const [openSections, setOpenSections] = useState({
         category: true,
         price: true,
-        size: true,
     });
+
+    // Sync internal state with prop when it changes
+    useEffect(() => {
+        if (selectedCategoryIdProp !== undefined) {
+            setSelectedCategoryId(selectedCategoryIdProp);
+        }
+    }, [selectedCategoryIdProp]);
 
     const toggleSection = (section: keyof typeof openSections) => {
         setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
@@ -35,8 +40,19 @@ const FilterSidebar = ({ categories, onCategoryChange }: FilterSidebarProps) => 
         onCategoryChange(newCategoryId);
     };
 
-    // Flatten categories and subcategories for filtering
-    const allCategories = categories.flatMap(cat => [cat, ...(cat.subcategories || [])]);
+    // Recursively flatten all categories and subcategories for filtering
+    const flattenCategories = (cats: CategoryTree[]): CategoryTree[] => {
+        const result: CategoryTree[] = [];
+        cats.forEach(cat => {
+            result.push(cat);
+            if (cat.subcategories && cat.subcategories.length > 0) {
+                result.push(...flattenCategories(cat.subcategories));
+            }
+        });
+        return result;
+    };
+
+    const allCategories = flattenCategories(categories);
     const filteredCategories = allCategories.filter(cat =>
         cat.name.toLowerCase().includes(categorySearch.toLowerCase())
     );
@@ -46,14 +62,12 @@ const FilterSidebar = ({ categories, onCategoryChange }: FilterSidebarProps) => 
             {/* Header */}
             <div className="flex items-center justify-between p-4 h-16 border-b border-gray-200">
                 <h2 className="font-medium text-gray-900">Filter</h2>
-                {(selectedCategoryId !== null || selectedSizes.size > 0 || selectedColors.size > 0) && (
+                {selectedCategoryId !== null && (
                     <Button
                         variant="outline"
                         size="sm"
                         onClick={() => {
                             setSelectedCategoryId(null);
-                            setSelectedSizes(new Set());
-                            setSelectedColors(new Set());
                             setPriceRange([0, 100000]);
                             onCategoryChange(null);
                         }}
@@ -88,20 +102,18 @@ const FilterSidebar = ({ categories, onCategoryChange }: FilterSidebarProps) => 
                             </div>
                             <div className="space-y-2">
                                 {filteredCategories.map((cat) => (
-                                    <div key={cat.categoryId} className="flex items-center space-x-3">
+                                    <label
+                                        key={cat.categoryId}
+                                        htmlFor={`cat-${cat.categoryId}`}
+                                        className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 rounded p-1 -m-1 transition-colors"
+                                    >
                                         <Checkbox
                                             id={`cat-${cat.categoryId}`}
                                             checked={selectedCategoryId === cat.categoryId}
                                             onCheckedChange={() => toggleCategory(cat.categoryId)}
                                         />
-                                        <label
-                                            htmlFor={`cat-${cat.categoryId}`}
-                                            className="flex-1 flex items-center justify-between text-sm cursor-pointer"
-                                            onClick={() => toggleCategory(cat.categoryId)}
-                                        >
-                                            <span className="text-gray-700">{cat.name}</span>
-                                        </label>
-                                    </div>
+                                        <span className="flex-1 text-sm text-gray-700">{cat.name}</span>
+                                    </label>
                                 ))}
                             </div>
                         </div>

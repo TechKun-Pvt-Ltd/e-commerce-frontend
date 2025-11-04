@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import BannerSection from '../products/Components/BannerSection'
 import ProductGrid from '../products/Components/ProductGrid'
 import BestSeller from '../products/Components/BestSeller'
@@ -9,6 +10,7 @@ import * as productServices from "@/services/product";
 import { ProductQueryOptions } from "@/types/domains/product";
 
 export default function page() {
+    const searchParams = useSearchParams();
     const allCategories = useDataFetch(categoryServices.getAllCategories);
     const productsData = useDataFetch(productServices.getAllProducts);
     const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
@@ -16,6 +18,17 @@ export default function page() {
     useEffect(() => {
         allCategories.request();
     }, []);
+
+    // Read category from query params and set it as initial selected category
+    useEffect(() => {
+        const categoryIdParam = searchParams.get('categoryId');
+        if (categoryIdParam) {
+            const categoryId = parseInt(categoryIdParam, 10);
+            if (!isNaN(categoryId)) {
+                setSelectedCategoryId(categoryId);
+            }
+        }
+    }, [searchParams]);
 
     useEffect(() => {
         const filters: ProductQueryOptions = {};
@@ -35,6 +48,7 @@ export default function page() {
                 categories={categoriesData || []}
                 products={products}
                 onCategoryChange={setSelectedCategoryId}
+                selectedCategoryId={selectedCategoryId}
             />
             <BestSeller products={products} selectedCategoryId={selectedCategoryId} />
         </div>
