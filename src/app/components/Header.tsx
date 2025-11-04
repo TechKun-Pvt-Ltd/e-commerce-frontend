@@ -39,6 +39,14 @@ export default function Header() {
 
             {/* User + Cart */}
             <div className="flex items-center gap-4">
+            {canShowAdminSettings && (
+                    <Link href="/admin/dashboard">
+                        <Button variant="ghost" size="icon" aria-label="Admin Settings">
+                            <Settings className="h-5 w-5" />
+                            <span className="sr-only">Admin Setting</span>
+                        </Button>
+                    </Link>
+                )}
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" aria-label="User menu">
@@ -61,14 +69,7 @@ export default function Header() {
                         <span className="sr-only">Cart</span>
                     </Button>
                 </Link>
-                {canShowAdminSettings && (
-                    <Link href="/admin/dashboard">
-                        <Button variant="ghost" size="icon" aria-label="Admin Settings">
-                            <Settings className="h-5 w-5" />
-                            <span className="sr-only">Admin Setting</span>
-                        </Button>
-                    </Link>
-                )}
+               
             </div>
         </nav>
     </>)
