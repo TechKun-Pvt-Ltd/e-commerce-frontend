@@ -1,4 +1,4 @@
-import { SortOption } from "../api";
+
 import { Attribute } from "./attribute";
 
 export interface Product {
@@ -108,5 +108,12 @@ export interface ProductQueryOptions {
     searchInput?: string;
     categoryId?: number;
     variations?: Record<number, number>;
-    sortBy?: SortOption;
+    sortOption?: SortOption;
+}
+
+export enum SortOption {
+    POPULAR = 'POPULAR',
+    NEWEST = 'NEWEST',
+    PRICE_LOW_TO_HIGH = 'PRICE_LOW_TO_HIGH',
+    PRICE_HIGH_TO_LOW = 'PRICE_HIGH_TO_LOW',
 }

@@ -11,8 +11,10 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState, useEffect } from "react";
 import FilterSidebar from "./FilterSidebar";
-import { ProductPreview } from "@/types/domains/product";
+import { ProductPreview, ProductQueryOptions, SortOption } from "@/types/domains/product";
 import { CategoryTree } from "@/types/domains/category";
+import * as productServices from "@/services/product";
+import useDataFetch from "@/hooks/use-data-fetch";
 
 interface ProductGridProps {
    categories: CategoryTree[];
@@ -21,11 +23,26 @@ interface ProductGridProps {
    selectedCategoryId?: number | null;
 }
 
-const ProductGrid = ({ categories, products, onCategoryChange: onCategoryChangeProp, selectedCategoryId: selectedCategoryIdProp }: ProductGridProps) => {
+
+
+const ProductGrid = ({ categories, products: productsProp, onCategoryChange: onCategoryChangeProp, selectedCategoryId: selectedCategoryIdProp }: ProductGridProps) => {
    const [gridColumns, setGridColumns] = useState(4);
    const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(selectedCategoryIdProp || null);
    const [currentCategory, setCurrentCategory] = useState<CategoryTree | null>(null);
-   const [sortBy, setSortBy] = useState<string>("popular");
+   const [sortBy, setSortBy] = useState<SortOption>(SortOption.POPULAR);
+   const productsData = useDataFetch(productServices.getAllProducts);
+
+   // Fetch products with sorting when sortBy or selectedCategoryId changes
+   useEffect(() => {
+      const filters: ProductQueryOptions = {
+         sortOption: sortBy
+      };
+      if (selectedCategoryId !== null) {
+         filters.categoryId = selectedCategoryId;
+      }
+      productsData.request(filters);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [sortBy, selectedCategoryId]);
 
    // Sync internal state with prop when it changes
    useEffect(() => {
@@ -81,31 +98,8 @@ const ProductGrid = ({ categories, products, onCategoryChange: onCategoryChangeP
       }
    };
 
-   // Sort products based on selected sort option
-   const sortedProducts = products ? [...products].sort((a, b) => {
-      switch (sortBy) {
-         case "popular":
-            // Sort by rating (descending)
-            return b.rating - a.rating;
-
-         case "newest":
-            // Sort by dateAdded (descending - newest first)
-            const dateA = new Date(a.dateAdded).getTime();
-            const dateB = new Date(b.dateAdded).getTime();
-            return dateB - dateA;
-
-         case "price-low":
-            // Sort by price (ascending)
-            return a.price - b.price;
-
-         case "price-high":
-            // Sort by price (descending)
-            return b.price - a.price;
-
-         default:
-            return 0;
-      }
-   }) : [];
+   // Use products from API (already sorted on server) or fallback to prop
+   const products = productsData.data || productsProp || [];
 
    return (
       <section className="bg-white">
@@ -132,8 +126,8 @@ const ProductGrid = ({ categories, products, onCategoryChange: onCategoryChangeP
             <div className="flex gap-6">
                {/* Sidebar */}
                <aside className="flex-shrink-0">
-                  <FilterSidebar 
-                     categories={categories} 
+                  <FilterSidebar
+                     categories={categories}
                      onCategoryChange={handleCategoryChange}
                      selectedCategoryId={selectedCategoryId}
                   />
@@ -203,10 +197,10 @@ const ProductGrid = ({ categories, products, onCategoryChange: onCategoryChangeP
                               <SelectValue />
                            </SelectTrigger>
                            <SelectContent>
-                              <SelectItem value="popular">Popular</SelectItem>
-                              <SelectItem value="newest">Newest</SelectItem>
-                              <SelectItem value="price-low">Price: Low to High</SelectItem>
-                              <SelectItem value="price-high">Price: High to Low</SelectItem>
+                              <SelectItem value={SortOption.POPULAR}>Popular</SelectItem>
+                              <SelectItem value={SortOption.NEWEST}>Newest</SelectItem>
+                              <SelectItem value={SortOption.PRICE_LOW_TO_HIGH}>Price: Low to High</SelectItem>
+                              <SelectItem value={SortOption.PRICE_HIGH_TO_LOW}>Price: High to Low</SelectItem>
                            </SelectContent>
                         </Select>
                      </div>
@@ -214,7 +208,7 @@ const ProductGrid = ({ categories, products, onCategoryChange: onCategoryChangeP
 
                   {/* Products Grid */}
                   <div className={`grid ${getGridClass()} gap-6 py-6 ${gridColumns === 2 ? "justify-center" : ""}`}>
-                     {sortedProducts.slice(0, 8).map((product) => (
+                     {products.slice(0, 8).map((product) => (
                         <ProductCard key={product.productId} product={product} promo={null} />
                      ))}
                   </div>
