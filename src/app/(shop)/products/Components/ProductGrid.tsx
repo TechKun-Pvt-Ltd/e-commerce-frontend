@@ -41,7 +41,7 @@ const ProductGrid = ({ categories, products: productsProp, onCategoryChange: onC
          filters.categoryId = selectedCategoryId;
       }
       productsData.request(filters);
-      // eslint-disable-next-line react-hooks/exhaustive-deps
+   
    }, [sortBy, selectedCategoryId]);
 
    // Sync internal state with prop when it changes

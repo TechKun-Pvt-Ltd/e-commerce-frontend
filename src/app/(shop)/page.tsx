@@ -279,9 +279,10 @@ export default function LandingPage() {
         allProductsData.request({});
         allCategories.request();
     }, []);
+
     // const products = productsData.response;
     const categoriesData = allCategories.data;
-    const productsData = allProductsData.data;
+    const productsData = allProductsData.data || [];
     return (
         <>
             {/* Banner */}

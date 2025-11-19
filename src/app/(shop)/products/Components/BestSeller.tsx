@@ -1,20 +1,37 @@
 "use client"
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import ProductCard from '@/app/components/ProductCard';
-import { ProductPreview } from "@/types/domains/product";
+import { ProductPreview, ProductQueryOptions, SortOption } from "@/types/domains/product";
+import * as productServices from "@/services/product";
+import useDataFetch from "@/hooks/use-data-fetch";
 
 interface BestSellerProps {
-    products: ProductPreview[];
+    products?: ProductPreview[];
     selectedCategoryId: number | null;
 }
 
-const BestSeller = ({ products, selectedCategoryId }: BestSellerProps) => {
+const BestSeller = ({ products: productsProp = [], selectedCategoryId }: BestSellerProps) => {
+    const productsData = useDataFetch(productServices.getAllProducts);
+
+    // Fetch products with categoryId filter
+    useEffect(() => {
+        const filters: ProductQueryOptions = {
+            sortOption: SortOption.POPULAR // Use POPULAR for best sellers (sorted by rating)
+        };
+        if (selectedCategoryId !== null) {
+            filters.categoryId = selectedCategoryId;
+        }
+        productsData.request(filters);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedCategoryId]);
+
+    // Use products from API (already sorted by rating) or fallback to prop
+    const products = productsData.data || productsProp || [];
 
     const bestSellerProducts = useMemo(() => {
         if (!products || products.length === 0) return [];
-        return [...products]
-            .sort((a, b) => b.rating - a.rating)
-            .slice(0, 5);
+        // Products are already sorted by rating from API (POPULAR sort), just take top 5
+        return products.slice(0, 5);
     }, [products]);
 
     return (

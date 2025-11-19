@@ -1,9 +1,11 @@
 "use client"
 import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronDown, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { CategoryTree } from "@/types/domains/category";
 
@@ -14,6 +16,8 @@ interface FilterSidebarProps {
 }
 
 const FilterSidebar = ({ categories, onCategoryChange, selectedCategoryId: selectedCategoryIdProp }: FilterSidebarProps) => {
+    const router = useRouter();
+    const searchParams = useSearchParams();
     const [priceRange, setPriceRange] = useState([0, 100000]);
     const [categorySearch, setCategorySearch] = useState("");
     const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(selectedCategoryIdProp || null);
@@ -33,11 +37,22 @@ const FilterSidebar = ({ categories, onCategoryChange, selectedCategoryId: selec
         setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
     };
 
-    const toggleCategory = (categoryId: number) => {
-        // Single selection: if same category is clicked, deselect it; otherwise select the new one
-        const newCategoryId = selectedCategoryId === categoryId ? null : categoryId;
-        setSelectedCategoryId(newCategoryId);
-        onCategoryChange(newCategoryId);
+    const handleCategoryChange = (value: string) => {
+        // RadioGroup returns string, convert to number or null
+        const categoryId = value === "" ? null : parseInt(value, 10);
+        setSelectedCategoryId(categoryId);
+        onCategoryChange(categoryId);
+
+        // Update URL with categoryId query parameter
+        if (categoryId !== null) {
+            router.push(`/products?categoryId=${categoryId}`);
+        } else {
+            // Remove categoryId from URL if deselected
+            const params = new URLSearchParams(searchParams.toString());
+            params.delete('categoryId');
+            const newUrl = params.toString() ? `/products?${params.toString()}` : '/products';
+            router.push(newUrl);
+        }
     };
 
     // Recursively flatten all categories and subcategories for filtering
@@ -70,6 +85,11 @@ const FilterSidebar = ({ categories, onCategoryChange, selectedCategoryId: selec
                             setSelectedCategoryId(null);
                             setPriceRange([0, 100000]);
                             onCategoryChange(null);
+                            // Remove categoryId from URL
+                            const params = new URLSearchParams(searchParams.toString());
+                            params.delete('categoryId');
+                            const newUrl = params.toString() ? `/products?${params.toString()}` : '/products';
+                            router.push(newUrl);
                         }}
                     >
                         Clear
@@ -100,22 +120,29 @@ const FilterSidebar = ({ categories, onCategoryChange, selectedCategoryId: selec
                                     className="pl-10 text-sm"
                                 />
                             </div>
-                            <div className="space-y-2">
+                            <RadioGroup
+                                value={selectedCategoryId !== null ? selectedCategoryId.toString() : ""}
+                                onValueChange={handleCategoryChange}
+                                className="space-y-2"
+                            >
                                 {filteredCategories.map((cat) => (
-                                    <label
+                                    <div
                                         key={cat.categoryId}
-                                        htmlFor={`cat-${cat.categoryId}`}
                                         className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 rounded p-1 -m-1 transition-colors"
                                     >
-                                        <Checkbox
+                                        <RadioGroupItem
+                                            value={cat.categoryId.toString()}
                                             id={`cat-${cat.categoryId}`}
-                                            checked={selectedCategoryId === cat.categoryId}
-                                            onCheckedChange={() => toggleCategory(cat.categoryId)}
                                         />
-                                        <span className="flex-1 text-sm text-gray-700">{cat.name}</span>
-                                    </label>
+                                        <Label
+                                            htmlFor={`cat-${cat.categoryId}`}
+                                            className="flex-1 text-sm text-gray-700 cursor-pointer"
+                                        >
+                                            {cat.name}
+                                        </Label>
+                                    </div>
                                 ))}
-                            </div>
+                            </RadioGroup>
                         </div>
                     )}
                 </div>

@@ -1,47 +1,48 @@
 "use client";
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProductCard from "./ProductCard";
 import { Button } from "@/components/ui/button";
 import { ShoppingCartIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { ProductPreview } from "@/types/domains/product";
+import { ProductPreview, ProductQueryOptions, SortOption } from "@/types/domains/product";
+import * as productServices from "@/services/product";
+import useDataFetch from "@/hooks/use-data-fetch";
 
 interface FeatureProductsProps {
     products?: ProductPreview[];
 }
 
-export const FeatureProducts = ({ products = [] }: FeatureProductsProps) => {
-    const [activeTab, setActiveTab] = useState("new");
+// Map tab to SortOption
+const getSortOptionForTab = (tab: string): SortOption => {
+    switch (tab) {
+        case "new":
+            return SortOption.NEWEST;
+        case "bestsellers":
+            return SortOption.POPULAR;
+        case "discounted":
+            return SortOption.POPULAR;
+        default:
+            return SortOption.POPULAR;
+    }
+};
+
+export const FeatureProducts = ({ products: productsProp = [] }: FeatureProductsProps) => {
     const router = useRouter();
+    const [activeTab, setActiveTab] = useState("new");
+    const productsData = useDataFetch(productServices.getAllProducts);
 
-    // Sort and filter products based on active tab
-    const filteredProducts = useMemo(() => {
-        if (!products || products.length === 0) return [];
+    // Fetch products when tab changes
+    useEffect(() => {
+        const filters: ProductQueryOptions = {
+            sortOption: getSortOptionForTab(activeTab)
+        };
+        productsData.request(filters);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeTab]);
 
-        const sortedProducts = [...products];
-
-        switch (activeTab) {
-            case "new":
-                // Sort by dateAdded (newest first)
-                return sortedProducts.sort((a, b) => {
-                    const dateA = new Date(a.dateAdded).getTime();
-                    const dateB = new Date(b.dateAdded).getTime();
-                    return dateB - dateA;
-                }).slice(0, 8);
-
-            case "bestsellers":
-                // Sort by rating (highest rated first)
-                return sortedProducts.sort((a, b) => b.rating - a.rating).slice(0, 8);
-
-            case "discounted":
-                // Show products with promotions (for now, show all - can be enhanced later with promo data)
-                return sortedProducts.slice(0, 8);
-
-            default:
-                return sortedProducts.slice(0, 8);
-        }
-    }, [products, activeTab]);
+    // Use products from API (already sorted on server) or fallback to prop
+    const filteredProducts = (productsData.data || productsProp || []).slice(0, 8);
 
 
     return (
