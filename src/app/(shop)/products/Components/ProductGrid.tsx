@@ -9,7 +9,16 @@ import {
    BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState, useEffect } from "react";
+import {
+   Pagination,
+   PaginationContent,
+   PaginationEllipsis,
+   PaginationItem,
+   PaginationLink,
+   PaginationNext,
+   PaginationPrevious,
+} from "@/components/ui/pagination";
+import { useState, useEffect, useMemo } from "react";
 import FilterSidebar from "./FilterSidebar";
 import { ProductPreview, ProductQueryOptions, SortOption } from "@/types/domains/product";
 import { CategoryTree } from "@/types/domains/category";
@@ -30,6 +39,8 @@ const ProductGrid = ({ categories, products: productsProp, onCategoryChange: onC
    const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(selectedCategoryIdProp || null);
    const [currentCategory, setCurrentCategory] = useState<CategoryTree | null>(null);
    const [sortBy, setSortBy] = useState<SortOption>(SortOption.POPULAR);
+   const [currentPage, setCurrentPage] = useState(1);
+   const itemsPerPage = 8;
    const productsData = useDataFetch(productServices.getAllProducts);
 
    // Fetch products with sorting when sortBy or selectedCategoryId changes
@@ -41,7 +52,8 @@ const ProductGrid = ({ categories, products: productsProp, onCategoryChange: onC
          filters.categoryId = selectedCategoryId;
       }
       productsData.request(filters);
-   
+      // Reset to page 1 when filters change
+      setCurrentPage(1);
    }, [sortBy, selectedCategoryId]);
 
    // Sync internal state with prop when it changes
@@ -100,6 +112,55 @@ const ProductGrid = ({ categories, products: productsProp, onCategoryChange: onC
 
    // Use products from API (already sorted on server) or fallback to prop
    const products = productsData.data || productsProp || [];
+
+   // Pagination calculations
+   const totalPages = Math.ceil(products.length / itemsPerPage);
+   const startIndex = (currentPage - 1) * itemsPerPage;
+   const endIndex = startIndex + itemsPerPage;
+   const currentPageProducts = useMemo(() => {
+      return products.slice(startIndex, endIndex);
+   }, [products, startIndex, endIndex]);
+
+   // Generate page numbers to display
+   const getPageNumbers = () => {
+      const pages: (number | string)[] = [];
+      const maxVisiblePages = 5;
+
+      if (totalPages <= maxVisiblePages) {
+         // Show all pages if total pages is less than max visible
+         for (let i = 1; i <= totalPages; i++) {
+            pages.push(i);
+         }
+      } else {
+         // Always show first page
+         pages.push(1);
+
+         if (currentPage <= 3) {
+            // Show first few pages
+            for (let i = 2; i <= 4; i++) {
+               pages.push(i);
+            }
+            pages.push("ellipsis");
+            pages.push(totalPages);
+         } else if (currentPage >= totalPages - 2) {
+            // Show last few pages
+            pages.push("ellipsis");
+            for (let i = totalPages - 3; i <= totalPages; i++) {
+               pages.push(i);
+            }
+         } else {
+            // Show pages around current page
+            pages.push("ellipsis");
+            for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+               pages.push(i);
+            }
+            pages.push("ellipsis");
+            pages.push(totalPages);
+         }
+      }
+
+      return pages;
+   };
 
    return (
       <section className="bg-white">
@@ -192,7 +253,7 @@ const ProductGrid = ({ categories, products: productsProp, onCategoryChange: onC
 
                      <div className="flex items-center gap-2 text-sm">
                         <span>Sort by:</span>
-                        <Select value={sortBy} onValueChange={setSortBy}>
+                        <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
                            <SelectTrigger className="w-48 h-8 text-sm border-gray-300">
                               <SelectValue />
                            </SelectTrigger>
@@ -208,10 +269,74 @@ const ProductGrid = ({ categories, products: productsProp, onCategoryChange: onC
 
                   {/* Products Grid */}
                   <div className={`grid ${getGridClass()} gap-6 py-6 ${gridColumns === 2 ? "justify-center" : ""}`}>
-                     {products.slice(0, 8).map((product) => (
-                        <ProductCard key={product.productId} product={product} promo={null} />
-                     ))}
+                     {currentPageProducts.length > 0 ? (
+                        currentPageProducts.map((product) => (
+                           <ProductCard key={product.productId} product={product} promo={null} />
+                        ))
+                     ) : (
+                        <div className="col-span-full text-center text-gray-500 py-8">
+                           No products found
+                        </div>
+                     )}
                   </div>
+
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                     <div className="mt-8">
+                        <Pagination>
+                           <PaginationContent>
+                              <PaginationItem>
+                                 <PaginationPrevious
+                                    href="#"
+                                    onClick={(e) => {
+                                       e.preventDefault();
+                                       if (currentPage > 1) {
+                                          setCurrentPage(currentPage - 1);
+                                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                                       }
+                                    }}
+                                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                 />
+                              </PaginationItem>
+
+                              {getPageNumbers().map((page, index) => (
+                                 <PaginationItem key={index}>
+                                    {page === "ellipsis" ? (
+                                       <PaginationEllipsis />
+                                    ) : (
+                                       <PaginationLink
+                                          href="#"
+                                          onClick={(e) => {
+                                             e.preventDefault();
+                                             setCurrentPage(page as number);
+                                             window.scrollTo({ top: 0, behavior: 'smooth' });
+                                          }}
+                                          isActive={currentPage === page}
+                                          className="cursor-pointer"
+                                       >
+                                          {page}
+                                       </PaginationLink>
+                                    )}
+                                 </PaginationItem>
+                              ))}
+
+                              <PaginationItem>
+                                 <PaginationNext
+                                    href="#"
+                                    onClick={(e) => {
+                                       e.preventDefault();
+                                       if (currentPage < totalPages) {
+                                          setCurrentPage(currentPage + 1);
+                                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                                       }
+                                    }}
+                                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                 />
+                              </PaginationItem>
+                           </PaginationContent>
+                        </Pagination>
+                     </div>
+                  )}
                </main>
             </div>
          </div>
