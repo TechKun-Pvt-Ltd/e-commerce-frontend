@@ -230,7 +230,6 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
     const isPlatformAdmin = user?.roleName === UserRole.PLATFORM_ADMIN;
     const isCustomer = user?.roleName === UserRole.CUSTOMER;
 
-
     const currentCustomerId = isCustomer ? user?.userId : undefined;
 
 
@@ -369,16 +368,22 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
                         {product.variants[0]?.quantityInStock} in stock
                     </div> */}
                     </div>
-                    <div className=" border w-full  rounded-md  p-4">
-                        <h1 className="mt-[-30px] text-center text-xl font-bold">Safe Chackout</h1>
+                    <div className="border w-full rounded-md p-4">
+                        <h1 className="mt-[-30px] text-center text-xl font-bold">Safe Checkout</h1>
                         <div className="flex items-center justify-center mt-8">
                             <img src="/online-payments.png" alt="Online-Payments" className="w-72" />
                         </div>
                     </div>
 
-                    <Button size="lg" className="w-full">
-                        Add to Cart
-                    </Button>
+                    <div className="space-y-3">
+                        <Button size="lg" className="w-full">
+                            Add to Cart
+                        </Button>
+
+                        <Button size="lg" variant="outline" className="w-full">
+                            Buy Now
+                        </Button>
+                    </div>
 
                     <h1 className="text-2xl font-bold"> Description </h1>
                     <p className="text-muted-foreground">{product?.description}</p>
