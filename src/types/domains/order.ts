@@ -1,21 +1,28 @@
+import { SortOption } from "../api";
 import { Address, AddressDTO } from "./address";
 import { PaymentMethod } from "./payment_method";
 import { Personalization } from "./personalization";
-import { ProductVariant } from "./product";
 import { ShippingMethod } from "./shipping_method";
 import { CustomerContact, ShopUser } from "./user";
 
 export interface OrderCreatePayload {
-    estimatedDeliveryDate: Date;
-    trackingNumber: string;
-    carrierName: string;
     items: OrderItemDTO[];
-    shippingAddressId: number;
-    shippingAddress: AddressDTO;
+    shippingAddressId?: number;
+    shippingAddress?: AddressDTO;
+    paymentMethodId?: number;
+    subtotalAmount: number
+    shippingAmount: number;
+    taxAmount?: number;
+    discountAmount?: number;
+    totalAmount: number;
+}
+
+export interface OrderItemDTO {
+    productVariantId: number;
+    personalization?: Personalization;
+    price: number;
     shippingMethodId: number;
-    shippingProvider: string;
-    paymentMethodId: number;
-    paymentProvider: string;
+    quantity: number;
 }
 
 export interface OrderDetails {
@@ -34,13 +41,6 @@ export interface OrderDetails {
     orderStatus: OrderStatus;
 }
 
-export interface OrderItemDTO {
-    orderItemId: number;
-    productVariantId: number;
-    personalization: Personalization;
-    quantity: number;
-    price: number;
-}
 
 export interface OrderPreviewDTO {
     orderId: number;
@@ -110,9 +110,10 @@ export interface ShopOrder {
 
 export interface OrderItem {
     orderItemId: number;
-    shopOrder: ShopOrder;
-    productVariant: ProductVariant;
+    // shopOrder: ShopOrder;
+    productVariantId: number;
     quantity: number;
     price: number;
     personalization?: Personalization;
 }
+

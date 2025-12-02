@@ -1,14 +1,29 @@
+export interface ShippingOption {
+  id?: number;
+  shippingMethodId?: number;
+  destinationCountry: string;
+  carrier: string;
+  costFirstItem: number;
+  costAdditionalItem: number;
+  estimatedDeliveryMin: number;
+  estimatedDeliveryMax: number;
+}
+
 export interface ShippingMethod {
-    shippingMethodId: number;
-    service: string;
-    country: string;
-    price: number;
-    disabled: boolean;
+  shippingMethodId: number;
+  name: string;
+  originCountry: string;
+  originPostalCode: string;
+  processingTimeMin: number;
+  processingTimeMax: number;
+  shippingOptions: ShippingOption[];
 }
 
 export interface ShippingMethodDTO {
-    service: string;
-    country: string;
-    price: number;
-    disabled: boolean;
+  name: string;
+  originCountry: string;
+  originPostalCode: string;
+  processingTimeMin: number;
+  processingTimeMax: number;
+  shippingOptions: ShippingOption[];
 }

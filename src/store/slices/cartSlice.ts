@@ -35,10 +35,11 @@ export const fetchCartItems = createAsyncThunk<CartItemPreview[], void, ThunkApi
     }
 );
 
-const addToCartAsync = createAsyncThunk<CartItemPreview[], CartItemDTO, ThunkApiConfig>(
+export const addToCart = createAsyncThunk<CartItemPreview[], CartItemDTO, ThunkApiConfig>(
     'cart/addToCartAsync',
     async (itemToAdd, { dispatch, rejectWithValue }) => {
         try {
+            console.log("itemToAdd", itemToAdd);
             const response = await cartServices.addCartItem({
                 productVariantId: itemToAdd.productVariantId,
                 quantity: itemToAdd.quantity,
@@ -100,19 +101,19 @@ const cartSlice = createSlice({
     name: 'cart',
     initialState,
     reducers: {
-        addToCart: (state, action: PayloadAction<CartItemDTO>) => {
-            state.items = [...state.items, {
-                ...action.payload,
-                cartItemId: ++cartItemId,
-                imageUrl: "https://drive.google.com/uc?export=view&id=1P5LsB3Kl1wb0j_D8BrkhVJetaSRqdTMX",
-                addedAt: new Date(),
-                quantityInStock: 50,
-                price: 300,
-                sku: "KHFDJ89873",
-                title: "Test"
-            }];
-            calculateTotals(state);
-        },
+        // addToCart: (state, action: PayloadAction<CartItemDTO>) => {
+        //     state.items = [...state.items, {
+        //         ...action.payload,
+        //         cartItemId: ++cartItemId,
+        //         imageUrl: "https://drive.google.com/uc?export=view&id=1P5LsB3Kl1wb0j_D8BrkhVJetaSRqdTMX",
+        //         addedAt: new Date(),
+        //         quantityInStock: 50,
+        //         price: 300,
+        //         sku: "KHFDJ89873",
+        //         title: "Test"
+        //     }];
+        //     calculateTotals(state);
+        // },
         updateCart: (state, action: PayloadAction<CartItemPreview[]>) => {
             state.items = action.payload;
             calculateTotals(state);
@@ -138,16 +139,16 @@ const cartSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload as string;
             })
-            .addCase(addToCartAsync.pending, (state) => {
+            .addCase(addToCart.pending, (state) => {
                 state.loading = true;
                 state.error = null;
             })
-            .addCase(addToCartAsync.fulfilled, (state, action) => {
+            .addCase(addToCart.fulfilled, (state, action) => {
                 state.loading = false;
                 state.items = action.payload;
                 calculateTotals(state);
             })
-            .addCase(addToCartAsync.rejected, (state, action) => {
+            .addCase(addToCart.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string;
             })
@@ -187,5 +188,5 @@ const cartSlice = createSlice({
     },
 });
 
-export const { updateCart, clearCart, addToCart } = cartSlice.actions;
+export const { updateCart, clearCart } = cartSlice.actions;
 export default cartSlice.reducer;

@@ -1,6 +1,6 @@
 "use client"
+import { ShopOrder } from '@/types/domains/order';
 import React from 'react';
-import { ShopOrder } from '@/app/types/models';
 
 interface OrderListProps {
     orders: ShopOrder[];
@@ -53,16 +53,17 @@ const OrderList: React.FC<OrderListProps> = ({ orders }) => {
                         {order.orderItems.map(item => (
                             <div key={item.orderItemId} className="flex justify-between items-center">
                                 <div className="flex items-center">
-                                    <p className="text-gray-700">{item.productVariant.name}</p>
+                                    <p className="text-gray-700">{item.productVariantId}</p>
                                     <span className="text-gray-400 text-sm ml-2">x{item.quantity}</span>
                                 </div>
-                                <p className="font-medium">Rs. {(item.productVariant.price * item.quantity).toLocaleString('id-ID')}</p>
+                                <p className="font-medium">Rs. {(item.price * item.quantity).toLocaleString('id-ID')}</p>
                             </div>
                         ))}
 
                         <div className="flex justify-between items-center pt-3 border-t border-gray-200 font-bold">
                             <p>Total</p>
-                            <p>Rs. {order.orderTotal.toLocaleString('id-ID')}</p>
+                            {/* <p>Rs. {order.orderTotal.toLocaleString('id-ID')}</p> */}
+                            <p>Rs. 100</p>
                         </div>
                         <div className="flex justify-between items-center mt-4">
                             <p className="font-bold text-lg"></p>

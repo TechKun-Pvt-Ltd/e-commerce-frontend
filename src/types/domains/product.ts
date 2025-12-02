@@ -1,9 +1,10 @@
-import { SortOption } from "../api";
+
 import { Attribute } from "./attribute";
 
 export interface Product {
     productId: number;
     categoryId: number;
+    shippingMethodId?: number;
     title: string;
     code: string;
     description: string;
@@ -48,6 +49,7 @@ export interface ProductDetails {
     title: string;
     code: string;
     categoryId: number;
+    shippingMethodId?: number;
     variants: (Omit<ProductVariant, 'variationOptions'> & {variantProperties : {[variationId: number] : {variationOptionId: number , name: string}}})[];
     description: string;
     attributes: ProductAttribute[];
@@ -58,6 +60,7 @@ export interface ProductPatchPayload {
     title: string;
     starred: boolean;
     categoryId: number;
+    shippingMethodId?: number;
 }
 
 export interface ProductPayload {
@@ -66,6 +69,7 @@ export interface ProductPayload {
     description: string;
     starred: boolean;
     categoryId: number;
+    shippingMethodId?: number;
     images: {
         productImageId?: number;
         imageUrl: string;
@@ -89,6 +93,7 @@ export interface ProductPreview {
     productId: number;
     productVariantId: number;
     categoryId: number;
+    shippingMethodId?: number;
     dateAdded: Date;
     quantityInStock: number;
     imageUrl: string;
@@ -103,5 +108,12 @@ export interface ProductQueryOptions {
     searchInput?: string;
     categoryId?: number;
     variations?: Record<number, number>;
-    sortBy?: SortOption;
+    sortOption?: SortOption;
+}
+
+export enum SortOption {
+    POPULAR = 'POPULAR',
+    NEWEST = 'NEWEST',
+    PRICE_LOW_TO_HIGH = 'PRICE_LOW_TO_HIGH',
+    PRICE_HIGH_TO_LOW = 'PRICE_HIGH_TO_LOW',
 }

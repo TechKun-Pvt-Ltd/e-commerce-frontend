@@ -67,11 +67,6 @@ const items = [
         icon: Truck  // Sliders icon represents adjustable Shipping-Method/properties
     },
     {
-        title: "Payment Methods",
-        url: "/admin/payment-methods",
-        icon: CreditCardIcon  // CreditCardIcon icon represents adjustable Payment-Method/properties
-    },
-    {
         title: "Order Shipping",
         url: "/admin/orders-shipping",
         icon: ShipWheelIcon  // ShipWheelIcon icon represents adjustable Order Shipping/properties
