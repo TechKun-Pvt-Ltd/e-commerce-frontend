@@ -14,12 +14,16 @@ import { Variation } from "@/types/domains/variation";
 import { AttributeType } from "@/types/domains/attribute";
 import { ProductReviews } from "../Components/ProductReviews";
 
-import { useAppSelector } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { UserRole } from "@/types/domains/user";
 import ProductCard from "@/app/components/ProductCard";
 import * as productServices from "@/services/product";
 import * as variationServices from "@/services/variation";
 import useDataFetch from "@/hooks/use-data-fetch";
+import { addToCart } from "@/store/slices/cartSlice";
+import { toast } from "sonner";
+import CartToast from "@/app/components/CartToast";
+import { useRouter } from "next/navigation";
 
 type VariationMap = {
     [variationId: number]: {
@@ -42,6 +46,8 @@ type VariantSelectionState = {
 
 export default function ProductDetailsPage({ params }: { params: Promise<{ productId: string }> }) {
     const { productId } = React.use(params);
+    const dispatch = useAppDispatch();
+    const router = useRouter();
 
     const getProductByIdFetch = useDataFetch(productServices.getProductById);
     const getAllProductsFetch = useDataFetch(productServices.getAllProducts);
@@ -232,7 +238,32 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
 
     const currentCustomerId = isCustomer ? user?.userId : undefined;
 
+    // Find the selected variant based on variation selections
+    const getSelectedVariant = useCallback(() => {
+        if (!product?.variants) return null;
 
+        // If no variations, return first variant
+        if (Object.keys(variationMap).length === 0 && product.variants.length > 0) {
+            return product.variants[0];
+        }
+
+        // Check if all variations have been selected
+        const allVariationsSelected = Object.values(variationMap).every(
+            (variation) => variation.selectedOptionId !== undefined && variation.selectedOptionId !== null
+        );
+
+        if (!allVariationsSelected) return null;
+
+        // Find the variant that matches all selected variation options
+        const selectedVariant = product.variants.find((variant) => {
+            return variant.variationOptions.every((opt) => {
+                const variation = variationMap[opt.variationId];
+                return variation?.selectedOptionId === opt.variationOptionId;
+            });
+        });
+
+        return selectedVariant || null;
+    }, [product, variationMap]);
 
     // Loading state
     if (getProductByIdFetch.isLoading) {
@@ -376,11 +407,67 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
                     </div>
 
                     <div className="space-y-3">
-                        <Button size="lg" className="w-full">
+                        <Button
+                            size="lg"
+                            className="w-full"
+                            onClick={async () => {
+                                const selectedVariant = getSelectedVariant();
+
+                                if (!selectedVariant) {
+                                    toast.error("Please select all product variations");
+                                    return;
+                                }
+
+                                await dispatch(
+                                    addToCart({
+                                        productVariantId: selectedVariant.productVariantId,
+                                        quantity: 1,
+                                    })
+                                );
+                                if (toast.getToasts().find((toast) => toast.id === "cart-toast")) return;
+
+                                toast(CartToast, {
+                                    id: "cart-toast",
+                                    position: "bottom-left",
+                                    closeButton: false,
+                                    style: {
+                                        display: "block",
+                                        padding: "0px",
+                                        width: "500px",
+                                        height: "auto",
+                                    },
+                                    dismissible: false,
+                                    duration: Infinity,
+                                });
+                            }}
+                        >
                             Add to Cart
                         </Button>
 
-                        <Button size="lg" variant="outline" className="w-full">
+                        <Button
+                            size="lg"
+                            variant="outline"
+                            className="w-full"
+                            onClick={async () => {
+                                const selectedVariant = getSelectedVariant();
+
+                                if (!selectedVariant) {
+                                    toast.error("Please select all product variations");
+                                    return;
+                                }
+
+                                // Add to cart first
+                                await dispatch(
+                                    addToCart({
+                                        productVariantId: selectedVariant.productVariantId,
+                                        quantity: 1,
+                                    })
+                                );
+
+                                // Redirect to checkout page
+                                router.push("/checkout");
+                            }}
+                        >
                             Buy Now
                         </Button>
                     </div>
