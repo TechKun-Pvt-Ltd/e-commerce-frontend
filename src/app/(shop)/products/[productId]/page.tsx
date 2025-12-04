@@ -230,7 +230,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
 
 
 
-    const { user, loading } = useAppSelector(state => state.auth);
+    const { user, loading, authenticated } = useAppSelector(state => state.auth);
     // Helper functions to check user roles
     const isAdmin = user?.roleName === UserRole.ADMIN;
     const isPlatformAdmin = user?.roleName === UserRole.PLATFORM_ADMIN;
@@ -411,6 +411,13 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
                             size="lg"
                             className="w-full"
                             onClick={async () => {
+                                // Check if user is authenticated
+                                if (!authenticated) {
+                                    toast.error("Please login to add items to cart");
+                                    router.push("/auth/login");
+                                    return;
+                                }
+
                                 const selectedVariant = getSelectedVariant();
 
                                 if (!selectedVariant) {
@@ -449,6 +456,13 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
                             variant="outline"
                             className="w-full"
                             onClick={async () => {
+                                // Check if user is authenticated
+                                if (!authenticated) {
+                                    toast.error("Please login to place an order");
+                                    router.push("/auth/login");
+                                    return;
+                                }
+
                                 const selectedVariant = getSelectedVariant();
 
                                 if (!selectedVariant) {
