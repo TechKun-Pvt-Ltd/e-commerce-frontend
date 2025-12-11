@@ -296,7 +296,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
         if (!toast.getToasts().find((t) => t.id === "cart-toast")) {
             toast(CartToast, cartToastConfig);
         }
-    }, [authenticated, getSelectedVariant, dispatch, router, cartToastConfig]);
+    }, [authenticated, getSelectedVariant, dispatch, router, cartToastConfig, productId]);
 
     // Handle buy now logic
     const handleBuyNow = useCallback(async () => {
@@ -321,7 +321,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
         );
 
         router.push("/checkout");
-    }, [authenticated, getSelectedVariant, dispatch, router]);
+    }, [authenticated, getSelectedVariant, dispatch, router, productId]);
 
     // Loading state
     if (getProductByIdFetch.isLoading) {

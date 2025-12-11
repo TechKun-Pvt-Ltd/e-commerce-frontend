@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useRouter } from 'nextjs-toploader/app';
 import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -25,11 +25,11 @@ export default function LoginPage() {
     const searchParams = useSearchParams();
     const { loading, authenticated } = useAppSelector(state => state.auth);
     const dispatch = useAppDispatch();
-    const returnUrl = searchParams.get('returnUrl') || '/';
+    const returnUrl = useMemo(() => searchParams.get('returnUrl') || '/', [searchParams]);
 
     useEffect(() => {
         if (!loading && authenticated) {
-            toast.success('You are logged in!', {icon: null, richColors: true});
+            toast.success('You are logged in!', { icon: null, richColors: true });
             router.push(returnUrl);
         }
     }, [loading, authenticated, returnUrl, router]);
