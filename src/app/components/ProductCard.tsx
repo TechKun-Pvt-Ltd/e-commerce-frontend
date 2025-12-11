@@ -30,9 +30,8 @@ export default function ProductCard({ product, promo }: { product: ProductPrevie
    const dispatch = useAppDispatch();
    const wishlistItems = useAppSelector((state) => state.wishlist.items);
    const { authenticated } = useAppSelector((state) => state.auth);
-   // Check wishlist using Redux state only - product.starred is not used
-   const isInWishlist = wishlistItems.some(item => item.productVariantId === product.productVariantId);
-   const wishlistItem = wishlistItems.find(item => item.productVariantId === product.productVariantId);
+   const wishlistItem = wishlistItems.find(item => item.productVariant.productVariantId === product.productVariantId);
+   const isInWishlist = wishlistItem !== undefined;
    const discounted = getDiscountedPrice(product.price, promo);
    const isDiscounted = promo && discounted < product.price;
 
@@ -49,7 +48,7 @@ export default function ProductCard({ product, promo }: { product: ProductPrevie
             toast.success("Removed from wishlist");
          } else {
             // Add to wishlist via API
-            await dispatch(addToWishlistAsync({ product, productVariantId: product.productVariantId }));
+            await dispatch(addToWishlistAsync(product.productVariantId));
             toast.success("Added to wishlist");
          }
       } catch (error) {

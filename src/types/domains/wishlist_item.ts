@@ -11,6 +11,7 @@ export interface WishlistItemDTO {
     wishlistItemId: number;
     productImageUrl: string;
     productVariant: {
+        productVariantId: number;
         sku: string;
         quantityInStock: number;
         price: number;
