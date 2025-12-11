@@ -22,6 +22,7 @@ import { addToCart } from "@/store/slices/cartSlice";
 import { toast } from "sonner";
 import CartToast from "@/app/components/CartToast";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 type VariationMap = {
     [variationId: number]: {
@@ -359,9 +360,11 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
                 <div>
                     <div className="border rounded-md overflow-hidden h-96 md:h-[500px]">
                         {product?.productImages && product.productImages.length > 0 ? (
-                            <img
+                            <Image
                                 src={activeImage?.imageUrl || product.productImages[0]?.imageUrl}
                                 alt={product.title}
+                                width={100}
+                                height={100}
                                 className="w-full h-full object-cover"
                             />
                         ) : (
@@ -370,16 +373,18 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
                             </div>
                         )}
                     </div>
-                    <div className="mt-4 flex justify-between gap-2 ">
+                    <div className="mt-4 flex gap-3">
                         {product?.productImages?.map((img, index) => (
                             <button
                                 key={img.productImageId}
                                 onClick={() => setActiveImage(img)}
-                                className={`rounded-md  p-0 w-35 h-35 ${activeImage?.productImageId === img.productImageId ? "border-black border-3 z-10" : "border-mute"}`}
+                                className={`rounded-md overflow-hidden p-0 w-35 h-35 ${activeImage?.productImageId === img.productImageId ? "border-black border-3 z-10" : "border-mute"}`}
                             >
-                                <img
+                                <Image
                                     src={img.imageUrl}
                                     alt={`Thumbnail ${index + 1}`}
+                                    width={100}
+                                    height={100}
                                     className="w-full h-full object-cover"
                                 />
                             </button>
