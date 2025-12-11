@@ -10,6 +10,7 @@ import { fetchAttributes } from "@/store/slices/attributeSlice";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { fetchCartItems } from "@/store/slices/cartSlice";
+import { fetchWishlistItems } from "@/store/slices/wishlistSlice";
 
 setAutoFreeze(false);
 
@@ -21,6 +22,7 @@ export function AppGateway({ children }: { children: React.ReactNode }) {
       dispatch(fetchVariations());
       dispatch(fetchAttributes());
       dispatch(fetchCartItems());
+      dispatch(fetchWishlistItems());
    }, []);
 
    return (

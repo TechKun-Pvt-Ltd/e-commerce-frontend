@@ -30,9 +30,8 @@ export default function ProductCard({ product, promo }: { product: ProductPrevie
    const dispatch = useAppDispatch();
    const wishlistItems = useAppSelector((state) => state.wishlist.items);
    const { authenticated } = useAppSelector((state) => state.auth);
-   // Check wishlist using wishlistItems first (from localStorage/state), then fallback to product.starred
-   // This ensures refresh ke baad bhi hearts red rehte hain
-   const isInWishlist = wishlistItems.some(item => item.productVariantId === product.productVariantId) || product.starred;
+   // Check wishlist using Redux state only - product.starred is not used
+   const isInWishlist = wishlistItems.some(item => item.productVariantId === product.productVariantId);
    const wishlistItem = wishlistItems.find(item => item.productVariantId === product.productVariantId);
    const discounted = getDiscountedPrice(product.price, promo);
    const isDiscounted = promo && discounted < product.price;
