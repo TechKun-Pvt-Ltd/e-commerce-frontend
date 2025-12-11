@@ -16,6 +16,7 @@ export interface CategoryTree {
    name: string;
    path: string;
    subcategories: CategoryTree[];
+   imageUrl?: string;
 }
 
 export interface CategoryDetails {
