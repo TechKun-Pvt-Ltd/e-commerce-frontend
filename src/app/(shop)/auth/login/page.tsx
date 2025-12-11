@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useRouter } from 'nextjs-toploader/app';
+import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -21,15 +22,17 @@ const loginSchema = z.object({
 
 export default function LoginPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { loading, authenticated } = useAppSelector(state => state.auth);
     const dispatch = useAppDispatch();
+    const returnUrl = useMemo(() => searchParams.get('returnUrl') || '/', [searchParams]);
 
     useEffect(() => {
         if (!loading && authenticated) {
-            toast.success('You are logged in!', {icon: null, richColors: true});
-            router.push('/');
+            toast.success('You are logged in!', { icon: null, richColors: true });
+            router.push(returnUrl);
         }
-    }, [loading, authenticated]);
+    }, [loading, authenticated, returnUrl, router]);
 
     const form = useForm<z.infer<typeof loginSchema>>({
         resolver: zodResolver(loginSchema),
@@ -44,7 +47,7 @@ export default function LoginPage() {
             const result = await dispatch(login(values));
             if (result.meta.requestStatus === 'fulfilled') {
                 localStorage.setItem("expiresAt", String((result.payload as TokenPayload).expiresAt));
-                router.push('/');
+                router.push(returnUrl);
             } else {
                 form.setError('root', {
                     type: 'manual',

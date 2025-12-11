@@ -1,61 +1,95 @@
 "use client"
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronDown, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { CategoryTree } from "@/types/domains/category";
 
-// Categories list
-const Categories = [
-    { name: "Shoes", count: 156 },
-    { name: "Clothing", count: 89 },
-    { name: "Electronics", count: 34 },
-    { name: "Accessories", count: 67 },
-    { name: "Sports", count: 123 },
-    { name: "Home", count: 45 },
-];
+interface FilterSidebarProps {
+    categories: CategoryTree[];
+    onCategoryChange: (categoryId: number | null) => void;
+    selectedCategoryId?: number | null;
+}
 
-const FilterSidebar = () => {
+const FilterSidebar = ({ categories, onCategoryChange, selectedCategoryId: selectedCategoryIdProp }: FilterSidebarProps) => {
+    const router = useRouter();
+    const searchParams = useSearchParams();
     const [priceRange, setPriceRange] = useState([0, 100000]);
     const [categorySearch, setCategorySearch] = useState("");
-    const [selectedCategories, setSelectedCategories] = useState(new Set());
-    const [selectedSizes, setSelectedSizes] = useState(new Set());
-    const [selectedColors, setSelectedColors] = useState(new Set());
+    const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(selectedCategoryIdProp || null);
     const [openSections, setOpenSections] = useState({
         category: true,
         price: true,
-        size: true,
     });
+
+    // Sync internal state with prop when it changes
+    useEffect(() => {
+        if (selectedCategoryIdProp !== undefined) {
+            setSelectedCategoryId(selectedCategoryIdProp);
+        }
+    }, [selectedCategoryIdProp]);
 
     const toggleSection = (section: keyof typeof openSections) => {
         setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
     };
 
-    const toggleCategory = (categoryName: string) => {
-        const newSelected = new Set(selectedCategories);
-        newSelected.has(categoryName) ? newSelected.delete(categoryName) : newSelected.add(categoryName);
-        setSelectedCategories(newSelected);
+    const handleCategoryChange = (value: string) => {
+        // RadioGroup returns string, convert to number or null
+        const categoryId = value === "" ? null : parseInt(value, 10);
+        setSelectedCategoryId(categoryId);
+        onCategoryChange(categoryId);
+
+        // Update URL with categoryId query parameter
+        if (categoryId !== null) {
+            router.push(`/products?categoryId=${categoryId}`);
+        } else {
+            // Remove categoryId from URL if deselected
+            const params = new URLSearchParams(searchParams.toString());
+            params.delete('categoryId');
+            const newUrl = params.toString() ? `/products?${params.toString()}` : '/products';
+            router.push(newUrl);
+        }
     };
 
-    const filteredCategories = Categories.filter(cat =>
+    // Recursively flatten all categories and subcategories for filtering
+    const flattenCategories = (cats: CategoryTree[]): CategoryTree[] => {
+        const result: CategoryTree[] = [];
+        cats.forEach(cat => {
+            result.push(cat);
+            if (cat.subcategories && cat.subcategories.length > 0) {
+                result.push(...flattenCategories(cat.subcategories));
+            }
+        });
+        return result;
+    };
+
+    const allCategories = flattenCategories(categories);
+    const filteredCategories = allCategories.filter(cat =>
         cat.name.toLowerCase().includes(categorySearch.toLowerCase())
     );
 
     return (
         <div className="w-72 bg-white border-r border-gray-200">
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+            <div className="flex items-center justify-between p-4 h-16 border-b border-gray-200">
                 <h2 className="font-medium text-gray-900">Filter</h2>
-                {(selectedCategories.size > 0 || selectedSizes.size > 0 || selectedColors.size > 0) && (
+                {selectedCategoryId !== null && (
                     <Button
                         variant="outline"
                         size="sm"
                         onClick={() => {
-                            setSelectedCategories(new Set());
-                            setSelectedSizes(new Set());
-                            setSelectedColors(new Set());
+                            setSelectedCategoryId(null);
                             setPriceRange([0, 100000]);
+                            onCategoryChange(null);
+                            // Remove categoryId from URL
+                            const params = new URLSearchParams(searchParams.toString());
+                            params.delete('categoryId');
+                            const newUrl = params.toString() ? `/products?${params.toString()}` : '/products';
+                            router.push(newUrl);
                         }}
                     >
                         Clear
@@ -86,25 +120,29 @@ const FilterSidebar = () => {
                                     className="pl-10 text-sm"
                                 />
                             </div>
-                            <div className="space-y-2">
+                            <RadioGroup
+                                value={selectedCategoryId !== null ? selectedCategoryId.toString() : ""}
+                                onValueChange={handleCategoryChange}
+                                className="space-y-2"
+                            >
                                 {filteredCategories.map((cat) => (
-                                    <div key={cat.name} className="flex items-center space-x-3">
-                                        <Checkbox
-                                            id={cat.name}
-                                            checked={selectedCategories.has(cat.name)}
-                                            onCheckedChange={() => toggleCategory(cat.name)}
+                                    <div
+                                        key={cat.categoryId}
+                                        className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 rounded p-1 -m-1 transition-colors"
+                                    >
+                                        <RadioGroupItem
+                                            value={cat.categoryId.toString()}
+                                            id={`cat-${cat.categoryId}`}
                                         />
-                                        <label
-                                            htmlFor={cat.name}
-                                            className="flex-1 flex items-center justify-between text-sm cursor-pointer"
-                                            onClick={() => toggleCategory(cat.name)}
+                                        <Label
+                                            htmlFor={`cat-${cat.categoryId}`}
+                                            className="flex-1 text-sm text-gray-700 cursor-pointer"
                                         >
-                                            <span className="text-gray-700">{cat.name}</span>
-                                            <span className="text-gray-400 text-xs">({cat.count})</span>
-                                        </label>
+                                            {cat.name}
+                                        </Label>
                                     </div>
                                 ))}
-                            </div>
+                            </RadioGroup>
                         </div>
                     )}
                 </div>

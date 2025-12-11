@@ -1,7 +1,7 @@
 "use client"
 
-import React, { useCallback, useEffect, useState } from "react"
-import { Product } from "@/types/domains/product"
+import React, { useCallback, useEffect, useMemo, useState } from "react"
+import { Product, ProductDetails, ProductImage } from "@/types/domains/product"
 import { Button } from "@/components/ui/button"
 import {
     Select,
@@ -11,482 +11,18 @@ import {
     SelectItem,
 } from "@/components/ui/select";
 import { Variation } from "@/types/domains/variation";
-import { AttributeType } from "@/types/domains/attribute";
 import { ProductReviews } from "../Components/ProductReviews";
-
-import { useAppSelector } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { UserRole } from "@/types/domains/user";
 import ProductCard from "@/app/components/ProductCard";
-
-const products: any[] = [
-    {
-        "productId": 101,
-        "productVariantId": 201,
-        "categoryId": 12,
-        "dateAdded": "2025-08-07T10:00:00Z",
-        "quantityInStock": 75,
-        "imageUrl": "https://i.pinimg.com/1200x/b8/98/4e/b8984e1d41ef5987dcd45d239aa641fd.jpg",
-        "price": 499.00,
-        "title": "Classic Wooden Photo Frame",
-        "code": "FRAME-WD-2025",
-        "rating": 4.6,
-        "starred": true
-
-    },
-    {
-        "productId": 102,
-        "productVariantId": 202,
-        "categoryId": 12,
-        "dateAdded": "2025-08-06T12:30:00Z",
-        "quantityInStock": 60,
-        "imageUrl": "https://i.pinimg.com/1200x/93/3b/f1/933bf196b3e96ad63cf7e28537008244.jpg",
-        "price": 599.00,
-        "title": "Minimalist Black Frame",
-        "code": "FRAME-BLK-2025",
-        "rating": 4.8,
-        "starred": false
-    },
-    {
-        "productId": 103,
-        "productVariantId": 203,
-        "categoryId": 12,
-        "dateAdded": "2025-08-04T15:15:00Z",
-        "quantityInStock": 45,
-        "imageUrl": "https://i.pinimg.com/736x/27/89/70/278970ef6800d537b042bbebb142473d.jpg",
-        "price": 749.00,
-        "title": "Golden Antique Frame",
-        "code": "FRAME-GLD-2025",
-        "rating": 4.9,
-        "starred": true
-    }, {
-        "productId": 104,
-        "productVariantId": 201,
-        "categoryId": 12,
-        "dateAdded": "2025-08-07T10:00:00Z",
-        "quantityInStock": 75,
-        "imageUrl": "https://i.pinimg.com/1200x/14/6c/20/146c20591a0c03ad90c8a08f42cf3624.jpg",
-        "price": 499.00,
-        "title": "Classic Wooden Photo Frame",
-        "code": "FRAME-WD-2025",
-        "rating": 4.6,
-        "starred": true
-
-    },
-    {
-        "productId": 105,
-        "productVariantId": 202,
-        "categoryId": 12,
-        "dateAdded": "2025-08-06T12:30:00Z",
-        "quantityInStock": 60,
-        "imageUrl": "https://i.pinimg.com/1200x/a6/6d/46/a66d46545c57675eff9d6d2472ff5407.jpg",
-        "price": 599.00,
-        "title": "Minimalist Black Frame",
-        "code": "FRAME-BLK-2025",
-        "rating": 4.8,
-        "starred": false
-    },
-    {
-        "productId": 106,
-        "productVariantId": 203,
-        "categoryId": 12,
-        "dateAdded": "2025-08-04T15:15:00Z",
-        "quantityInStock": 45,
-        "imageUrl": "https://i.pinimg.com/1200x/35/ca/d9/35cad961cbbc05fa924bf8054b0e01bb.jpg",
-        "price": 749.00,
-        "title": "Golden Antique Frame",
-        "code": "FRAME-GLD-2025",
-        "rating": 4.9,
-        "starred": true
-    }, {
-        "productId": 107,
-        "productVariantId": 201,
-        "categoryId": 12,
-        "dateAdded": "2025-08-07T10:00:00Z",
-        "quantityInStock": 75,
-        "imageUrl": "https://i.pinimg.com/736x/42/de/7b/42de7bb703fca6d7b52b68c2affd949f.jpg",
-        "price": 499.00,
-        "title": "Classic Wooden Photo Frame",
-        "code": "FRAME-WD-2025",
-        "rating": 4.6,
-        "starred": true
-
-    },
-    {
-        "productId": 108,
-        "productVariantId": 202,
-        "categoryId": 12,
-        "dateAdded": "2025-08-06T12:30:00Z",
-        "quantityInStock": 60,
-        "imageUrl": "https://i.pinimg.com/1200x/8e/1d/81/8e1d81152c50bb4ace7609fe6a10491e.jpg",
-        "price": 599.00,
-        "title": "Minimalist Black Frame",
-        "code": "FRAME-BLK-2025",
-        "rating": 4.8,
-        "starred": false
-    },
-
-
-];
-
-
-const product: Product = {
-    productId: 1,
-    categoryId: 101,
-    title: "Premium Wireless Headphones",
-    description:
-        "Elevate your everyday style with our Essential Polos, the perfect blend of comfort and sophistication. Crafted from premium, breathable fabric, these polos offer a tailored fit that’s ideal for both casual outings and smart-casual settings. Designed with classic collars and subtle detailing, they bring timeless appeal to your wardrobe. Available in a range of versatile colors, they pair effortlessly with jeans, chinos, or shorts. Whether you’re heading to the office or a weekend brunch, Essential Polos keep you looking sharp and feeling comfortable all day long.",
-    dateAdded: "2025-04-10T00:00:00Z",
-    starred: true,
-    productImages: [
-        {
-            productImageId: 1,
-            imageUrl: "https://i.pinimg.com/736x/2f/89/ba/2f89ba6de7afbb51d329c30c475f9e55.jpg",
-            isDefault: true,
-        },
-        {
-            productImageId: 2,
-            imageUrl: "https://i.pinimg.com/736x/61/81/70/6181701187f9e48136eecc8b8a622acf.jpg",
-            isDefault: false,
-        },
-        {
-            productImageId: 3,
-            imageUrl: "https://i.pinimg.com/736x/aa/09/d2/aa09d28585253a74c08dcac92dabac60.jpg",
-            isDefault: false,
-        },
-        {
-            productImageId: 4,
-            imageUrl: "https://i.pinimg.com/1200x/4f/53/78/4f53789fb9723f36fb201ca7b61beb90.jpg",
-            isDefault: false,
-        },
-    ],
-    variants: [
-        {
-            productVariantId: 101,
-            sku: "WH-1000XM5-BLK-BT",
-            disabled: false,
-            quantityInStock: 28,
-            price: 369.99,
-            variationOptions: [
-                {
-                    variationOptionId: 1,
-                    name: "Black",
-                    variationId: 1,
-                },
-                {
-                    variationOptionId: 4,
-                    name: "Over-Ear",
-                    variationId: 2,
-                },
-                {
-                    variationOptionId: 6,
-                    name: "Bluetooth",
-                    variationId: 3,
-                },
-            ],
-        },
-        {
-            productVariantId: 102,
-            sku: "WH-1000XM5-SLV-BT",
-            disabled: false,
-            quantityInStock: 12,
-            price: 349.99,
-            variationOptions: [
-                {
-                    variationOptionId: 2,
-                    name: "Silver",
-                    variationId: 1,
-                },
-                {
-                    variationOptionId: 4,
-                    name: "Over-Ear",
-                    variationId: 2,
-                },
-                {
-                    variationOptionId: 6,
-                    name: "Bluetooth",
-                    variationId: 3,
-                },
-            ],
-        },
-        {
-            productVariantId: 103,
-            sku: "WH-1000XM5-GLD-BT",
-            disabled: false,
-            quantityInStock: 15,
-            price: 379.99,
-            variationOptions: [
-                {
-                    variationOptionId: 3,
-                    name: "Gold",
-                    variationId: 1,
-                },
-                {
-                    variationOptionId: 4,
-                    name: "Over-Ear",
-                    variationId: 2,
-                },
-                {
-                    variationOptionId: 6,
-                    name: "Bluetooth",
-                    variationId: 3,
-                },
-            ],
-        },
-        {
-            productVariantId: 104,
-            sku: "WH-1000XM5-BLK-ON-BT",
-            disabled: false,
-            quantityInStock: 20,
-            price: 329.99,
-            variationOptions: [
-                {
-                    variationOptionId: 1,
-                    name: "Black",
-                    variationId: 1,
-                },
-                {
-                    variationOptionId: 5,
-                    name: "On-Ear",
-                    variationId: 2,
-                },
-                {
-                    variationOptionId: 6,
-                    name: "Bluetooth",
-                    variationId: 3,
-                },
-            ],
-        },
-        {
-            productVariantId: 105,
-            sku: "WH-1000XM5-SLV-ON-BT",
-            disabled: false,
-            quantityInStock: 18,
-            price: 319.99,
-            variationOptions: [
-                {
-                    variationOptionId: 2,
-                    name: "Silver",
-                    variationId: 1,
-                },
-                {
-                    variationOptionId: 5,
-                    name: "On-Ear",
-                    variationId: 2,
-                },
-                {
-                    variationOptionId: 6,
-                    name: "Bluetooth",
-                    variationId: 3,
-                },
-            ],
-        },
-        {
-            productVariantId: 106,
-            sku: "WH-1000XM5-GLD-ON-BT",
-            disabled: false,
-            quantityInStock: 10,
-            price: 339.99,
-            variationOptions: [
-                {
-                    variationOptionId: 3,
-                    name: "Gold",
-                    variationId: 1,
-                },
-                {
-                    variationOptionId: 5,
-                    name: "On-Ear",
-                    variationId: 2,
-                },
-                {
-                    variationOptionId: 6,
-                    name: "Bluetooth",
-                    variationId: 3,
-                },
-            ],
-        },
-        {
-            productVariantId: 107,
-            sku: "WH-1000XM5-BLK-WR",
-            disabled: false,
-            quantityInStock: 25,
-            price: 339.99,
-            variationOptions: [
-                {
-                    variationOptionId: 1,
-                    name: "Black",
-                    variationId: 1,
-                },
-                {
-                    variationOptionId: 4,
-                    name: "Over-Ear",
-                    variationId: 2,
-                },
-                {
-                    variationOptionId: 7,
-                    name: "Wired",
-                    variationId: 3,
-                },
-            ],
-        },
-        {
-            productVariantId: 108,
-            sku: "WH-1000XM5-SLV-WR",
-            disabled: false,
-            quantityInStock: 15,
-            price: 319.99,
-            variationOptions: [
-                {
-                    variationOptionId: 2,
-                    name: "Silver",
-                    variationId: 1,
-                },
-                {
-                    variationOptionId: 4,
-                    name: "Over-Ear",
-                    variationId: 2,
-                },
-                {
-                    variationOptionId: 7,
-                    name: "Wired",
-                    variationId: 3,
-                },
-            ],
-        },
-        {
-            productVariantId: 109,
-            sku: "WH-1000XM5-GLD-WR",
-            disabled: false,
-            quantityInStock: 12,
-            price: 349.99,
-            variationOptions: [
-                {
-                    variationOptionId: 3,
-                    name: "Gold",
-                    variationId: 1,
-                },
-                {
-                    variationOptionId: 4,
-                    name: "Over-Ear",
-                    variationId: 2,
-                },
-                {
-                    variationOptionId: 7,
-                    name: "Wired",
-                    variationId: 3,
-                },
-            ],
-        },
-        {
-            productVariantId: 110,
-            sku: "WH-1000XM5-BLK-ON-WR",
-            disabled: false,
-            quantityInStock: 18,
-            price: 299.99,
-            variationOptions: [
-                {
-                    variationOptionId: 1,
-                    name: "Black",
-                    variationId: 1,
-                },
-                {
-                    variationOptionId: 5,
-                    name: "On-Ear",
-                    variationId: 2,
-                },
-                {
-                    variationOptionId: 7,
-                    name: "Wired",
-                    variationId: 3,
-                },
-            ],
-        },
-        {
-            productVariantId: 111,
-            sku: "WH-1000XM5-SLV-ON-WR",
-            disabled: false,
-            quantityInStock: 14,
-            price: 289.99,
-            variationOptions: [
-                {
-                    variationOptionId: 2,
-                    name: "Silver",
-                    variationId: 1,
-                },
-                {
-                    variationOptionId: 5,
-                    name: "On-Ear",
-                    variationId: 2,
-                },
-                {
-                    variationOptionId: 7,
-                    name: "Wired",
-                    variationId: 3,
-                },
-            ],
-        },
-        {
-            productVariantId: 112,
-            sku: "WH-1000XM5-GLD-ON-WR",
-            disabled: false,
-            quantityInStock: 8,
-            price: 309.99,
-            variationOptions: [
-                {
-                    variationOptionId: 3,
-                    name: "Gold",
-                    variationId: 1,
-                },
-                {
-                    variationOptionId: 5,
-                    name: "On-Ear",
-                    variationId: 2,
-                },
-                {
-                    variationOptionId: 7,
-                    name: "Wired",
-                    variationId: 3,
-                },
-            ],
-        },
-    ],
-    attributes: [
-        {
-            productAttributeId: 1,
-            attribute: {
-                attributeId: 1,
-                name: "Battery Life",
-                type: AttributeType.CUSTOM,
-                allowedValues: []
-            },
-            value: "30 hours",
-        },
-        {
-            productAttributeId: 2,
-            attribute: {
-                attributeId: 2,
-                name: "Connectivity",
-                type: AttributeType.ENUMERATED,
-                allowedValues: ["Bluetooth", "Wired"],
-            },
-            value: "Bluetooth",
-        },
-    ],
-};
-
-const variations: { [variationId: number]: (Omit<Variation, "variationOptions">) } = {
-    1: {
-        variationId: 1,
-        name: "Color",
-    },
-    2: {
-        variationId: 2,
-        name: "Fit Type",
-    },
-    3: {
-        variationId: 3,
-        name: "Connection Type"
-    }
-};
+import * as productServices from "@/services/product";
+import * as variationServices from "@/services/variation";
+import useDataFetch from "@/hooks/use-data-fetch";
+import { addToCart } from "@/store/slices/cartSlice";
+import { toast } from "sonner";
+import CartToast from "@/app/components/CartToast";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 type VariationMap = {
     [variationId: number]: {
@@ -509,12 +45,16 @@ type VariantSelectionState = {
 
 export default function ProductDetailsPage({ params }: { params: Promise<{ productId: string }> }) {
     const { productId } = React.use(params);
+    const dispatch = useAppDispatch();
+    const router = useRouter();
 
+    const getProductByIdFetch = useDataFetch(productServices.getProductById);
+    const getAllProductsFetch = useDataFetch(productServices.getAllProducts);
+    const getAllVariationsFetch = useDataFetch(variationServices.getAllVariations);
 
-
-    const [activeImage, setActiveImage] = useState(() =>
-        product?.productImages.find(img => img.isDefault) ?? product?.productImages[0]
-    );
+    const [product, setProduct] = useState<Product | null>(null);
+    const [variations, setVariations] = useState<{ [variationId: number]: Omit<Variation, "variationOptions"> }>({});
+    const [activeImage, setActiveImage] = useState<ProductImage | null>(null);
 
     const [{ priceRange, variationMap }, setVariantSelectionState] = useState<VariantSelectionState>({
         priceRange: [0, 0],
@@ -528,8 +68,9 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
             initialPriceRange[1] = Math.max(initialPriceRange[1], cur.price);
 
             cur.variationOptions.forEach(opt => {
+                const variationName = variations[opt.variationId]?.name || `Variation ${opt.variationId}`;
                 const variation = acc[opt.variationId] = acc[opt.variationId] ?? {
-                    variationName: variations[opt.variationId].name,
+                    variationName: variationName,
                     options: {}
                 };
                 const variationOption = variation.options[opt.variationOptionId] = variation.options[opt.variationOptionId] ?? {
@@ -548,7 +89,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
             priceRange: initialPriceRange,
             variationMap: initialVariationMap,
         };
-    }, [product]);
+    }, [product, variations]);
 
     const onSelectVariation = useCallback((variationId: number, optionId: number) => {
         setVariantSelectionState(prev => {
@@ -628,44 +169,225 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
         });
     }, [product]);
 
+    // Fetch product data
     useEffect(() => {
-        product && setVariantSelectionState(initializeVariantSelectionState());
-    }, [product]);
+        if (productId) {
+            getProductByIdFetch.request(Number(productId))
+                .onSuccess((data: ProductDetails) => {
+                    // Transform ProductDetails to match expected format
+                    const transformedProduct: any = {
+                        ...data,
+                        productImages: data.images,
+                        variants: data.variants.map(variant => ({
+                            ...variant,
+                            variationOptions: Object.entries(variant.variantProperties).map(([variationId, prop]) => ({
+                                variationId: Number(variationId),
+                                variationOptionId: prop.variationOptionId,
+                                name: prop.name
+                            }))
+                        }))
+                    };
+
+                    setProduct(transformedProduct);
+
+                    // Set default active image
+                    const defaultImg = transformedProduct.productImages?.find((img: ProductImage) => img.isDefault) ?? transformedProduct.productImages?.[0];
+                    if (defaultImg) setActiveImage(defaultImg);
+
+                    // Fetch variations for this product's category
+                    getAllVariationsFetch.request(data.categoryId)
+                        .onSuccess((variationsData: Variation[]) => {
+                            const variationMap = variationsData.reduce((acc, variation) => {
+                                acc[variation.variationId] = {
+                                    variationId: variation.variationId,
+                                    name: variation.name
+                                };
+                                return acc;
+                            }, {} as { [variationId: number]: Omit<Variation, "variationOptions"> });
+                            setVariations(variationMap);
+                        });
+
+                    // Fetch related products from same category
+                    getAllProductsFetch.request({ categoryId: data.categoryId });
+                });
+        }
+    }, [productId]);
+
+    useEffect(() => {
+        if (product) {
+            setVariantSelectionState(initializeVariantSelectionState());
+        }
+    }, [product, variations, initializeVariantSelectionState]);
+
+    // Set active image when product changes
+    useEffect(() => {
+        if (product?.productImages?.length && !activeImage) {
+            const defaultImg = product.productImages.find((img: ProductImage) => img.isDefault) ?? product.productImages[0];
+            if (defaultImg) setActiveImage(defaultImg);
+        }
+    }, [product, activeImage]);
 
 
 
-    const { user, loading } = useAppSelector(state => state.auth);
-    // Helper functions to check user roles
-    const isAdmin = user?.roleName === UserRole.ADMIN;
-    const isPlatformAdmin = user?.roleName === UserRole.PLATFORM_ADMIN;
+    const { user, authenticated } = useAppSelector(state => state.auth);
     const isCustomer = user?.roleName === UserRole.CUSTOMER;
-
-
     const currentCustomerId = isCustomer ? user?.userId : undefined;
 
+    // Find the selected variant based on variation selections
+    const getSelectedVariant = useCallback(() => {
+        if (!product?.variants?.length) return null;
 
+        // If no variations, return first variant
+        if (Object.keys(variationMap).length === 0) {
+            return product.variants[0];
+        }
+
+        // Check if all variations have been selected
+        const allVariationsSelected = Object.values(variationMap).every(
+            (variation) => variation.selectedOptionId != null
+        );
+
+        if (!allVariationsSelected) return null;
+
+        // Find the variant that matches all selected variation options
+        return product.variants.find((variant) =>
+            variant.variationOptions.every((opt) =>
+                variationMap[opt.variationId]?.selectedOptionId === opt.variationOptionId
+            )
+        ) || null;
+    }, [product, variationMap]);
+
+    // Toast configuration constant
+    const cartToastConfig = useMemo(() => ({
+        id: "cart-toast" as const,
+        position: "bottom-left" as const,
+        closeButton: false,
+        style: {
+            display: "block" as const,
+            padding: "0px",
+            width: "500px",
+            height: "auto",
+        },
+        dismissible: false,
+        duration: Infinity,
+    }), []);
+
+    // Handle add to cart logic
+    const handleAddToCart = useCallback(async () => {
+        if (!authenticated) {
+            toast.error("Please login to add items to cart");
+            const returnUrl = `/products/${productId}`;
+            router.push(`/auth/login?returnUrl=${encodeURIComponent(returnUrl)}`);
+            return;
+        }
+
+        const selectedVariant = getSelectedVariant();
+        if (!selectedVariant) {
+            toast.error("Please select all product variations");
+            return;
+        }
+
+        await dispatch(
+            addToCart({
+                productVariantId: selectedVariant.productVariantId,
+                quantity: 1,
+            })
+        );
+
+        if (!toast.getToasts().find((t) => t.id === "cart-toast")) {
+            toast(CartToast, cartToastConfig);
+        }
+    }, [authenticated, getSelectedVariant, dispatch, router, cartToastConfig, productId]);
+
+    // Handle buy now logic
+    const handleBuyNow = useCallback(async () => {
+        if (!authenticated) {
+            toast.error("Please login to place an order");
+            const returnUrl = `/products/${productId}`;
+            router.push(`/auth/login?returnUrl=${encodeURIComponent(returnUrl)}`);
+            return;
+        }
+
+        const selectedVariant = getSelectedVariant();
+        if (!selectedVariant) {
+            toast.error("Please select all product variations");
+            return;
+        }
+
+        await dispatch(
+            addToCart({
+                productVariantId: selectedVariant.productVariantId,
+                quantity: 1,
+            })
+        );
+
+        router.push("/checkout");
+    }, [authenticated, getSelectedVariant, dispatch, router, productId]);
+
+    // Loading state
+    if (getProductByIdFetch.isLoading) {
+        return (
+            <div className="responsive-container">
+                <div className="flex items-center justify-center min-h-screen">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                        <p className="text-muted-foreground">Loading product...</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Error state
+    if (getProductByIdFetch.hasError || !product) {
+        return (
+            <div className="responsive-container">
+                <div className="flex items-center justify-center min-h-screen">
+                    <div className="text-center">
+                        <h1 className="text-2xl font-bold mb-4">Product Not Found</h1>
+                        <p className="text-muted-foreground mb-4">{"The product you're looking for doesn't exist."}</p>
+                        <Button onClick={() => window.history.back()}>Go Back</Button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="responsive-container">
             <div className="relative p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
 
                 <div>
-                    <div className="border rounded-md overflow-hidden">
-                        <img
-                            src={activeImage?.imageUrl}
-                            alt="Product preview"
-                            className="w-full h-full object-cover"
-                        />
+                    <div className="border rounded-md overflow-hidden h-96 md:h-[500px]">
+                        {product?.productImages && product.productImages.length > 0 ? (
+                            <Image
+                                src={activeImage?.imageUrl || product.productImages[0]?.imageUrl}
+                                alt={product.title}
+                                width={100}
+                                height={100}
+                                className="w-full h-full object-cover"
+                            />
+                        ) : (
+                            <div className="flex items-center justify-center h-full bg-gray-100">
+                                <p className="text-muted-foreground">No images available</p>
+                            </div>
+                        )}
                     </div>
-                    <div className="mt-4 flex justify-between">
-                        {product?.productImages.map(img => (
-                            <Button
+                    <div className="mt-4 flex gap-3">
+                        {product?.productImages?.map((img, index) => (
+                            <button
                                 key={img.productImageId}
                                 onClick={() => setActiveImage(img)}
-                                className={`rounded-md  p-0 w-35 h-35 ${activeImage?.productImageId === img.productImageId ? "border-black border-3 z-10" : "border-mute"}`}
+                                className={`rounded-md overflow-hidden p-0 w-35 h-35 ${activeImage?.productImageId === img.productImageId ? "border-black border-3 z-10" : "border-mute"}`}
                             >
-                                <img src={img.imageUrl} alt="thumb" className=" rounded-sm w-full h-full" />
-                            </Button>
+                                <Image
+                                    src={img.imageUrl}
+                                    alt={`Thumbnail ${index + 1}`}
+                                    width={100}
+                                    height={100}
+                                    className="w-full h-full object-cover"
+                                />
+                            </button>
                         ))}
                     </div>
                     <div className="py-8 ">
@@ -731,40 +453,74 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
                         ))}
                     </div>
 
-                    {/* Variant Info (mocked default) */}
+                    {/* Variant Info */}
                     <div className="space-y-1">
                         <div className="text-lg font-semibold text-primary">
-                            {priceRange[0] === priceRange[1] ? `$${priceRange[0]}` : `$${priceRange[0]} - $${priceRange[1]}`}
+                            {priceRange[0] === priceRange[1]
+                                ? `$${priceRange[0].toFixed(2)}`
+                                : `$${priceRange[0].toFixed(2)} - $${priceRange[1].toFixed(2)}`}
                         </div>
-                        {/* <div className="text-sm text-muted-foreground">
-                        {product.variants[0]?.quantityInStock} in stock
-                    </div> */}
                     </div>
-                    <div className=" border w-full  rounded-md  p-4">
-                        <h1 className="mt-[-30px] text-center text-xl font-bold">Safe Chackout</h1>
+                    <div className="border w-full rounded-md p-4">
+                        <h1 className="mt-[-30px] text-center text-xl font-bold">Safe Checkout</h1>
                         <div className="flex items-center justify-center mt-8">
                             <img src="/online-payments.png" alt="Online-Payments" className="w-72" />
                         </div>
                     </div>
 
-                    <Button size="lg" className="w-full">
-                        Add to Cart
-                    </Button>
+                    <div className="space-y-3">
+                        <Button
+                            size="lg"
+                            className="w-full"
+                            onClick={handleAddToCart}
+                        >
+                            Add to Cart
+                        </Button>
+
+                        <Button
+                            size="lg"
+                            variant="outline"
+                            className="w-full"
+                            onClick={handleBuyNow}
+                        >
+                            Buy Now
+                        </Button>
+                    </div>
 
                     <h1 className="text-2xl font-bold"> Description </h1>
                     <p className="text-muted-foreground">{product?.description}</p>
 
                 </div>
             </div>
-            <div>
-                <h1 className="text-3xl text-center font-bold mb-16"> Related Products</h1>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+            <div className="mt-12 px-6 pb-8">
+                <h1 className="text-2xl md:text-3xl text-center font-bold mb-8">Related Products</h1>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    {getAllProductsFetch.isLoading ? (
+                        <div className="col-span-full text-center py-12">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                            <p className="text-muted-foreground">Loading related products...</p>
+                        </div>
+                    ) : (() => {
+                        const relatedProducts = getAllProductsFetch.data
+                            ?.filter((p) => p.productId !== Number(productId))
+                            .slice(0, 4) ?? [];
 
-                    {
-                        products.slice(0, 4).map((product) => (
-                            <ProductCard key={product.productId} product={product} promo={null} />
-                        ))
-                    }
+                        if (relatedProducts.length === 0) {
+                            return (
+                                <div className="col-span-full text-center py-12">
+                                    <p className="text-muted-foreground">No related products found</p>
+                                </div>
+                            );
+                        }
+
+                        return relatedProducts.map((relatedProduct) => (
+                            <ProductCard
+                                key={relatedProduct.productId}
+                                product={relatedProduct}
+                                promo={null}
+                            />
+                        ));
+                    })()}
                 </div>
             </div>
         </div>

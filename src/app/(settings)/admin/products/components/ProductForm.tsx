@@ -222,7 +222,7 @@ export default function ProductForm({
             developerKey: process.env.NEXT_PUBLIC_GOOGLE_API_KEY!,
             token: authResponse?.access_token,
             viewId: "DOCS_IMAGES",
-            // setParentFolder: "10ZZvkCV_n6HaM_5AMSXM7uSMbEqqkpi7",
+            setParentFolder: "10ZZvkCV_n6HaM_5AMSXM7uSMbEqqkpi7",
             multiselect: false,
             supportDrives: true,
             showUploadView: true,

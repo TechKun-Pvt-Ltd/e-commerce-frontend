@@ -1,7 +1,7 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
-import { Heart, ShoppingCart, Trash2, X } from "lucide-react";
+import { Heart, ShoppingCart, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { removeFromWishlistAsync } from "@/store/slices/wishlistSlice";
@@ -11,9 +11,6 @@ import placeholderImage from "@/../public/placeholder-image.jpeg";
 import { toast } from "sonner";
 import CartToast from "./CartToast";
 import { useRouter } from "next/navigation";
-import useDataFetch from "@/hooks/use-data-fetch";
-import * as wishlistServices from "@/services/wishlist";
-import { WishlistItemDTO } from "@/types/domains/wishlist_item";
 
 interface WishlistDrawerProps {
     open: boolean;
@@ -23,35 +20,9 @@ interface WishlistDrawerProps {
 export default function WishlistDrawer({ open, onOpenChange }: WishlistDrawerProps) {
     const dispatch = useAppDispatch();
     const router = useRouter();
-    const { authenticated, loading: authLoading } = useAppSelector((state) => state.auth);
+    const { authenticated } = useAppSelector((state) => state.auth);
+    const { items, loading: wishlistLoading } = useAppSelector(state => state.wishlist);
 
-    // Use useDataFetch hook to fetch wishlist items
-    const getAllWishlist = useDataFetch(wishlistServices.getWishlistItems);
-    const [wishlistItems, setWishlistItems] = useState<WishlistItemDTO[]>([]);
-
-    // Load wishlist items from API when drawer opens and user is authenticated
-    useEffect(() => {
-        if (open && authenticated && !authLoading) {
-          
-            getAllWishlist.request()
-                .onSuccess((data: WishlistItemDTO[]) => {
-                    setWishlistItems(data);
-                })
-                .onError((error) => {
-                    console.error('Failed to fetch wishlist:', error);
-                });
-        }
-    }, [open, authenticated, authLoading, getAllWishlist.request]);
-
-    const handleRemoveFromWishlist = (wishlistItemId: number) => {
-        dispatch(removeFromWishlistAsync(wishlistItemId))
-            .then(() => {
-                getAllWishlist.request()
-                    .onSuccess((data: WishlistItemDTO[]) => {
-                        setWishlistItems(data);
-                    });
-            });
-    };
 
     const handleAddToCart = async (productVariantId: number) => {
         await dispatch(
@@ -85,7 +56,7 @@ export default function WishlistDrawer({ open, onOpenChange }: WishlistDrawerPro
                 </SheetHeader>
 
                 <div className="mt-6">
-                    {getAllWishlist.isLoading ? (
+                    {wishlistLoading ? (
                         <div className="flex flex-col items-center justify-center py-12 text-center">
                             <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
                             <p className="text-sm text-muted-foreground">Loading wishlist...</p>
@@ -104,7 +75,7 @@ export default function WishlistDrawer({ open, onOpenChange }: WishlistDrawerPro
                                 Login
                             </Button>
                         </div>
-                    ) : wishlistItems.length === 0 ? (
+                    ) : items.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-12 text-center">
                             <Heart className="h-16 w-16 text-muted-foreground mb-4" />
                             <p className="text-lg font-semibold text-muted-foreground">Your wishlist is empty</p>
@@ -112,7 +83,7 @@ export default function WishlistDrawer({ open, onOpenChange }: WishlistDrawerPro
                         </div>
                     ) : (
                         <div className="space-y-4">
-                            {wishlistItems.map((item) => (
+                            {items.map(item => (
                                 <div
                                     key={item.wishlistItemId}
                                     className="flex gap-4 p-4 border rounded-lg hover:bg-gray-50 transition-colors"
@@ -136,12 +107,7 @@ export default function WishlistDrawer({ open, onOpenChange }: WishlistDrawerPro
                                                 size="sm"
                                                 variant="outline"
                                                 className="flex-1"
-                                                onClick={() => {
-                                                    // API se limited data aata hai, productVariantId directly available nahi
-                                                    // Backend se productVariantId fetch karna padega ya product detail page se
-                                                    toast.error("Product details not available. Please visit product page to add to cart.");
-                                                }}
-                                                disabled={true}
+                                                onClick={() => handleAddToCart(item.productVariant.productVariantId)}
                                             >
                                                 <ShoppingCart className="h-4 w-4 mr-2" />
                                                 Add to Cart
@@ -151,9 +117,7 @@ export default function WishlistDrawer({ open, onOpenChange }: WishlistDrawerPro
                                                 variant="outline"
                                                 className="px-3"
                                                 onClick={() => {
-                                                    if (item.wishlistItemId) {
-                                                        handleRemoveFromWishlist(item.wishlistItemId);
-                                                    }
+                                                    dispatch(removeFromWishlistAsync(item.wishlistItemId));
                                                 }}
                                                 disabled={!item.wishlistItemId || !authenticated}
                                             >

@@ -22,6 +22,7 @@ export enum ContentType {
 export enum SortOrder {
     ASCENDING = 'ASCENDING',
     DESCENDING = 'DESCENDING'
+
 }
 
 export type SortOption = {
