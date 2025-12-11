@@ -1,7 +1,7 @@
 "use client"
 
-import React, { useCallback, useEffect, useState } from "react"
-import { Product, ProductDetails } from "@/types/domains/product"
+import React, { useCallback, useEffect, useMemo, useState } from "react"
+import { Product, ProductDetails, ProductImage } from "@/types/domains/product"
 import { Button } from "@/components/ui/button"
 import {
     Select,
@@ -11,9 +11,7 @@ import {
     SelectItem,
 } from "@/components/ui/select";
 import { Variation } from "@/types/domains/variation";
-import { AttributeType } from "@/types/domains/attribute";
 import { ProductReviews } from "../Components/ProductReviews";
-
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { UserRole } from "@/types/domains/user";
 import ProductCard from "@/app/components/ProductCard";
@@ -55,7 +53,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
 
     const [product, setProduct] = useState<Product | null>(null);
     const [variations, setVariations] = useState<{ [variationId: number]: Omit<Variation, "variationOptions"> }>({});
-    const [activeImage, setActiveImage] = useState<any>(null);
+    const [activeImage, setActiveImage] = useState<ProductImage | null>(null);
 
     const [{ priceRange, variationMap }, setVariantSelectionState] = useState<VariantSelectionState>({
         priceRange: [0, 0],
@@ -192,8 +190,8 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
                     setProduct(transformedProduct);
 
                     // Set default active image
-                    const defaultImg = transformedProduct.productImages?.find((img: any) => img.isDefault) ?? transformedProduct.productImages?.[0];
-                    setActiveImage(defaultImg);
+                    const defaultImg = transformedProduct.productImages?.find((img: ProductImage) => img.isDefault) ?? transformedProduct.productImages?.[0];
+                    if (defaultImg) setActiveImage(defaultImg);
 
                     // Fetch variations for this product's category
                     getAllVariationsFetch.request(data.categoryId)
@@ -222,48 +220,108 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
 
     // Set active image when product changes
     useEffect(() => {
-        if (product?.productImages && product.productImages.length > 0 && !activeImage) {
-            const defaultImg = product.productImages.find((img: any) => img.isDefault) ?? product.productImages[0];
-            setActiveImage(defaultImg);
+        if (product?.productImages?.length && !activeImage) {
+            const defaultImg = product.productImages.find((img: ProductImage) => img.isDefault) ?? product.productImages[0];
+            if (defaultImg) setActiveImage(defaultImg);
         }
-    }, [product]);
+    }, [product, activeImage]);
 
 
 
-    const { user, loading, authenticated } = useAppSelector(state => state.auth);
-    // Helper functions to check user roles
-    const isAdmin = user?.roleName === UserRole.ADMIN;
-    const isPlatformAdmin = user?.roleName === UserRole.PLATFORM_ADMIN;
+    const { user, authenticated } = useAppSelector(state => state.auth);
     const isCustomer = user?.roleName === UserRole.CUSTOMER;
-
     const currentCustomerId = isCustomer ? user?.userId : undefined;
 
     // Find the selected variant based on variation selections
     const getSelectedVariant = useCallback(() => {
-        if (!product?.variants) return null;
+        if (!product?.variants?.length) return null;
 
         // If no variations, return first variant
-        if (Object.keys(variationMap).length === 0 && product.variants.length > 0) {
+        if (Object.keys(variationMap).length === 0) {
             return product.variants[0];
         }
 
         // Check if all variations have been selected
         const allVariationsSelected = Object.values(variationMap).every(
-            (variation) => variation.selectedOptionId !== undefined && variation.selectedOptionId !== null
+            (variation) => variation.selectedOptionId != null
         );
 
         if (!allVariationsSelected) return null;
 
         // Find the variant that matches all selected variation options
-        const selectedVariant = product.variants.find((variant) => {
-            return variant.variationOptions.every((opt) => {
-                const variation = variationMap[opt.variationId];
-                return variation?.selectedOptionId === opt.variationOptionId;
-            });
-        });
-
-        return selectedVariant || null;
+        return product.variants.find((variant) =>
+            variant.variationOptions.every((opt) =>
+                variationMap[opt.variationId]?.selectedOptionId === opt.variationOptionId
+            )
+        ) || null;
     }, [product, variationMap]);
+
+    // Toast configuration constant
+    const cartToastConfig = useMemo(() => ({
+        id: "cart-toast" as const,
+        position: "bottom-left" as const,
+        closeButton: false,
+        style: {
+            display: "block" as const,
+            padding: "0px",
+            width: "500px",
+            height: "auto",
+        },
+        dismissible: false,
+        duration: Infinity,
+    }), []);
+
+    // Handle add to cart logic
+    const handleAddToCart = useCallback(async () => {
+        if (!authenticated) {
+            toast.error("Please login to add items to cart");
+            const returnUrl = `/products/${productId}`;
+            router.push(`/auth/login?returnUrl=${encodeURIComponent(returnUrl)}`);
+            return;
+        }
+
+        const selectedVariant = getSelectedVariant();
+        if (!selectedVariant) {
+            toast.error("Please select all product variations");
+            return;
+        }
+
+        await dispatch(
+            addToCart({
+                productVariantId: selectedVariant.productVariantId,
+                quantity: 1,
+            })
+        );
+
+        if (!toast.getToasts().find((t) => t.id === "cart-toast")) {
+            toast(CartToast, cartToastConfig);
+        }
+    }, [authenticated, getSelectedVariant, dispatch, router, cartToastConfig]);
+
+    // Handle buy now logic
+    const handleBuyNow = useCallback(async () => {
+        if (!authenticated) {
+            toast.error("Please login to place an order");
+            const returnUrl = `/products/${productId}`;
+            router.push(`/auth/login?returnUrl=${encodeURIComponent(returnUrl)}`);
+            return;
+        }
+
+        const selectedVariant = getSelectedVariant();
+        if (!selectedVariant) {
+            toast.error("Please select all product variations");
+            return;
+        }
+
+        await dispatch(
+            addToCart({
+                productVariantId: selectedVariant.productVariantId,
+                quantity: 1,
+            })
+        );
+
+        router.push("/checkout");
+    }, [authenticated, getSelectedVariant, dispatch, router]);
 
     // Loading state
     if (getProductByIdFetch.isLoading) {
@@ -390,14 +448,13 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
                         ))}
                     </div>
 
-                    {/* Variant Info (mocked default) */}
+                    {/* Variant Info */}
                     <div className="space-y-1">
                         <div className="text-lg font-semibold text-primary">
-                            {priceRange[0] === priceRange[1] ? `$${priceRange[0]}` : `$${priceRange[0]} - $${priceRange[1]}`}
+                            {priceRange[0] === priceRange[1]
+                                ? `$${priceRange[0].toFixed(2)}`
+                                : `$${priceRange[0].toFixed(2)} - $${priceRange[1].toFixed(2)}`}
                         </div>
-                        {/* <div className="text-sm text-muted-foreground">
-                        {product.variants[0]?.quantityInStock} in stock
-                    </div> */}
                     </div>
                     <div className="border w-full rounded-md p-4">
                         <h1 className="mt-[-30px] text-center text-xl font-bold">Safe Checkout</h1>
@@ -410,43 +467,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
                         <Button
                             size="lg"
                             className="w-full"
-                            onClick={async () => {
-                                // Check if user is authenticated
-                                if (!authenticated) {
-                                    toast.error("Please login to add items to cart");
-                                    router.push("/auth/login");
-                                    return;
-                                }
-
-                                const selectedVariant = getSelectedVariant();
-
-                                if (!selectedVariant) {
-                                    toast.error("Please select all product variations");
-                                    return;
-                                }
-
-                                await dispatch(
-                                    addToCart({
-                                        productVariantId: selectedVariant.productVariantId,
-                                        quantity: 1,
-                                    })
-                                );
-                                if (toast.getToasts().find((toast) => toast.id === "cart-toast")) return;
-
-                                toast(CartToast, {
-                                    id: "cart-toast",
-                                    position: "bottom-left",
-                                    closeButton: false,
-                                    style: {
-                                        display: "block",
-                                        padding: "0px",
-                                        width: "500px",
-                                        height: "auto",
-                                    },
-                                    dismissible: false,
-                                    duration: Infinity,
-                                });
-                            }}
+                            onClick={handleAddToCart}
                         >
                             Add to Cart
                         </Button>
@@ -455,32 +476,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
                             size="lg"
                             variant="outline"
                             className="w-full"
-                            onClick={async () => {
-                                // Check if user is authenticated
-                                if (!authenticated) {
-                                    toast.error("Please login to place an order");
-                                    router.push("/auth/login");
-                                    return;
-                                }
-
-                                const selectedVariant = getSelectedVariant();
-
-                                if (!selectedVariant) {
-                                    toast.error("Please select all product variations");
-                                    return;
-                                }
-
-                                // Add to cart first
-                                await dispatch(
-                                    addToCart({
-                                        productVariantId: selectedVariant.productVariantId,
-                                        quantity: 1,
-                                    })
-                                );
-
-                                // Redirect to checkout page
-                                router.push("/checkout");
-                            }}
+                            onClick={handleBuyNow}
                         >
                             Buy Now
                         </Button>
@@ -502,21 +498,23 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
                     ) : (() => {
                         const relatedProducts = getAllProductsFetch.data
                             ?.filter((p) => p.productId !== Number(productId))
-                            .slice(0, 4) || [];
+                            .slice(0, 4) ?? [];
 
-                        return relatedProducts.length > 0 ? (
-                            relatedProducts.map((relatedProduct) => (
-                                <ProductCard
-                                    key={relatedProduct.productId}
-                                    product={relatedProduct}
-                                    promo={null}
-                                />
-                            ))
-                        ) : (
-                            <div className="col-span-full text-center py-12">
-                                <p className="text-muted-foreground">No related products found</p>
-                            </div>
-                        );
+                        if (relatedProducts.length === 0) {
+                            return (
+                                <div className="col-span-full text-center py-12">
+                                    <p className="text-muted-foreground">No related products found</p>
+                                </div>
+                            );
+                        }
+
+                        return relatedProducts.map((relatedProduct) => (
+                            <ProductCard
+                                key={relatedProduct.productId}
+                                product={relatedProduct}
+                                promo={null}
+                            />
+                        ));
                     })()}
                 </div>
             </div>
