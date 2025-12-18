@@ -563,7 +563,7 @@ export default function CheckoutForm({
                               </div>
 
 
-                              <Button
+                              {/* <Button
                                  type="button"
                                  variant="outline"
                                  className="w-full mt-6 bg-white hover:bg-gray-50 border-2 border-dashed border-gray-300 hover:border-gray-400 transition-colors"
@@ -573,7 +573,7 @@ export default function CheckoutForm({
                                  {createPaymentMethodLoading && <Spinner className="mr-2 h-4 w-4" />}
                                  <CreditCard className="mr-2 h-4 w-4" />
                                  Add Card
-                              </Button>
+                              </Button> */}
                            </div>
                         </TabsContent>
                      </Tabs>
