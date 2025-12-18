@@ -43,10 +43,7 @@ export const ProductReviews = ({
   // Get user information from Redux store
   const { user } = useAppSelector(state => state.auth);
 
-  // Debug user data
-  console.log("Full user object:", user);
-  console.log("User ID:", user?.userId);
-  console.log("User role:", user?.roleName);
+  
 
   // Role checking logic
   const isAdmin = user?.roleName === UserRole.ADMIN;
