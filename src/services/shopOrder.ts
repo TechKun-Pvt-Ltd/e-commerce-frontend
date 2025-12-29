@@ -1,5 +1,5 @@
 import servicesApiClient from "@/lib/services-api-client";
-import { ServiceFunction } from "@/types/api";
+import { ServiceFunction, PageResponse } from "@/types/api";
 import {
     OrderCreatePayload, OrderDetails, OrderPreviewDTO,
     OrderQueryOptions, OrderUpdatePayload, ShopOrder   
@@ -10,7 +10,7 @@ import {
 export const getAllOrders: ServiceFunction<[
     customerId?: number, filters?: OrderQueryOptions,
     page?: number, size?: number
-], OrderPreviewDTO[]> = (customerId, filters, page, size) => {
+], PageResponse<OrderPreviewDTO>> = (customerId, filters, page, size) => {
     return servicesApiClient.get('/shop-orders', { params: { customerId, page, size }, data: filters });
 };
 

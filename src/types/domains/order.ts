@@ -44,16 +44,10 @@ export interface OrderDetails {
 
 export interface OrderPreviewDTO {
     orderId: number;
-    orderDate: Date;
+    orderDate: Date | string;
     customer: CustomerContact;
-    estimatedDeliveryDate: Date;
-    status: OrderStatus;
-    shipmentMethod: ShippingMethod;
+    status: OrderStatus | string;
     paymentMethod: PaymentMethod;
-    shippingProvider: string;
-    paymentProvider: string;
-    carrierName: string;
-    trackingNumber: string;
     totalPrice: number;
 }
 
