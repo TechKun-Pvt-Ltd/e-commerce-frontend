@@ -16,6 +16,12 @@ import { PromotionDetails, PromotionType } from "@/types/domains/promotion"
 import Spinner from "@/components/ui/spinner"
 import { CategoryTree } from "@/types/domains/category"
 import CategoriesMultiSelect from "@/app/components/CategoriesMultiSelect"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { CalendarIcon } from "lucide-react"
+import { format } from "date-fns"
+import { cn } from "@/lib/utils"
+import { useEffect } from "react"
 
 
 const promotionFormSchema = z.object({
@@ -32,7 +38,7 @@ const promotionFormSchema = z.object({
 
 type PromotionFormData = z.infer<typeof promotionFormSchema>;
 
-export function PromotionForm({ mode = "create", promotion, categories,loading, categoriesLoading, onSubmit, onCancel }: {
+export function PromotionForm({ mode = "create", promotion, categories, loading, categoriesLoading, onSubmit, onCancel }: {
     mode: "create" | "edit";
     promotion?: PromotionDetails;
     categories: CategoryTree[];
@@ -51,9 +57,29 @@ export function PromotionForm({ mode = "create", promotion, categories,loading, 
             minimumOrderValue: promotion?.minimumOrderValue || 0,
             maxUses: promotion?.maxUses || 0,
             usagePerCustomer: promotion?.usagePerCustomer || 0,
-            categoryIds: promotion?.categories?.map(cat => cat.categoryId) || []
+            categoryIds: promotion?.categories?.map(cat => cat.categoryId) || [],
+            validFrom: promotion?.validFrom ? (typeof promotion.validFrom === 'string' ? new Date(promotion.validFrom) : promotion.validFrom) : undefined,
+            validTill: promotion?.validTill ? (typeof promotion.validTill === 'string' ? new Date(promotion.validTill) : promotion.validTill) : undefined,
         }
     });
+
+    
+    useEffect(() => {
+        if (promotion) {
+            form.reset({
+                description: promotion.description || "",
+                promotionType: promotion.promotionType || PromotionType.PERCENTAGE,
+                discountValue: promotion.discountValue || 0,
+                minimumOrderValue: promotion.minimumOrderValue || 0,
+                maxUses: promotion.maxUses || 0,
+                usagePerCustomer: promotion.usagePerCustomer || 0,
+                categoryIds: promotion.categories?.map(cat => cat.categoryId) || [],
+                validFrom: promotion.validFrom ? (typeof promotion.validFrom === 'string' ? new Date(promotion.validFrom) : promotion.validFrom) : undefined,
+                validTill: promotion.validTill ? (typeof promotion.validTill === 'string' ? new Date(promotion.validTill) : promotion.validTill) : undefined,
+            });
+        }
+    }, [promotion, form]);
+
     const promotionType = form.watch('promotionType');
 
     return (
@@ -143,17 +169,39 @@ export function PromotionForm({ mode = "create", promotion, categories,loading, 
                             control={form.control}
                             name="validFrom"
                             render={({ field }) => (
-                                <FormItem className="flex-1">
+                                <FormItem className="flex-1 flex flex-col">
                                     <FormLabel>Valid From</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            type="date"
-                                            {...field}
-                                            value={field.value ? field.value.toISOString().split('T')[0] : ''}
-                                            onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : undefined)}
-                                            placeholder="Select start date"
-                                        />
-                                    </FormControl>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <FormControl>
+                                                <Button
+                                                    variant={"outline"}
+                                                    className={cn(
+                                                        "w-full pl-3 text-left font-normal",
+                                                        !field.value && "text-muted-foreground"
+                                                    )}
+                                                >
+                                                    {field.value ? (
+                                                        format(field.value, "PPP")
+                                                    ) : (
+                                                        <span>Pick a date</span>
+                                                    )}
+                                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                </Button>
+                                            </FormControl>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0" align="start">
+                                            <Calendar
+                                                mode="single"
+                                                selected={field.value}
+                                                onSelect={field.onChange}
+                                                disabled={(date) =>
+                                                    date < new Date("1900-01-01")
+                                                }
+                                                initialFocus
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -162,17 +210,39 @@ export function PromotionForm({ mode = "create", promotion, categories,loading, 
                             control={form.control}
                             name="validTill"
                             render={({ field }) => (
-                                <FormItem className="flex-1">
+                                <FormItem className="flex-1 flex flex-col">
                                     <FormLabel>Valid Till</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            type="date"
-                                            {...field}
-                                            value={field.value ? field.value.toISOString().split('T')[0] : ''}
-                                            onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : undefined)}
-                                            placeholder="Select end date"
-                                        />
-                                    </FormControl>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <FormControl>
+                                                <Button
+                                                    variant={"outline"}
+                                                    className={cn(
+                                                        "w-full pl-3 text-left font-normal",
+                                                        !field.value && "text-muted-foreground"
+                                                    )}
+                                                >
+                                                    {field.value ? (
+                                                        format(field.value, "PPP")
+                                                    ) : (
+                                                        <span>Pick a date</span>
+                                                    )}
+                                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                </Button>
+                                            </FormControl>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0" align="start">
+                                            <Calendar
+                                                mode="single"
+                                                selected={field.value}
+                                                onSelect={field.onChange}
+                                                disabled={(date) =>
+                                                    date < new Date("1900-01-01")
+                                                }
+                                                initialFocus
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
                                     <FormMessage />
                                 </FormItem>
                             )}
