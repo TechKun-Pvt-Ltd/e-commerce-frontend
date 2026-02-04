@@ -24,6 +24,8 @@ import { ProductPreview, ProductQueryOptions, SortOption } from "@/types/domains
 import { CategoryTree } from "@/types/domains/category";
 import * as productServices from "@/services/product";
 import useDataFetch from "@/hooks/use-data-fetch";
+import { useAppSelector } from "@/store/hooks";
+import { getPromotionForProduct } from "@/lib/utils";
 
 interface ProductGridProps {
    categories: CategoryTree[];
@@ -42,6 +44,7 @@ const ProductGrid = ({ categories, products: productsProp, onCategoryChange: onC
    const [currentPage, setCurrentPage] = useState(1);
    const itemsPerPage = 8;
    const productsData = useDataFetch(productServices.getAllProducts);
+   const promotions = useAppSelector((state) => state.promotions.items);
 
    // Fetch products with sorting when sortBy or selectedCategoryId changes
    useEffect(() => {
@@ -270,9 +273,12 @@ const ProductGrid = ({ categories, products: productsProp, onCategoryChange: onC
                   {/* Products Grid */}
                   <div className={`grid ${getGridClass()} gap-6 py-6 ${gridColumns === 2 ? "justify-center" : ""}`}>
                      {currentPageProducts.length > 0 ? (
-                        currentPageProducts.map((product) => (
-                           <ProductCard key={product.productId} product={product} promo={null} />
-                        ))
+                        currentPageProducts.map((product) => {
+                           const promo = getPromotionForProduct(product, promotions);
+                           return (
+                              <ProductCard key={product.productId} product={product} promo={promo} />
+                           );
+                        })
                      ) : (
                         <div className="col-span-full text-center text-gray-500 py-8">
                            No products found

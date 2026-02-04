@@ -19,12 +19,13 @@ import { addToWishlistAsync, removeFromWishlistAsync } from "@/store/slices/wish
 
 function getDiscountedPrice(price: number, promotion: PromotionDetails | null): number {
    if (!promotion) return price;
+
    if (promotion.promotionType === "PERCENTAGE") {
-      return price - price * (promotion.discountValue / 100);
-   } else if (promotion.promotionType === "FLAT") {
-      return Math.max(price - promotion.discountValue, 0);
+      return price * (1 - promotion.discountValue / 100);
    }
-   return price;
+
+   // FLAT discount
+   return Math.max(price - promotion.discountValue, 0);
 }
 
 export default function ProductCard({ product, promo }: { product: ProductPreview; promo: PromotionDetails | null }) {
@@ -78,48 +79,48 @@ export default function ProductCard({ product, promo }: { product: ProductPrevie
                            );
                            if (toast.getToasts().find((toast) => toast.id === "cart-toast")) return;
 
-                        toast(CartToast, {
-                           id: "cart-toast",
-                           position: "bottom-left",
-                           closeButton: false,
-                           style: {
-                              display: "block",
-                              padding: "0px",
-                              width: "500px",
-                              height: "auto",
-                           },
-                           dismissible: false,
-                           duration: Infinity,
-                        });
-                     }}
-                  >
-                     <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-                  </Button>
-               </TooltipTrigger>
-               <TooltipContent side="left">
-                  <span>Add to Cart</span>
-               </TooltipContent>
-            </Tooltip>
-            {/* Wishlist icon */}
-            <Tooltip>
-               <TooltipTrigger asChild>
-                  <Button
-                     size="icon"
-                     variant="secondary"
-                     className="size-8 absolute shadow-md right-2 rounded-full top-14 z-10 bg-white hover:bg-gray-100"
-                     onClick={e => {
-                         e.stopPropagation();
-                         handleWishlistToggle();
-                     }}
-                  >
-                     <Heart className={`h-4 w-4 transition-colors ${isInWishlist ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} />
-                  </Button>
-               </TooltipTrigger>
-               <TooltipContent side="left">
-                  <span>{isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}</span>
-               </TooltipContent>
-            </Tooltip>
-            {/* <img
+                           toast(CartToast, {
+                              id: "cart-toast",
+                              position: "bottom-left",
+                              closeButton: false,
+                              style: {
+                                 display: "block",
+                                 padding: "0px",
+                                 width: "500px",
+                                 height: "auto",
+                              },
+                              dismissible: false,
+                              duration: Infinity,
+                           });
+                        }}
+                     >
+                        <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+                     </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="left">
+                     <span>Add to Cart</span>
+                  </TooltipContent>
+               </Tooltip>
+               {/* Wishlist icon */}
+               <Tooltip>
+                  <TooltipTrigger asChild>
+                     <Button
+                        size="icon"
+                        variant="secondary"
+                        className="size-8 absolute shadow-md right-2 rounded-full top-14 z-10 bg-white hover:bg-gray-100"
+                        onClick={e => {
+                           e.stopPropagation();
+                           handleWishlistToggle();
+                        }}
+                     >
+                        <Heart className={`h-4 w-4 transition-colors ${isInWishlist ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} />
+                     </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="left">
+                     <span>{isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}</span>
+                  </TooltipContent>
+               </Tooltip>
+               {/* <img
                src={product.imageUrl}
                alt={product.title}
                className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
@@ -132,8 +133,19 @@ export default function ProductCard({ product, promo }: { product: ProductPrevie
                   className="w-full h-auto aspect-square object-cover"
                />
 
+               {isDiscounted && promo && (
+                  <Badge variant="default" className="absolute top-3 left-3 rounded-full bg-primary text-primary-foreground z-10">
+                     {promo.promotionType === "PERCENTAGE"
+                        ? `${promo.discountValue}% OFF`
+                        : `$${promo.discountValue} OFF`}
+                  </Badge>
+               )}
                {product.quantityInStock < 10 && (
-                  <Badge variant="destructive" className="absolute top-3 left-3 rounded-full">
+                  <Badge
+                     variant="destructive"
+                     className={`absolute rounded-full z-10 ${isDiscounted && promo ? 'top-12 left-3' : 'top-3 left-3'
+                        }`}
+                  >
                      Only {product.quantityInStock} left
                   </Badge>
                )}
@@ -156,9 +168,13 @@ export default function ProductCard({ product, promo }: { product: ProductPrevie
                </div>
 
                <div className="flex items-center justify-between pt-2">
-                  <div>
+                  <div className="flex items-center gap-2">
                      <span className="text-base font-bold text-foreground">${discounted.toFixed(2)}</span>
-                     {isDiscounted && <span className="text-lg font-bold text-primary">${product.price.toFixed(2)}</span>}
+                     {isDiscounted && (
+                        <span className="text-sm font-normal text-muted-foreground line-through">
+                           ${product.price.toFixed(2)}
+                        </span>
+                     )}
                   </div>
                   {/* <Button variant="default" size="sm"
                         onClick={() => {

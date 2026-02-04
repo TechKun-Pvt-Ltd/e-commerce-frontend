@@ -8,6 +8,8 @@ import { useRouter } from "next/navigation";
 import { ProductPreview, ProductQueryOptions, SortOption } from "@/types/domains/product";
 import * as productServices from "@/services/product";
 import useDataFetch from "@/hooks/use-data-fetch";
+import { useAppSelector } from "@/store/hooks";
+import { getPromotionForProduct } from "@/lib/utils";
 
 interface FeatureProductsProps {
     products?: ProductPreview[];
@@ -31,6 +33,7 @@ export const FeatureProducts = ({ products: productsProp = [] }: FeatureProducts
     const router = useRouter();
     const [activeTab, setActiveTab] = useState("new");
     const productsData = useDataFetch(productServices.getAllProducts);
+    const promotions = useAppSelector((state) => state.promotions.items);
 
     // Fetch products when tab changes
     useEffect(() => {
@@ -73,9 +76,12 @@ export const FeatureProducts = ({ products: productsProp = [] }: FeatureProducts
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
                         {
                             filteredProducts.length > 0 ? (
-                                filteredProducts.map((product) => (
-                                    <ProductCard key={product.productId} product={product} promo={null} />
-                                ))
+                                filteredProducts.map((product) => {
+                                    const promo = getPromotionForProduct(product, promotions);
+                                    return (
+                                        <ProductCard key={product.productId} product={product} promo={promo} />
+                                    );
+                                })
                             ) : (
                                 <div className="col-span-4 text-center text-gray-500 py-8">
                                     No products found
@@ -98,9 +104,12 @@ export const FeatureProducts = ({ products: productsProp = [] }: FeatureProducts
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
                         {
                             filteredProducts.length > 0 ? (
-                                filteredProducts.map((product) => (
-                                    <ProductCard key={product.productId} product={product} promo={null} />
-                                ))
+                                filteredProducts.map((product) => {
+                                    const promo = getPromotionForProduct(product, promotions);
+                                    return (
+                                        <ProductCard key={product.productId} product={product} promo={promo} />
+                                    );
+                                })
                             ) : (
                                 <div className="col-span-4 text-center text-gray-500 py-8">
                                     No products found
@@ -123,9 +132,12 @@ export const FeatureProducts = ({ products: productsProp = [] }: FeatureProducts
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
                         {
                             filteredProducts.length > 0 ? (
-                                filteredProducts.map((product) => (
-                                    <ProductCard key={product.productId} product={product} promo={null} />
-                                ))
+                                filteredProducts.map((product) => {
+                                    const promo = getPromotionForProduct(product, promotions);
+                                    return (
+                                        <ProductCard key={product.productId} product={product} promo={promo} />
+                                    );
+                                })
                             ) : (
                                 <div className="col-span-4 text-center text-gray-500 py-8">
                                     No products found

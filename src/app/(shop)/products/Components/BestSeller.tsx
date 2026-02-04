@@ -4,6 +4,8 @@ import ProductCard from '@/app/components/ProductCard';
 import { ProductPreview, ProductQueryOptions, SortOption } from "@/types/domains/product";
 import * as productServices from "@/services/product";
 import useDataFetch from "@/hooks/use-data-fetch";
+import { useAppSelector } from "@/store/hooks";
+import { getPromotionForProduct } from "@/lib/utils";
 
 interface BestSellerProps {
     products?: ProductPreview[];
@@ -12,6 +14,7 @@ interface BestSellerProps {
 
 const BestSeller = ({ products: productsProp = [], selectedCategoryId }: BestSellerProps) => {
     const productsData = useDataFetch(productServices.getAllProducts);
+    const promotions = useAppSelector((state) => state.promotions.items);
 
     // Fetch products with categoryId filter
     useEffect(() => {
@@ -46,9 +49,12 @@ const BestSeller = ({ products: productsProp = [], selectedCategoryId }: BestSel
 
                 {bestSellerProducts.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                        {bestSellerProducts.map((product) => (
-                            <ProductCard key={product.productId} product={product} promo={null} />
-                        ))}
+                        {bestSellerProducts.map((product) => {
+                            const promo = getPromotionForProduct(product, promotions);
+                            return (
+                                <ProductCard key={product.productId} product={product} promo={promo} />
+                            );
+                        })}
                     </div>
                 ) : (
                     <div className="text-center text-gray-500 py-8">

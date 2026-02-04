@@ -15,6 +15,8 @@ import { Variation } from "@/types/domains/variation";
 import { ProductPreview } from "@/types/domains/product";
 import { Button } from "@/components/ui/button";
 import ProductCard from "../../components/ProductCard";
+import { useAppSelector } from "@/store/hooks";
+import { getPromotionForProduct } from "@/lib/utils";
 
 interface ProductBrowsePageProps {
     categoryDetails: CategoryDetails
@@ -32,6 +34,7 @@ export function ProductBrowsePage({
     const [sortBy, setSortBy] = useState("newest")
     const [selectedFilters, setSelectedFilters] = useState<{ [key: string]: string[] }>({})
     const loadMoreRef = useRef<HTMLDivElement | null>(null)
+    const promotions = useAppSelector((state) => state.promotions.items)
 
     // Filtering
     useEffect(() => {
@@ -218,9 +221,12 @@ export function ProductBrowsePage({
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                    {filteredProducts.map((product) => (
-                        <ProductCard key={product.productId} product={product} promo={null} />
-                    ))}
+                    {filteredProducts.map((product) => {
+                        const promo = getPromotionForProduct(product, promotions);
+                        return (
+                            <ProductCard key={product.productId} product={product} promo={promo} />
+                        );
+                    })}
                 </div>
 
                 {/* Load More Trigger */}
