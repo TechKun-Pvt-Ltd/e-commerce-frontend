@@ -23,6 +23,9 @@ import { toast } from "sonner";
 import CartToast from "@/app/components/CartToast";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { getPromotionForProduct } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { PromotionDetails } from "@/types/domains/promotion";
 
 type VariationMap = {
     [variationId: number]: {
@@ -232,30 +235,83 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
     const { user, authenticated } = useAppSelector(state => state.auth);
     const isCustomer = user?.roleName === UserRole.CUSTOMER;
     const currentCustomerId = isCustomer ? user?.userId : undefined;
+    const promotions = useAppSelector((state) => state.promotions.items);
 
-    // Find the selected variant based on variation selections
-    const getSelectedVariant = useCallback(() => {
+    // Helper function to calculate discounted price
+    const calculateDiscountedPrice = useCallback((price: number, promo: PromotionDetails | null): number => {
+        if (!promo) return price;
+        if (promo.promotionType === "PERCENTAGE") {
+            return price * (1 - promo.discountValue / 100);
+        }
+        return Math.max(price - promo.discountValue, 0);
+    }, []);
+
+    // Get promotion for this product
+    const productPromo = useMemo(() => {
+        if (!product?.categoryId) return null;
+        const productPreview = {
+            productId: product.productId,
+            productVariantId: product.variants[0]?.productVariantId || 0,
+            categoryId: product.categoryId,
+            price: priceRange[0],
+            title: product.title,
+            code: product.code,
+            rating: 0,
+            starred: product.starred,
+            dateAdded: new Date(product.dateAdded),
+            quantityInStock: product.variants[0]?.quantityInStock || 0,
+            imageUrl: product.productImages[0]?.imageUrl || "",
+        };
+        return getPromotionForProduct(productPreview, promotions);
+    }, [product, promotions, priceRange]);
+
+    // Get selected variant
+    const selectedVariant = useMemo(() => {
         if (!product?.variants?.length) return null;
-
-        // If no variations, return first variant
         if (Object.keys(variationMap).length === 0) {
             return product.variants[0];
         }
-
-        // Check if all variations have been selected
         const allVariationsSelected = Object.values(variationMap).every(
             (variation) => variation.selectedOptionId != null
         );
-
         if (!allVariationsSelected) return null;
-
-        // Find the variant that matches all selected variation options
         return product.variants.find((variant) =>
             variant.variationOptions.every((opt) =>
                 variationMap[opt.variationId]?.selectedOptionId === opt.variationOptionId
             )
         ) || null;
     }, [product, variationMap]);
+
+    // Calculate total price from selected variant
+    const totalPrice = useMemo(() => {
+        return selectedVariant?.price ?? (priceRange[0] === priceRange[1] ? priceRange[0] : null);
+    }, [selectedVariant, priceRange]);
+
+    // Calculate discounted price
+    const discountedPrice = useMemo(() => {
+        if (totalPrice === null) return null;
+        return calculateDiscountedPrice(totalPrice, productPromo);
+    }, [totalPrice, productPromo, calculateDiscountedPrice]);
+
+    // Calculate discounted price range (for display when no variant selected)
+    const discountedPriceRange = useMemo(() => {
+        if (!productPromo) return priceRange;
+        return [
+            calculateDiscountedPrice(priceRange[0], productPromo),
+            calculateDiscountedPrice(priceRange[1], productPromo)
+        ] as [number, number];
+    }, [priceRange, productPromo, calculateDiscountedPrice]);
+
+    // Find the selected variant (for use in callbacks)
+    const getSelectedVariant = useCallback(() => selectedVariant, [selectedVariant]);
+
+    // Memoize related products
+    const relatedProducts = useMemo(() =>
+        getAllProductsFetch.data
+            ?.filter((p) => p.productId !== Number(productId))
+            .slice(0, 4) ?? [],
+        [getAllProductsFetch.data, productId]
+    );
 
     // Toast configuration constant
     const cartToastConfig = useMemo(() => ({
@@ -433,16 +489,52 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
                                         {Object.entries(value.options)
                                             .sort(([, a], [, b]) => a.priceRange[0] - b.priceRange[0])
                                             .map(([optKey, optValue]) => {
-                                                const [lowerValue, upperValue] = optValue.priceRange.map(a => a.toFixed(2));
+                                                const isSelected = value.selectedOptionId === Number(optKey);
+                                                if (isSelected) {
+                                                    return (
+                                                        <SelectItem key={optKey} value={String(optKey)}>
+                                                            {optValue.name}
+                                                        </SelectItem>
+                                                    );
+                                                }
+
+                                                const [lowerPrice, upperPrice] = optValue.priceRange;
+                                                const discountedLower = calculateDiscountedPrice(lowerPrice, productPromo);
+                                                const discountedUpper = calculateDiscountedPrice(upperPrice, productPromo);
+
+                                                const lowerValue = lowerPrice.toFixed(2);
+                                                const upperValue = upperPrice.toFixed(2);
+                                                const discLower = discountedLower.toFixed(2);
+                                                const discUpper = discountedUpper.toFixed(2);
+
+                                                const isSinglePrice = lowerPrice === upperPrice;
+                                                const isSingleDiscounted = discountedLower === discountedUpper;
+
                                                 return (
                                                     <SelectItem key={optKey} value={String(optKey)}>
-                                                        {optValue.name} {value.selectedOptionId !== Number(optKey) ?
-                                                            `(${lowerValue === upperValue ?
-                                                                `$${lowerValue}` :
-                                                                `$${lowerValue} - $${upperValue}`
-                                                            })` :
-                                                            ""
-                                                        }
+                                                        <span className="flex items-center gap-2">
+                                                            <span>{optValue.name}</span>
+                                                            {productPromo ? (
+                                                                <span className="text-xs">
+                                                                    <span className="text-primary font-semibold">
+                                                                        {isSingleDiscounted
+                                                                            ? `$${discLower}`
+                                                                            : `$${discLower} - $${discUpper}`}
+                                                                    </span>
+                                                                    <span className="text-muted-foreground line-through ml-1">
+                                                                        {isSinglePrice
+                                                                            ? `$${lowerValue}`
+                                                                            : `$${lowerValue} - $${upperValue}`}
+                                                                    </span>
+                                                                </span>
+                                                            ) : (
+                                                                <span className="text-xs">
+                                                                    {isSinglePrice
+                                                                        ? `$${lowerValue}`
+                                                                        : `$${lowerValue} - $${upperValue}`}
+                                                                </span>
+                                                            )}
+                                                        </span>
                                                     </SelectItem>
                                                 );
                                             })
@@ -454,11 +546,42 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
                     </div>
 
                     {/* Variant Info */}
-                    <div className="space-y-1">
-                        <div className="text-lg font-semibold text-primary">
-                            {priceRange[0] === priceRange[1]
-                                ? `$${priceRange[0].toFixed(2)}`
-                                : `$${priceRange[0].toFixed(2)} - $${priceRange[1].toFixed(2)}`}
+                    <div className="space-y-2">
+                        {productPromo && (
+                            <Badge variant="default" className="bg-primary text-primary-foreground">
+                                {productPromo.promotionType === "PERCENTAGE"
+                                    ? `${productPromo.discountValue}% OFF`
+                                    : `$${productPromo.discountValue} OFF`}
+                            </Badge>
+                        )}
+                        <div className="flex items-center gap-3">
+                            {selectedVariant && totalPrice !== null ? (
+                                <>
+                                    <div className="text-lg font-semibold text-primary">
+                                        ${(discountedPrice ?? totalPrice).toFixed(2)}
+                                    </div>
+                                    {productPromo && discountedPrice !== null && discountedPrice !== totalPrice && (
+                                        <div className="text-sm text-muted-foreground line-through">
+                                            ${totalPrice.toFixed(2)}
+                                        </div>
+                                    )}
+                                </>
+                            ) : (
+                                <>
+                                    <div className="text-lg font-semibold text-primary">
+                                        {discountedPriceRange[0] === discountedPriceRange[1]
+                                            ? `$${discountedPriceRange[0].toFixed(2)}`
+                                            : `$${discountedPriceRange[0].toFixed(2)} - $${discountedPriceRange[1].toFixed(2)}`}
+                                    </div>
+                                    {productPromo && (
+                                        <div className="text-sm text-muted-foreground line-through">
+                                            {priceRange[0] === priceRange[1]
+                                                ? `$${priceRange[0].toFixed(2)}`
+                                                : `$${priceRange[0].toFixed(2)} - $${priceRange[1].toFixed(2)}`}
+                                        </div>
+                                    )}
+                                </>
+                            )}
                         </div>
                     </div>
                     <div className="border w-full rounded-md p-4">
@@ -500,27 +623,22 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
                             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
                             <p className="text-muted-foreground">Loading related products...</p>
                         </div>
-                    ) : (() => {
-                        const relatedProducts = getAllProductsFetch.data
-                            ?.filter((p) => p.productId !== Number(productId))
-                            .slice(0, 4) ?? [];
-
-                        if (relatedProducts.length === 0) {
+                    ) : relatedProducts.length === 0 ? (
+                        <div className="col-span-full text-center py-12">
+                            <p className="text-muted-foreground">No related products found</p>
+                        </div>
+                    ) : (
+                        relatedProducts.map((relatedProduct) => {
+                            const promo = getPromotionForProduct(relatedProduct, promotions);
                             return (
-                                <div className="col-span-full text-center py-12">
-                                    <p className="text-muted-foreground">No related products found</p>
-                                </div>
+                                <ProductCard
+                                    key={relatedProduct.productId}
+                                    product={relatedProduct}
+                                    promo={promo}
+                                />
                             );
-                        }
-
-                        return relatedProducts.map((relatedProduct) => (
-                            <ProductCard
-                                key={relatedProduct.productId}
-                                product={relatedProduct}
-                                promo={null}
-                            />
-                        ));
-                    })()}
+                        })
+                    )}
                 </div>
             </div>
         </div>
