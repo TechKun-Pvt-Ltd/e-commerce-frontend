@@ -16,7 +16,7 @@ import useDataFetch from "@/hooks/use-data-fetch";
 import * as categoryServices from "@/services/category";
 import Spinner from "@/components/ui/spinner";
 import { ServiceResponse } from "@/types/api";
-import { useRouter } from "nextjs-toploader/app";
+import { useRouter } from "next/navigation";
 import { categoriesUnionSelector } from "@/store/selectors";
 import { toast } from "sonner";
 

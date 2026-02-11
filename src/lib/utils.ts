@@ -51,15 +51,15 @@ function isPromotionDateValid(promo: PromotionDetails, today: Date): boolean {
 }
 
 /**
- * Get active promotion for a product based on its category
+ * Get active promotion for a category
  * Optimized for performance with early returns and cached date calculations
  */
-export function getPromotionForProduct(
-  product: ProductPreview,
+export function getPromotionForCategory(
+  categoryId: number | null | undefined,
   promotions: PromotionDetails[]
 ): PromotionDetails | null {
   // Early returns for edge cases
-  if (!promotions?.length || !product.categoryId) return null;
+  if (!promotions?.length || !categoryId) return null;
 
   // Cache today's date (calculated once per call)
   const today = normalizeDate(new Date());
@@ -67,10 +67,21 @@ export function getPromotionForProduct(
   // Find first matching promotion (stops on first match)
   return promotions.find((promo) => {
     // Quick category check first (cheaper operation)
-    const categoryMatch = promo.categories.some((cat) => cat.categoryId === product.categoryId);
+    const categoryMatch = promo.categories.some((cat) => cat.categoryId === categoryId);
     if (!categoryMatch) return false;
 
     // Date validation only if category matches
     return isPromotionDateValid(promo, today);
   }) || null;
+}
+
+/**
+ * Get active promotion for a product based on its category
+ * Optimized for performance with early returns and cached date calculations
+ */
+export function getPromotionForProduct(
+  product: ProductPreview,
+  promotions: PromotionDetails[]
+): PromotionDetails | null {
+  return getPromotionForCategory(product.categoryId, promotions);
 }

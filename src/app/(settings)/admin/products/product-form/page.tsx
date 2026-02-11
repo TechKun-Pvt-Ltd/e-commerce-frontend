@@ -7,7 +7,7 @@ import * as shippingServices from "@/services/shippingMethod";
 import { getCategoryById } from "@/services/category";
 import useDataFetch from "@/hooks/use-data-fetch";
 import { Card, CardContent } from "@/components/ui/card";
-import { useRouter } from "nextjs-toploader/app";
+import { useRouter } from "next/navigation";
 import ProductForm from "../components/ProductForm";
 
 export default function AddProductPage() {

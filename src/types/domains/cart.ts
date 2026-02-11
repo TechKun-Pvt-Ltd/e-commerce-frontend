@@ -8,6 +8,8 @@ export type CartItemPreview = {
     imageUrl?: string;
     title: string;
     productVariantId: number;
+    productId?: number;
+    categoryId?: number;
     sku: string;
     price: number;
     quantityInStock: number;

@@ -70,6 +70,7 @@ export default function ProductCard({ product, promo }: { product: ProductPrevie
                         variant="secondary"
                         className="absolute size-8 bg-white right-2 rounded-full top-3 z-10"
                         onClick={async (e) => {
+                           e.preventDefault();
                            e.stopPropagation();
                            await dispatch(
                               addToCart({
@@ -109,6 +110,7 @@ export default function ProductCard({ product, promo }: { product: ProductPrevie
                         variant="secondary"
                         className="size-8 absolute shadow-md right-2 rounded-full top-14 z-10 bg-white hover:bg-gray-100"
                         onClick={e => {
+                           e.preventDefault();
                            e.stopPropagation();
                            handleWishlistToggle();
                         }}

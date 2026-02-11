@@ -18,7 +18,7 @@ import { logout } from "@/store/slices/authSlice";
 import { Separator } from "@/components/ui/separator";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { usePathname } from "next/navigation";
-import { useRouter } from "nextjs-toploader/app";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { NAVBAR_HEIGHT } from "@/lib/constants";
 import { UserRole } from "@/types/domains/user";

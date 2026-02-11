@@ -10,6 +10,8 @@ export interface WishlistItem {
 export interface WishlistItemDTO {
     wishlistItemId: number;
     productImageUrl: string;
+    productId?: number;
+    categoryId?: number;
     productVariant: {
         productVariantId: number;
         sku: string;

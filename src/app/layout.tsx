@@ -19,8 +19,8 @@ export default function RootLayout({
 }) {
     return (
         <html lang="en">
-            <body className={`${inter.className} overflow-x-hidden`} style={{width: '100vw'}}>
-                <NextTopLoader 
+            <body className={`${inter.className} overflow-x-hidden`} style={{ width: '100vw' }}>
+                <NextTopLoader
                     color="#000"
                     initialPosition={0.08}
                     crawlSpeed={200}
