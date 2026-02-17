@@ -107,22 +107,30 @@ export default function PromotionsPage() {
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter className="mt-4">
-                    <Button variant="outline" className="cursor-pointer" onClick={() => { }}>Cancel</Button>
-                    <Button className="text-red-600 bg-white/50 hover:text-red-700"
+                    <Button variant="outline" onClick={() => deleteDialog.current?.close()}>
+                        Cancel
+                    </Button>
+                    <Button
                         variant="destructive"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            if (!deletePromotionId) return;
+                        disabled={deletePromotion.isLoading}
+                        onClick={() => {
+                            if (!deletePromotionId) {
+                                toast.error("No promotion selected for deletion");
+                                return;
+                            }
 
-                            deletePromotion.request(deletePromotionId).onSuccess(() => {
-                                toast.success("Promotion deleted successfully");
-                                promotionData.request();
-                            }).onError(() => {
-                                toast.error("Failed to delete promotion: Server error");
-                            });
+                            deletePromotion.request(deletePromotionId)
+                                .onSuccess(() => {
+                                    toast.success("Promotion deleted successfully");
+                                    promotionData.request(); // Refresh the list
+                                    setDeletePromotionId(null);
+                                    deleteDialog.current?.close();
+                                }).onError(() => {
+                                    toast.error("Failed to delete promotion");
+                                });
                         }}
                     >
-                        Delete
+                        {deletePromotion.isLoading ? "Deleting..." : "Delete"}
                     </Button>
                 </DialogFooter>
             </DialogContent>

@@ -64,7 +64,10 @@ export const PromotionCard: React.FC<PromotionCardProps> = ({
                     <Button variant={"outline"}
                         className="hover:bg-white/20 transition-colors text-black"
                         title="Delete promotion"
-                        onClick={() => onDelete(promotion.promotionId)}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete(promotion.promotionId);
+                        }}
                     >
                         <Trash2 size={20} />
                     </Button>
