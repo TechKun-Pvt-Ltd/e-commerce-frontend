@@ -19,6 +19,7 @@ import * as productServices from "@/services/product";
 import * as variationServices from "@/services/variation";
 import useDataFetch from "@/hooks/use-data-fetch";
 import { addToCart } from "@/store/slices/cartSlice";
+import { setBuyNowItem } from "@/store/slices/buyNowSlice";
 import { toast } from "sonner";
 import CartToast from "@/app/components/CartToast";
 import { useRouter } from "next/navigation";
@@ -365,20 +366,31 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
         }
 
         const selectedVariant = getSelectedVariant();
+        console.log("Buy Now - selectedVariant:", selectedVariant);
+        console.log("Buy Now - variationMap:", variationMap);
+
         if (!selectedVariant) {
             toast.error("Please select all product variations");
             return;
         }
 
-        await dispatch(
-            addToCart({
-                productVariantId: selectedVariant.productVariantId,
-                quantity: 1,
-            })
-        );
+        // Build a temporary CartItemPreview WITHOUT touching the shared cart
+        const buyNowItem = {
+            cartItemId: -1, // sentinel value — not a real cart item
+            productVariantId: selectedVariant.productVariantId,
+            title: product?.title ?? "",
+            sku: selectedVariant.sku ?? "",
+            price: selectedVariant.price,
+            quantity: 1,
+            quantityInStock: selectedVariant.quantityInStock ?? 99,
+            imageUrl: activeImage?.imageUrl ?? product?.productImages?.[0]?.imageUrl,
+            addedAt: new Date(),
+        };
 
-        router.push("/checkout");
-    }, [authenticated, getSelectedVariant, dispatch, router, productId]);
+        console.log("Buy Now - dispatching buyNowItem:", buyNowItem);
+        dispatch(setBuyNowItem(buyNowItem));
+        router.push("/checkout?mode=buynow");
+    }, [authenticated, getSelectedVariant, variationMap, dispatch, router, productId, product, activeImage]);
 
     // Loading state
     if (getProductByIdFetch.isLoading) {

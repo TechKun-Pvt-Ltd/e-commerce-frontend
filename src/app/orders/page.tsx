@@ -1,31 +1,21 @@
 "use client";
 import React, { useEffect } from 'react';
 import OrderList from './components/OrderList';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { fetchOrders } from '@/store/slices/ordersSlice';
+import useDataFetch from '@/hooks/use-data-fetch';
+import * as orderServices from '@/services/shopOrder';
+import { OrderPreviewDTO } from '@/types/domains/order';
 
-const OrdersPage = () => {
-    const dispatch = useAppDispatch();
-    const { items: orders, loading, error } = useAppSelector(state => state.orders);
+export default function OrdersPage() {
+    const ordersData = useDataFetch(orderServices.getAllOrders);
 
     useEffect(() => {
-        dispatch(fetchOrders());
-    }, [dispatch]);
-
-    if (loading) {
-        return <div className="text-center text-blue-500 text-2xl p-10">Loading...</div>;
-    }
-
-    if (error) {
-        return <div className="text-center text-red-500 text-2xl p-10">{error}</div>;
-    }
+        ordersData.request();
+    }, []);
 
     return (
         <div className="container mx-auto px-4 py-8">
             <h1 className="text-3xl font-bold mb-8">My Orders</h1>
-            <OrderList orders={orders} />
+            <OrderList orders={(ordersData.data as any)?.content ?? (ordersData.data as unknown as OrderPreviewDTO[]) ?? []} />
         </div>
     );
-};
-
-export default OrdersPage;
+}

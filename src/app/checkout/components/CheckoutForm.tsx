@@ -232,32 +232,67 @@ export default function CheckoutForm({
          }
       }
 
+
+      // Validate payment method selected
+      if (!data.paymentMethodId) {
+         toast.error('Please select a payment method before placing the order.');
+         return;
+      }
+
+      // Validate all items have a shipping method loaded
+      const missingShipping = cartItems.filter(
+         (item) => !shippingMethods[item.cartItemId]?.shippingMethodId
+      );
+      if (missingShipping.length > 0) {
+         toast.error('Shipping method not loaded yet. Please wait a moment and try again.');
+         return;
+      }
+
+      // Build address:
+      // - current address with valid addressId  => shippingAddressId (reference)
+      // - current address with null addressId   => inline object (backend hasnt stored it)
+      // - custom address                        => inline object
+      let shippingAddressId: number | undefined;
+      let shippingAddressObj: { street: string; city: string; pincode: number; country: string } | undefined;
+
+      if (data.addressType === 'current' && currentAddress) {
+         if (currentAddress.addressId) {
+            shippingAddressId = currentAddress.addressId;
+         } else {
+            shippingAddressObj = {
+               street: currentAddress.street ?? '',
+               city: currentAddress.city ?? '',
+               pincode: Number(currentAddress.pincode),
+               country: currentAddress.country ?? '',
+            };
+         }
+      } else if (data.addressType === 'custom' && data.shippingAddress) {
+         shippingAddressObj = {
+            street: data.shippingAddress.street ?? '',
+            city: data.shippingAddress.city ?? '',
+            pincode: Number(data.shippingAddress.pincode),
+            country: data.shippingAddress.country ?? '',
+         };
+      }
+
       const orderPayload: OrderCreatePayload = {
          items: cartItems.map((item) => ({
             productVariantId: item.productVariantId,
             price: item.price,
-            shippingMethodId: shippingMethods[item.cartItemId]?.shippingMethodId,
+            shippingMethodId: shippingMethods[item.cartItemId]!.shippingMethodId,
             quantity: item.quantity,
             personalization: undefined,
          })),
-         shippingAddressId: data.addressType === "current" ? currentAddress?.addressId : undefined,
-         shippingAddress:
-            data.addressType === "custom" && data.shippingAddress
-               ? {
-                  street: data.shippingAddress.street ?? "",
-                  city: data.shippingAddress.city ?? "",
-                  pincode: Number(data.shippingAddress.pincode),
-                  country: data.shippingAddress.country ?? "",
-               }
-               : undefined,
+         shippingAddressId,
+         shippingAddress: shippingAddressObj,
          discountAmount: 0,
          taxAmount: taxesAndCharges,
          shippingAmount: shippingSummary.totalShippingCharges,
          subtotalAmount: subtotalAmount,
          totalAmount: billTotal,
-         paymentMethodId: data.paymentMethodId ? parseInt(data.paymentMethodId) : undefined,
+         paymentMethodId: parseInt(data.paymentMethodId!),
       };
-      console.log("Submitting order:", orderPayload);
+      console.log('Submitting order:', orderPayload);
       onSubmit(orderPayload);
    };
 

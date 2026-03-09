@@ -6,6 +6,7 @@ import authReducer from './slices/authSlice';
 import variationsReducer from './slices/variationSlice';
 import attributesReducer from './slices/attributeSlice';
 import wishlistReducer from './slices/wishlistSlice';
+import buyNowReducer from './slices/buyNowSlice';
 
 export const store = configureStore({
     reducer: {
@@ -15,14 +16,15 @@ export const store = configureStore({
         promotions: promotionsReducer,
         variations: variationsReducer,
         attributes: attributesReducer,
-        wishlist: wishlistReducer
+        wishlist: wishlistReducer,
+        buyNow: buyNowReducer
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({
             immutableCheck: false,
             serializableCheck: {
-                ignoredActionPaths: [/payload\.\d+\.addedAt/],
-                ignoredPaths: [/cart\.items\.\d+\.addedAt/]
+                ignoredActionPaths: [/payload\.\d+\.addedAt/, 'payload.addedAt'],
+                ignoredPaths: [/cart\.items\.\d+\.addedAt/, 'buyNow.item.addedAt']
             }
         })
 });
