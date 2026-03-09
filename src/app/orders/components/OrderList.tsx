@@ -8,28 +8,19 @@ interface OrderListProps {
 }
 
 const getStatusColor = (status: string | OrderStatus) => {
-    const statusStr = (typeof status === 'string' ? status : String(status)).toLowerCase();
-    switch (statusStr) {
-        case 'delivered':
-            return 'bg-green-50 text-green-700 border-green-200';
-        case 'cancelled':
-            return 'bg-red-50 text-red-700 border-red-200';
-        case 'pending':
-            return 'bg-blue-50 text-blue-700 border-blue-200';
-        case 'processing':
-        case 'confirmed':
-            return 'bg-amber-50 text-amber-700 border-amber-200';
-        case 'shipped':
-            return 'bg-purple-50 text-purple-700 border-purple-200';
-        case 'out_for_delivery':
-            return 'bg-orange-50 text-orange-700 border-orange-200';
-        case 'returned':
-        case 'refunded':
-            return 'bg-gray-50 text-gray-700 border-gray-200';
-        case 'failed':
-            return 'bg-red-50 text-red-700 border-red-200';
-        default:
-            return 'bg-gray-50 text-gray-700 border-gray-200';
+    const s = String(status).toUpperCase();
+    switch (s) {
+        case 'PENDING': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        case 'CONFIRMED': return 'bg-blue-100 text-blue-800 border-blue-200';
+        case 'PROCESSING': return 'bg-purple-100 text-purple-800 border-purple-200';
+        case 'SHIPPED': return 'bg-indigo-100 text-indigo-800 border-indigo-200';
+        case 'OUT_FOR_DELIVERY': return 'bg-orange-100 text-orange-800 border-orange-200';
+        case 'DELIVERED': return 'bg-green-100 text-green-800 border-green-200';
+        case 'CANCELLED': return 'bg-red-100 text-red-800 border-red-200';
+        case 'RETURNED': return 'bg-gray-100 text-gray-800 border-gray-200';
+        case 'REFUNDED': return 'bg-pink-100 text-pink-800 border-pink-200';
+        case 'FAILED': return 'bg-red-100 text-red-800 border-red-200';
+        default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
 };
 
@@ -151,7 +142,7 @@ const OrderList: React.FC<OrderListProps> = ({ orders }) => {
 
                                 <a
                                     href={`/orders/${order.orderId}`}
-                                    className="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm group"
+                                    className="inline-flex items-center gap-2 px-6 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium text-sm group"
                                 >
                                     View Details
                                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

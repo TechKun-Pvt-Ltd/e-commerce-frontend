@@ -310,6 +310,9 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
         }
 
         const selectedVariant = getSelectedVariant();
+        console.log("Buy Now - selectedVariant:", selectedVariant);
+        console.log("Buy Now - variationMap:", variationMap);
+
         if (!selectedVariant) {
             toast.error("Please select all product variations");
             return;
@@ -328,9 +331,10 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
             addedAt: new Date(),
         };
 
+        console.log("Buy Now - dispatching buyNowItem:", buyNowItem);
         dispatch(setBuyNowItem(buyNowItem));
         router.push("/checkout?mode=buynow");
-    }, [authenticated, getSelectedVariant, dispatch, router, productId, product, activeImage]);
+    }, [authenticated, getSelectedVariant, variationMap, dispatch, router, productId, product, activeImage]);
 
     // Loading state
     if (getProductByIdFetch.isLoading) {

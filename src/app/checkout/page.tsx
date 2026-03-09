@@ -87,18 +87,27 @@ function CheckoutPageInner() {
       (orderData: OrderCreatePayload) => {
          createOrderData
             .request(orderData)
-            .onSuccess((response) => {
+            .onSuccess((response: any) => {
+               console.log("Order created response:", response);
+               // Backend may return orderId or shopOrderId depending on endpoint
+               const orderId = response?.orderId ?? response?.shopOrderId;
                toast.success("Order placed successfully!");
-               // Clear the buy-now item after successful order
-               dispatch(clearBuyNowItem());
-               router.push(`/orders/${response.orderId}`);
+               if (orderId) {
+                  router.push(`/orders/${orderId}`);
+               } else {
+                  router.push("/orders");
+               }
+               // NOTE: Do NOT dispatch clearBuyNowItem here.
+               // Dispatching it while the page is still mounted changes effectiveItems,
+               // which triggers shipping re-fetch and causes the price to jump.
+               // The checkout page already clears buyNowItem on mount when mode != buynow.
             })
-            .onError((error) => {
+            .onError((error: string) => {
                toast.error("Failed to place order. Please try again.");
                console.error("Order creation failed:", error);
             });
       },
-      [createOrderData, router, dispatch]
+      [createOrderData, router]
    );
 
    // Handle adding new payment method

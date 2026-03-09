@@ -104,8 +104,16 @@ export interface ShopOrder {
 
 export interface OrderItem {
     orderItemId: number;
-    // shopOrder: ShopOrder;
-    productVariantId: number;
+    productVariantId?: number;           // kept for backwards compat
+    productVariant?: {                   // actual API response shape
+        productVariantId: number | null;
+        sku: string;
+        disabled: boolean;
+        quantityInStock: number | null;
+        price: number;
+        variationOptions: { variationOptionId: number; name: string; variationId: number }[] | null;
+    };
+    shippingMethod?: import("./shipping_method").ShippingMethod | null;
     quantity: number;
     price: number;
     personalization?: Personalization;
