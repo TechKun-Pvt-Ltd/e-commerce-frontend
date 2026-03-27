@@ -9,7 +9,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
 import { createSupportTicket } from '@/services/supportTicket';
 import { SupportTicketDTO } from '@/types/domains/support_ticket';
 
@@ -20,7 +19,7 @@ const formSchema = z.object({
 
 export default function SupportPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const { toast } = useToast();
+    const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -41,18 +40,10 @@ export default function SupportPage() {
 
             await createSupportTicket(supportTicketDto);
 
-            toast({
-                title: 'Success',
-                description: 'Your support ticket has been submitted successfully.',
-            });
-
+            setMessage({ type: 'success', text: 'Your support ticket has been submitted successfully.' });
             form.reset();
         } catch (error) {
-            toast({
-                title: 'Error',
-                description: 'Failed to submit support ticket. Please try again.',
-                variant: 'destructive',
-            });
+            setMessage({ type: 'error', text: 'Failed to submit support ticket. Please try again.' });
         } finally {
             setIsSubmitting(false);
         }
@@ -68,6 +59,15 @@ export default function SupportPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
+                    {message && (
+                        <div className={`mb-4 px-4 py-3 rounded-lg text-sm font-medium ${
+                            message.type === 'success'
+                                ? 'bg-green-50 text-green-800 border border-green-200'
+                                : 'bg-red-50 text-red-800 border border-red-200'
+                        }`}>
+                            {message.text}
+                        </div>
+                    )}
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                             <FormField
