@@ -1,7 +1,6 @@
 // components/Footer.tsx
 "use client";
 import React from 'react';
-import Link from 'next/link';
 
 const Footer = () => {
   return (
@@ -31,6 +30,8 @@ const Footer = () => {
               <li><a href="#" className="hover:text-black transition-colors duration-200">FAQ</a></li>
               <li><a href="#" className="hover:text-black transition-colors duration-200">Shipping & Returns</a></li>
               <li><a href="#" className="hover:text-black transition-colors duration-200">Track Your Order</a></li>
+              <li><a href="/about-us" className="hover:text-black transition-colors duration-200">About Us</a></li>
+              <li><a href="/terms-and-conditions" className="hover:text-black transition-colors duration-200">Terms & Conditions</a></li>
             </ul>
           </div>
           <div>
