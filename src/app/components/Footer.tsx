@@ -28,10 +28,11 @@ const Footer = () => {
             <ul className="text-gray-600 text-sm space-y-2">
               <li><a href="#" className="hover:text-black transition-colors duration-200">Contact Us</a></li>
               <li><a href="#" className="hover:text-black transition-colors duration-200">FAQ</a></li>
-              <li><a href="#" className="hover:text-black transition-colors duration-200">Shipping & Returns</a></li>
+              <li><a href="/shipping-returns" className="hover:text-black transition-colors duration-200">Shipping & Returns</a></li>
               <li><a href="#" className="hover:text-black transition-colors duration-200">Track Your Order</a></li>
               <li><a href="/about-us" className="hover:text-black transition-colors duration-200">About Us</a></li>
               <li><a href="/terms-and-conditions" className="hover:text-black transition-colors duration-200">Terms & Conditions</a></li>
+              <li><a href="/privacy-policy" className="hover:text-black transition-colors duration-200">Privacy Policy</a></li>
             </ul>
           </div>
           <div>
