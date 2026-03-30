@@ -597,8 +597,8 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
                         </div>
                     </div>
                     <div className="border w-full rounded-md p-4">
-                        <h1 className="mt-[-30px] text-center text-xl font-bold bg-white px-2 inline-block left-1/2 -translate-x-1/2 relative">Secure Payment</h1>
-                        <div className="flex items-center justify-center mt-4">
+                        <p className="text-center text-sm font-semibold text-gray-500 uppercase tracking-widest mb-4">Secure Payment</p>
+                        <div className="flex items-center justify-center">
                             <img
                                 src="/iyzico-logo-pack/iyzico-logo-pack/footer_iyzico_ile_ode/Colored/logo_band_colored.svg"
                                 alt="iyzico ile öde - güvenli ödeme"

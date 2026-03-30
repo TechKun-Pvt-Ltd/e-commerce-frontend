@@ -1,5 +1,4 @@
 // components/Footer.tsx
-"use client";
 import React from 'react';
 
 const Footer = () => {
@@ -15,7 +14,7 @@ const Footer = () => {
             </p>
             {/* Iyzico Payment Band */}
             <div className="mt-8">
-              <p className="text-gray-400 text-xs mb-2 uppercase tracking-widest">Secure Payment</p>
+              <span className="block text-gray-400 text-xs mb-2 uppercase tracking-widest">Secure Payment</span>
               <img
                 src="/iyzico-logo-pack/iyzico-logo-pack/footer_iyzico_ile_ode/Colored/logo_band_colored.svg"
                 alt="iyzico ile öde - güvenli ödeme"
