@@ -1,7 +1,14 @@
 // components/Footer.tsx
-import React from 'react';
+"use client";
+import React, { useState, useEffect } from 'react';
 
 const Footer = () => {
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
     <footer className="bg-gray-100 mt-16">
       <div className="container mx-auto px-4 py-12">
@@ -49,11 +56,17 @@ const Footer = () => {
               Sign up for our newsletter and get 10% off your first order.
             </p>
             <div className="flex ">
-              <input
-                type="email"
-                placeholder="Your email"
-                className="border border-gray-300 px-4 py-2 w-full text-sm rounded-l-lg focus:outline-none focus:ring-2 focus:ring-black"
-              />
+              {mounted ? (
+                <input
+                  type="email"
+                  placeholder="Your email"
+                  className="border border-gray-300 px-4 py-2 w-full text-sm rounded-l-lg focus:outline-none focus:ring-2 focus:ring-black"
+                />
+              ) : (
+                <div className="border border-gray-300 px-4 py-2 w-full text-sm rounded-l-lg bg-white overflow-hidden text-gray-400">
+                  Your email
+                </div>
+              )}
               <button className="bg-black w-28 text-white px-4 py-2 text-sm rounded-r-lg hover:bg-gray-900 transition-colors duration-200">
                 Sign Up
               </button>

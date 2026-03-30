@@ -7,12 +7,18 @@ import UserMenuContent from "./UserMenuContent";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { NAVBAR_HEIGHT } from "@/lib/constants";
 import WishlistDrawer from "./WishlistDrawer";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAppSelector } from "@/store/hooks";
 import { UserRole } from "@/types/domains/user";
 
 export default function Header() {
     const [wishlistOpen, setWishlistOpen] = useState(false);
+    const [mounted, setMounted] = useState(false);
+    
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+    
     const wishlistItems = useAppSelector((state) => state.wishlist.items);
     const { user } = useAppSelector(state => state.auth);
     const isAdmin = user?.roleName === UserRole.ADMIN;
@@ -40,7 +46,7 @@ export default function Header() {
 
             {/* User + Cart */}
             <div className="flex items-center gap-4">
-            {canShowAdminSettings && (
+                {mounted && canShowAdminSettings && (
                     <Link href="/admin/dashboard">
                         <Button variant="ghost" size="icon" aria-label="Admin Settings">
                             <Settings className="h-5 w-5" />
@@ -66,8 +72,8 @@ export default function Header() {
                     onClick={() => setWishlistOpen(true)}
                     className="relative"
                 >
-                    <Heart className={`h-5 w-5 ${wishlistItems.length > 0 ? 'fill-red-500 text-red-500' : ''}`} />
-                    {wishlistItems.length > 0 && (
+                    <Heart className={`h-5 w-5 ${mounted && wishlistItems.length > 0 ? 'fill-red-500 text-red-500' : ''}`} />
+                    {mounted && wishlistItems.length > 0 && (
                         <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                             {wishlistItems.length}
                         </span>
