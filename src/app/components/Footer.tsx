@@ -1,6 +1,7 @@
 // components/Footer.tsx
 "use client";
 import React from 'react';
+import Link from 'next/link';
 
 const Footer = () => {
   return (
@@ -10,7 +11,7 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-medium mb-4">About KIOSKO</h3>
             <p className="text-gray-600 text-sm">
-              KIOSKO offers premium geometric art prints made with the highest quality materials. 
+              KIOSKO offers premium geometric art prints made with the highest quality materials.
               Our mission is to bring beautiful, affordable art to every home.
             </p>
           </div>
@@ -28,8 +29,10 @@ const Footer = () => {
             <ul className="text-gray-600 text-sm space-y-2">
               <li><a href="#" className="hover:text-black transition-colors duration-200">Contact Us</a></li>
               <li><a href="#" className="hover:text-black transition-colors duration-200">FAQ</a></li>
-              <li><a href="#" className="hover:text-black transition-colors duration-200">Shipping & Returns</a></li>
+              <li><a href="#" className="hover:text-black transition-colors duration-200">Shipping &amp; Returns</a></li>
               <li><a href="#" className="hover:text-black transition-colors duration-200">Track Your Order</a></li>
+              <li><Link href="/about-us" className="hover:text-black transition-colors duration-200">About Us</Link></li>
+              <li><Link href="/terms-and-conditions" className="hover:text-black transition-colors duration-200">Terms &amp; Conditions</Link></li>
             </ul>
           </div>
           <div>
