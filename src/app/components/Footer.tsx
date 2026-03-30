@@ -13,6 +13,15 @@ const Footer = () => {
               KIOSKO offers premium geometric art prints made with the highest quality materials.
               Our mission is to bring beautiful, affordable art to every home.
             </p>
+            {/* Iyzico Payment Band */}
+            <div className="mt-8">
+              <p className="text-gray-400 text-xs mb-2 uppercase tracking-widest">Secure Payment</p>
+              <img
+                src="/iyzico-logo-pack/iyzico-logo-pack/footer_iyzico_ile_ode/Colored/logo_band_colored.svg"
+                alt="iyzico ile öde - güvenli ödeme"
+                className="h-9 object-contain"
+              />
+            </div>
           </div>
           <div>
             <h3 className="text-lg font-medium mb-4">Shop</h3>
