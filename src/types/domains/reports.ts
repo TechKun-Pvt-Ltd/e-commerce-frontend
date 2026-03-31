@@ -1,4 +1,4 @@
-import { Product } from "./product";
+
 
 
 export interface DateRange {
@@ -43,7 +43,7 @@ export interface CustomersReportResponse {
     orderedItems: number;
     phoneNo: string;
     email: string;
-    address: any;
+    address: unknown;
   }[];
 }
 

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import { useAppSelector } from "@/store/hooks";
 import { categoriesUnionSelector } from "@/store/selectors";

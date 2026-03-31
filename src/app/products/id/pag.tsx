@@ -8,7 +8,7 @@ import { getProductById } from '@/services/product';
 import { addCartItem } from '@/services/cart';
 import { addToWishlist } from '@/services/wishlist';
 import { ProductDetails, ProductVariant } from '@/types/domains/product';
-import { ReviewDetails } from '@/types/domains/review';
+import Image from 'next/image';
 
 export default function ProductDetailPage() {
     const { id } = useParams();
@@ -19,13 +19,16 @@ export default function ProductDetailPage() {
     useEffect(() => {
         const fetchProduct = async () => {
             try {
-                const productData = await getProductById(Number(id));
-                setProduct(productData);
-                if (productData.images.length > 0) {
-                    setSelectedImage(productData.images[0].imageUrl);
-                }
-                if (productData.variants.length > 0) {
-                    setSelectedVariant(productData.variants[0]);
+                const response = await getProductById(Number(id));
+                if (response.success && response.data) {
+                    const productData = response.data;
+                    setProduct(productData);
+                    if (productData.images && productData.images.length > 0) {
+                        setSelectedImage(productData.images[0].imageUrl);
+                    }
+                    if (productData.variants && productData.variants.length > 0) {
+                        setSelectedVariant(productData.variants[0] as unknown as ProductVariant);
+                    }
                 }
             } catch (error) {
                 console.error('Error fetching product:', error);
@@ -42,8 +45,7 @@ export default function ProductDetailPage() {
             try {
                 await addCartItem({
                     productVariantId: selectedVariant.productVariantId,
-                    quantity: 1,
-                    imageUrl: selectedImage
+                    quantity: 1
                 });
                 // Could show a success toast here
             } catch (error) {
@@ -73,11 +75,15 @@ export default function ProductDetailPage() {
                 {/* Image Gallery */}
                 <div className="space-y-4">
                     <div className="aspect-square overflow-hidden rounded-lg border">
-                        <img
-                            src={selectedImage}
-                            alt={product.title}
-                            className="w-full h-full object-cover"
-                        />
+                        {selectedImage ? (
+                            <Image
+                                src={selectedImage}
+                                alt={product.title}
+                                width={500}
+                                height={500}
+                                className="w-full h-full object-cover"
+                            />
+                        ) : null}
                     </div>
                     <div className="grid grid-cols-4 gap-2">
                         {product.images.map((image) => (
@@ -87,9 +93,11 @@ export default function ProductDetailPage() {
                   ${selectedImage === image.imageUrl ? 'ring-2 ring-primary' : ''}`}
                                 onClick={() => setSelectedImage(image.imageUrl)}
                             >
-                                <img
+                                <Image
                                     src={image.imageUrl}
                                     alt={product.title}
+                                    width={100}
+                                    height={100}
                                     className="w-full h-full object-cover"
                                 />
                             </div>
@@ -115,12 +123,12 @@ export default function ProductDetailPage() {
                                     <Button
                                         key={variant.productVariantId}
                                         variant={selectedVariant?.productVariantId === variant.productVariantId ? 'default' : 'outline'}
-                                        onClick={() => setSelectedVariant(variant)}
+                                        onClick={() => setSelectedVariant(variant as unknown as ProductVariant)}
                                         disabled={variant.disabled || variant.quantityInStock === 0}
                                     >
                                         ${variant.price}
-                                        {variant.variationOptions.map((option) => (
-                                            <span key={option.variationOptionId}> - {option.value}</span>
+                                        {Object.values((variant as unknown as { variantProperties: Record<string, { variationOptionId: number; name: string }> }).variantProperties || {}).map((option) => (
+                                            <span key={option.variationOptionId}> - {option.name}</span>
                                         ))}
                                     </Button>
                                 ))}

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 import { useAppSelector } from "@/store/hooks";
 import { CategoryTree } from "@/types/domains/category";

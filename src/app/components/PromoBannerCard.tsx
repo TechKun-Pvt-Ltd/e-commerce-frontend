@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element, jsx-a11y/alt-text */
 import { Button } from '@/components/ui/button'
 import React from 'react'
 

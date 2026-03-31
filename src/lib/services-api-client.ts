@@ -1,3 +1,4 @@
 import ApiClient from "./api-client";
 
-export default new ApiClient();
+const servicesApiClient = new ApiClient();
+export default servicesApiClient;

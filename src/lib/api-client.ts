@@ -1,8 +1,8 @@
 import { ApiResponse, ContentType } from "@/types/api";
 
 interface Options {
-    params?: Record<string, any>;
-    data?: any;
+    params?: Record<string, unknown>;
+    data?: unknown;
 };
 
 class ApiClient {
@@ -47,7 +47,7 @@ class ApiClient {
             headers
         };
         if (requestOptions.data)
-            options.body = requestOptions.data;
+            options.body = requestOptions.data as BodyInit;
 
         try {
             const response = await fetch('/api/forward', {

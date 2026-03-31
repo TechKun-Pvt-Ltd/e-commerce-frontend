@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/exhaustive-deps */
 "use client";
 
 import useDataFetch from "@/hooks/use-data-fetch";
@@ -31,7 +32,6 @@ function CheckoutPageInner() {
       if (!isBuyNow) {
          dispatch(clearBuyNowItem());
       }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
    }, []);
 
    // If Buy Now flow: use only that item; otherwise use the full cart

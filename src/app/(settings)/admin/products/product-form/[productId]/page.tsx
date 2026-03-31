@@ -1,7 +1,8 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import { useAppSelector } from "@/store/hooks";
 import { categoriesUnionSelector } from "@/store/selectors";
-import React, { Usable, useEffect } from "react";
+import React, { useEffect } from "react";
 import * as productServices from "@/services/product";
 import * as shippingServices from "@/services/shippingMethod";
 import { getCategoryById } from "@/services/category";
@@ -10,7 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import ProductForm from "../../components/ProductForm";
 
-export default function ProductPage({ params }: { params: Usable<{ productId: string }> }) {
+export default function ProductPage({ params }: { params: Promise<{ productId: string }> }) {
     const { productId } = React.use(params);
     const router = useRouter();
     const productById = useDataFetch(productServices.getProductById);

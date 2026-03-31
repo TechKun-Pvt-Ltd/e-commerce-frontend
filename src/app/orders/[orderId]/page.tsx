@@ -22,6 +22,7 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ orderId: string }> }) 
                 setOrder(data);
             });
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [orderId]);
 
     if (getOrderFetch.isLoading) {

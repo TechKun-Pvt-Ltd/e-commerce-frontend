@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client"
 import React, { useMemo, useEffect } from 'react';
 import ProductCard from '@/app/components/ProductCard';
@@ -25,7 +26,6 @@ const BestSeller = ({ products: productsProp = [], selectedCategoryId }: BestSel
             filters.categoryId = selectedCategoryId;
         }
         productsData.request(filters);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedCategoryId]);
 
     // Use products from API (already sorted by rating) or fallback to prop

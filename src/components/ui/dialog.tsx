@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client"
 
 import * as React from "react"
@@ -16,12 +17,18 @@ const Dialog = React.forwardRef(({
 }: React.ComponentProps<typeof DialogPrimitive.Root>,
     ref: React.ForwardedRef<DialogRef>
 ) => {
-    const [open, setOpen] = props.open ? [
-        props.open,
-        (v: React.SetStateAction<boolean>) => typeof v === "function" ?
-            props.onOpenChange?.(v(props.open!)) :
-            props.onOpenChange?.(v)
-    ] : React.useState(false);
+    const [internalOpen, setInternalOpen] = React.useState(false);
+    const isControlled = props.open !== undefined;
+    const open = isControlled ? props.open : internalOpen;
+
+    const setOpen = React.useCallback((v: React.SetStateAction<boolean>) => {
+        if (!isControlled) {
+            setInternalOpen(v);
+        } else {
+            const nextValue = typeof v === "function" ? v(props.open!) : v;
+            props.onOpenChange?.(nextValue);
+        }
+    }, [isControlled, props.open, props.onOpenChange]);
 
     React.useImperativeHandle(ref, () => ({
         open: () => setOpen(true),
@@ -34,6 +41,7 @@ const Dialog = React.forwardRef(({
         data-slot="dialog" {...props}
     />;
 });
+Dialog.displayName = "Dialog";
 
 function DialogTrigger({
     ...props

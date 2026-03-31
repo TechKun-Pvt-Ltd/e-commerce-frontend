@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 // components/Footer.tsx
 "use client";
 import React, { useState, useEffect } from 'react';

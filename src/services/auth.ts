@@ -44,18 +44,18 @@ export const me: ServiceFunction<[], UserEssentials> = () => {
     return servicesApiClient.get("/auth/me");
 };
 
-export const forgotPassword: ServiceFunction<ForgotPasswordPayload, Map<string, any>> = (payload) => {
+export const forgotPassword: ServiceFunction<ForgotPasswordPayload, Record<string, unknown>> = (payload) => {
     return servicesApiClient.post("/auth/forgot-password", { data: payload });
 };
 
-export const resetPassword: ServiceFunction<ResetPasswordPayload, Map<string, any>> = (payload) => {
+export const resetPassword: ServiceFunction<ResetPasswordPayload, Record<string, unknown>> = (payload) => {
     return servicesApiClient.put("/auth/reset-password", { data: payload });
 };
 
-export const changePassword: ServiceFunction<ChangePasswordPayload, Map<string, any>> = (payload) => {
+export const changePassword: ServiceFunction<ChangePasswordPayload, Record<string, unknown>> = (payload) => {
     return servicesApiClient.put("/auth/change-password", { data: payload });
 };
 
-export const deleteAccount: ServiceFunction<DeleteAccountPayload, Map<string, any>> = (payload) => {
+export const deleteAccount: ServiceFunction<DeleteAccountPayload, Record<string, unknown>> = (payload) => {
     return servicesApiClient.put("/auth/delete-account", { data: payload });
 };

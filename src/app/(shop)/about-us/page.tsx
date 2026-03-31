@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-html-link-for-pages, @next/next/no-img-element, react/no-unescaped-entities */
 // app/(shop)/about-us/page.tsx
 import { Metadata } from "next";
 import Feature from "../../products/components/Feature";

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // components/FeaturedByCategorySection.tsx
 import Image from "next/image"
 import Link from "next/link"

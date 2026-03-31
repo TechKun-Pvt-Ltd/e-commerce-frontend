@@ -40,9 +40,11 @@ const Filters: React.FC<{
     }, [selectedCategories, onCategoriesSelected]);
 
     const handleSizeChange = useCallback((size: string) => {
-      selectedSizes.includes(size) ?
-        onSizesSelected(selectedSizes.filter(s => s !== size)) :
+      if (selectedSizes.includes(size)) {
+        onSizesSelected(selectedSizes.filter(s => s !== size));
+      } else {
         onSizesSelected([...selectedSizes, size]);
+      }
     }, [selectedSizes, onSizesSelected]);
 
     const minPrice = 50;

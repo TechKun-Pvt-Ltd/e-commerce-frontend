@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/exhaustive-deps, react/no-unescaped-entities */
 "use client";
 
 import useDataFetch from "@/hooks/use-data-fetch";

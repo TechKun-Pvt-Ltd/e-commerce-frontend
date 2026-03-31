@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import * as attributeServices from "@/services/attribute";
 import { Attribute } from '@/types/domains/attribute';

@@ -50,7 +50,7 @@ export const addToWishlistAsync = createAsyncThunk<
                     rejectWithValue(fetchAction.payload as string);
             }
             return rejectWithValue(response.error);
-        } catch (error: any) {
+        } catch (error: unknown) {
             return rejectWithValue((error as { error: string }).error || 'Failed to add item to wishlist');
         }
     }
@@ -69,7 +69,7 @@ export const removeFromWishlistAsync = createAsyncThunk<WishlistItemDTO[], numbe
                     rejectWithValue(fetchAction.payload as string);
             }
             return rejectWithValue(response.error);
-        } catch (error: any) {
+        } catch (error: unknown) {
             return rejectWithValue((error as { error: string }).error || 'Failed to remove item from wishlist');
         }
     }

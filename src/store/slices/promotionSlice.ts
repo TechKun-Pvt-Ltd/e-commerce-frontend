@@ -23,7 +23,7 @@ export const fetchPromotions = createAsyncThunk(
                 return response.data;
 
             return rejectWithValue(response.error);
-        } catch (error: any) {
+        } catch (error: unknown) {
             return rejectWithValue((error as { error: string }).error || 'Failed to fetch categories');
         }
     }

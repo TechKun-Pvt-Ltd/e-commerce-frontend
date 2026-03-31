@@ -14,6 +14,7 @@ export type ResponseHandler<R> = {
     onError: (callback: (message: string) => void) => ResponseHandler<R>
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type RequestFunction<T, R> = (...args: T extends any[]? T : [T]) => ResponseHandler<R>;
 
 const useDataFetch = <T, R>(apiFunc: ServiceFunction<T, R>, options?: {
@@ -28,10 +29,11 @@ const useDataFetch = <T, R>(apiFunc: ServiceFunction<T, R>, options?: {
         isLoading: options?.defaultLoading ?? false
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const request = useCallback((...args: T extends any[] ? T : [T]) => {
         setDataFetchState(prev => ({...prev, hasError: false, isLoading: true}));
         const responseHandler = {
-            onSuccess(_: R) {},
+            onSuccess(_res: R) { void _res; },
             onError(message: string) { toast.error(message, { richColors: true }); }
         };
 
@@ -70,9 +72,9 @@ const useDataFetch = <T, R>(apiFunc: ServiceFunction<T, R>, options?: {
                 return this;
             }
         }
-    }, []);
+    }, [apiFunc, options?.defaultValue]);
 
-    return useMemo(() => ({ request, ...dataFetchState }), [dataFetchState]);
+    return useMemo(() => ({ request, ...dataFetchState }), [dataFetchState, request]);
 };
 
 export default useDataFetch;

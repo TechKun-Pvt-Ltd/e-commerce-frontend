@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
-import Image from 'next/image';
 
 type WishlistItem = {
   id: number;
@@ -115,7 +114,7 @@ export default function Wishlist() {
       initialAnimations[item.id] = false;
     });
     setAnimations(initialAnimations);
-  }, []);
+  }, [wishlistItems]);
 
   const toggleAddToCanvas = (id: number) => {
     setAnimations(prev => ({...prev, [id]: true}));

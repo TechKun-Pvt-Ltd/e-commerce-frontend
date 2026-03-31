@@ -190,7 +190,7 @@ const OrderDetailView: React.FC<OrderDetailViewProps> = ({ order }) => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {order.orderItems?.map((item) => {
-                            const sku = (item as any).productVariant?.sku ?? item.productVariantId?.toString() ?? '—';
+                            const sku = (item as {productVariant?: {sku?: string}, productVariantId?: number}).productVariant?.sku ?? item.productVariantId?.toString() ?? '—';
                             return (
                                 <div
                                     key={item.orderItemId}
@@ -231,7 +231,7 @@ const OrderDetailView: React.FC<OrderDetailViewProps> = ({ order }) => {
 
                         <div className="space-y-2 mb-4">
                             {order.orderItems?.map((item) => {
-                                const sku = (item as any).productVariant?.sku ?? item.productVariantId?.toString() ?? '—';
+                                const sku = (item as {productVariant?: {sku?: string}, productVariantId?: number}).productVariant?.sku ?? item.productVariantId?.toString() ?? '—';
                                 return (
                                     <div key={item.orderItemId} className="flex justify-between text-sm">
                                         <span className="text-gray-600">

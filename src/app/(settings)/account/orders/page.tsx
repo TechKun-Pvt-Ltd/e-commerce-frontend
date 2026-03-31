@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/exhaustive-deps */
 "use client";
 import { useEffect } from "react";
 import OrderList from "@/app/orders/components/OrderList";

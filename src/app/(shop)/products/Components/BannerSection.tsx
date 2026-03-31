@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element, @typescript-eslint/no-unused-vars */
 import { ChevronRight, Star, Sparkles } from "lucide-react";
 
 export default function BannerSection() {

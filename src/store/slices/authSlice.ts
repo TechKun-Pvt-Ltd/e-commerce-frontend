@@ -57,8 +57,8 @@ export const logout = createAsyncThunk(
                 return response.data;
 
             return rejectWithValue(response.error);
-        } catch (error: any) {
-            return rejectWithValue(error.response?.data || 'Logout failed');
+        } catch (error: unknown) {
+            return rejectWithValue((error as { response?: { data?: string } }).response?.data || 'Logout failed');
         }
     }
 );
@@ -72,8 +72,8 @@ export const saveMyInformation = createAsyncThunk(
                 return response.data;
 
             return rejectWithValue(response.error);
-        } catch (error: any) {
-            return rejectWithValue(error.response?.data || 'Logout failed');
+        } catch (error: unknown) {
+            return rejectWithValue((error as { response?: { data?: string } }).response?.data || 'Logout failed');
         }
     }
 );

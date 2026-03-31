@@ -1,5 +1,5 @@
 import { CartItemDTO, CartItemPreview, CartItemUpdatePayload } from '@/types/domains/cart';
-import { createSlice, createAsyncThunk, PayloadAction, GetThunkAPI } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import * as cartServices from "@/services/cart";
 
 interface CartState {
@@ -54,7 +54,7 @@ export const addToCart = createAsyncThunk<CartItemPreview[], CartItemDTO, ThunkA
             }
 
             return rejectWithValue(response.error);
-        } catch (error: any) {
+        } catch (error: unknown) {
             return rejectWithValue((error as { error: string }).error || 'Failed to add item to cart');
         }
     }
@@ -69,7 +69,7 @@ export const updateCartItemAsync = createAsyncThunk(
                 return response.data;
 
             return rejectWithValue(response.error);
-        } catch (error: any) {
+        } catch (error: unknown) {
             return rejectWithValue((error as { error: string }).error || 'Failed to update cart item');
         }
     }
@@ -84,7 +84,7 @@ export const removeFromCartAsync = createAsyncThunk<number, number, { rejectValu
                 return cartItemId;
 
             return rejectWithValue(response.error);
-        } catch (error: any) {
+        } catch (error: unknown) {
             return rejectWithValue((error as { error: string }).error || 'Failed to remove item from cart');
         }
     }
@@ -95,7 +95,7 @@ const calculateTotals = (state: CartState) => {
     state.totalAmount = state.items.reduce((total, item) => total + (item.price * item.quantity), 0);
 };
 
-let cartItemId = 423;
+
 
 const cartSlice = createSlice({
     name: 'cart',

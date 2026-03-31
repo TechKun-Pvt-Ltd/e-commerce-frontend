@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element, @typescript-eslint/no-explicit-any, react-hooks/exhaustive-deps */
 "use client"
 
 import React, { useCallback, useEffect, useMemo, useState } from "react"

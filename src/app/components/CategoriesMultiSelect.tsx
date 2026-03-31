@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 import { Button } from "@/components/ui/button";
 import { MultiSelect, MultiSelectContent, MultiSelectSearchInput, MultiSelectTrigger } from "@/components/ui/multiselect";

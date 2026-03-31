@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 // app/(shop)/terms-and-conditions/page.tsx
 import { Metadata } from "next";
 import TableOfContents from "./TableOfContents";

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import NotificationCard from '@/app/components/NotificationCard';
-import { Product } from '@/app/types/models';
+import { Product } from '@/types/domains/product';
 import { FaShoppingCart } from 'react-icons/fa';
 
 const ProductGrid: React.FC<{
@@ -55,13 +55,13 @@ const ProductGrid: React.FC<{
                     <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-500 p-4">
                       <div className="text-center">
                         <div className="text-6xl mb-2">🎨</div>
-                        <div className="text-sm text-gray-600">{product.name}</div>
+                        <div className="text-sm text-gray-600">{product.title}</div>
                       </div>
                     </div>
                   ) : (
                     <Image
                       src={getProductImage(product.productId)}
-                      alt={product.name}
+                      alt={product.title}
                       width={400}
                       height={500}
                       className="w-full h-full object-cover transform transition-all duration-500 group-hover:scale-110"
@@ -72,17 +72,17 @@ const ProductGrid: React.FC<{
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <h3 className="text-white text-lg font-semibold">{product.name}</h3>
+                    <h3 className="text-white text-lg font-semibold">{product.title}</h3>
                   </div>
                 </div>
               </div>
               <div className="p-5 space-y-4">
                 <h3 className="text-gray-900 font-medium text-lg transition-colors duration-200 group-hover:text-blue-600">
-                  {product.name}
+                  {product.title}
                 </h3>
                 <div className="space-y-3">
                   <span className="block font-semibold text-gray-900 text-lg">
-                    ${Math.min(...product.variants.map(v => v.price)).toFixed(2)} - ${Math.max(...product.variants.map(v => v.price)).toFixed(2)}
+                    ${Math.min(...product.variants.map((v: { price: number }) => v.price)).toFixed(2)} - ${Math.max(...product.variants.map((v: { price: number }) => v.price)).toFixed(2)}
                   </span>
                   <button 
                     className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-2.5 px-4 rounded-lg text-sm font-medium 
@@ -102,7 +102,7 @@ const ProductGrid: React.FC<{
       </div>
 
       <NotificationCard
-        message={addedProduct ? `${addedProduct.name} added to cart` : ''}
+        message={addedProduct ? `${addedProduct.title} added to cart` : ''}
         isVisible={showNotification}
         onClose={() => setShowNotification(false)}
         action={{

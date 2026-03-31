@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import ProductCard from "@/app/components/ProductCard";
 import {

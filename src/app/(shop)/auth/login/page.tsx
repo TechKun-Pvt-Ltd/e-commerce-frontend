@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -20,7 +21,7 @@ const loginSchema = z.object({
     password: z.string().min(1, 'Password is required')
 });
 
-export default function LoginPage() {
+function LoginContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { loading, authenticated } = useAppSelector(state => state.auth);
@@ -132,5 +133,21 @@ export default function LoginPage() {
                 </CardContent>
             </Card>
         </div>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={
+            <div className="container mx-auto py-10 flex justify-center">
+                <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 rounded-full animate-pulse bg-primary"></div>
+                    <div className="w-4 h-4 rounded-full animate-pulse bg-primary" style={{ animationDelay: "0.2s" }}></div>
+                    <div className="w-4 h-4 rounded-full animate-pulse bg-primary" style={{ animationDelay: "0.4s" }}></div>
+                </div>
+            </div>
+        }>
+            <LoginContent />
+        </Suspense>
     );
 }

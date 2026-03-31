@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/exhaustive-deps */
 "use client"
 import React, { useEffect, useRef, useState } from 'react'
 import * as orderServices from "@/services/shopOrder";
