@@ -129,6 +129,15 @@ export default function CheckoutForm({
          country: "",
       },
       paymentMethodId: "",
+      paymentMethod: {
+         cardHolderName: "",
+         cardNumber: "",
+         expiryMonth: "",
+         expiryYear: "",
+         cvvCode: "",
+         providerToken: "",
+         isDefault: false,
+      },
    };
 
    const checkoutForm = useForm<FieldValues>({
