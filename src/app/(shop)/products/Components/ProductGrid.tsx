@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import ProductCard from "@/app/components/ProductCard";
+import ProductCardSkeleton from "@/app/components/ProductCardSkeleton";
 import {
    Breadcrumb,
    BreadcrumbItem,
@@ -273,7 +274,11 @@ const ProductGrid = ({ categories, products: productsProp, onCategoryChange: onC
 
                   {/* Products Grid */}
                   <div className={`grid ${getGridClass()} gap-6 py-6 ${gridColumns === 2 ? "justify-center" : ""}`}>
-                     {currentPageProducts.length > 0 ? (
+                     {productsData.isLoading ? (
+                        Array.from({ length: 8 }).map((_, i) => (
+                           <ProductCardSkeleton key={i} />
+                        ))
+                     ) : currentPageProducts.length > 0 ? (
                         currentPageProducts.map((product) => {
                            const promo = getPromotionForProduct(product, promotions);
                            return (

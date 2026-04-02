@@ -3,13 +3,13 @@
 import React, { useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
-import { 
-    FaSearch, 
-    FaFilter, 
-    FaPlus, 
-    FaEllipsisV, 
-    FaEdit, 
-    FaTrash 
+import {
+    FaSearch,
+    FaFilter,
+    FaPlus,
+    FaEllipsisV,
+    FaEdit,
+    FaTrash
 } from 'react-icons/fa';
 import Image from 'next/image';
 
@@ -62,7 +62,7 @@ const ProductsPage = () => {
     return (
         <div className="flex min-h-screen bg-gray-100">
             <Sidebar isSidebarOpen={isSidebarOpen} onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
-            
+
             <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-20'}`}>
                 <div className="p-8">
                     <div className="flex justify-between items-center">
@@ -72,7 +72,7 @@ const ProductsPage = () => {
                             Add Product
                         </button>
                     </div>
-                    
+
                     {/* Filters and Search */}
                     <div className="mt-8 flex flex-col sm:flex-row gap-4">
                         <div className="relative flex-1">

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProductCard from "./ProductCard";
+import ProductCardSkeleton from "./ProductCardSkeleton";
 import { Button } from "@/components/ui/button";
 import { ShoppingCartIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -75,7 +76,11 @@ export const FeatureProducts = ({ products: productsProp = [] }: FeatureProducts
                 <TabsContent value="new" className="mt-0">
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
                         {
-                            filteredProducts.length > 0 ? (
+                            productsData.isLoading ? (
+                                Array.from({ length: 8 }).map((_, i) => (
+                                    <ProductCardSkeleton key={i} />
+                                ))
+                            ) : filteredProducts.length > 0 ? (
                                 filteredProducts.map((product) => {
                                     const promo = getPromotionForProduct(product, promotions);
                                     return (
@@ -103,7 +108,11 @@ export const FeatureProducts = ({ products: productsProp = [] }: FeatureProducts
                 <TabsContent value="bestsellers" className="mt-0">
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
                         {
-                            filteredProducts.length > 0 ? (
+                            productsData.isLoading ? (
+                                Array.from({ length: 8 }).map((_, i) => (
+                                    <ProductCardSkeleton key={i} />
+                                ))
+                            ) : filteredProducts.length > 0 ? (
                                 filteredProducts.map((product) => {
                                     const promo = getPromotionForProduct(product, promotions);
                                     return (
@@ -131,7 +140,11 @@ export const FeatureProducts = ({ products: productsProp = [] }: FeatureProducts
                 <TabsContent value="discounted" className="mt-0">
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
                         {
-                            filteredProducts.length > 0 ? (
+                            productsData.isLoading ? (
+                                Array.from({ length: 8 }).map((_, i) => (
+                                    <ProductCardSkeleton key={i} />
+                                ))
+                            ) : filteredProducts.length > 0 ? (
                                 filteredProducts.map((product) => {
                                     const promo = getPromotionForProduct(product, promotions);
                                     return (

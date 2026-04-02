@@ -4,6 +4,7 @@ import { ProductPreview } from "@/types/domains/product";
 import { Star, MoreVertical } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import Image from "next/image";
 import Link from "next/link";
 import useDataFetch from "@/hooks/use-data-fetch";
@@ -72,7 +73,31 @@ export default function ProductsPage() {
             </div>
         </div>
         <div className="py-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {productsData.data?.map((product, index) => <div key={index} className="flex items-center space-x-4">
+            {productsData.isLoading ? (
+                Array.from({ length: 10 }).map((_, i) => (
+                    <div key={`skeleton-${i}`} className="flex items-center space-x-4 w-full">
+                        <div className="rounded-md border overflow-hidden shadow-sm relative w-full">
+                            <Skeleton className="absolute right-2 top-2 z-10 h-10 w-10 rounded-md bg-muted-foreground/20" />
+                            <Skeleton className="w-full aspect-square rounded-none" />
+                            <div className="p-2 flex gap-2">
+                                <div className="flex-1 pt-2">
+                                    <Skeleton className="h-4 w-full mb-1" />
+                                    <Skeleton className="h-4 w-3/4 mb-3" />
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <Skeleton className="h-3.5 w-3.5 rounded-full" />
+                                        <Skeleton className="h-3 w-6" />
+                                        <Skeleton className="h-3 w-20" />
+                                    </div>
+                                    <Skeleton className="h-5 w-16 mb-2" />
+                                </div>
+                                <div>
+                                    <Skeleton className="h-10 w-10 rounded-md" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ))
+            ) : productsData.data?.map((product, index) => <div key={index} className="flex items-center space-x-4">
                 <Link className="w-full" href={`/admin/products/product-form/${product.productId}`}>
                     <div
                         key={product.productId}

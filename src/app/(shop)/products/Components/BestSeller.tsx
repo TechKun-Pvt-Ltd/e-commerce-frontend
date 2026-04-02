@@ -2,6 +2,7 @@
 "use client"
 import React, { useMemo, useEffect } from 'react';
 import ProductCard from '@/app/components/ProductCard';
+import ProductCardSkeleton from '@/app/components/ProductCardSkeleton';
 import { ProductPreview, ProductQueryOptions, SortOption } from "@/types/domains/product";
 import * as productServices from "@/services/product";
 import useDataFetch from "@/hooks/use-data-fetch";
@@ -47,7 +48,13 @@ const BestSeller = ({ products: productsProp = [], selectedCategoryId }: BestSel
                     </h2>
                 </div>
 
-                {bestSellerProducts.length > 0 ? (
+                {productsData.isLoading ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                            <ProductCardSkeleton key={i} />
+                        ))}
+                    </div>
+                ) : bestSellerProducts.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                         {bestSellerProducts.map((product) => {
                             const promo = getPromotionForProduct(product, promotions);
