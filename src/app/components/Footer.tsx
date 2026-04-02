@@ -15,9 +15,9 @@ const Footer = () => {
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-lg font-medium mb-4">About KIOSKO</h3>
+            <h3 className="text-lg font-medium mb-4">About KAVENGO</h3>
             <p className="text-gray-600 text-sm">
-              KIOSKO offers premium geometric art prints made with the highest quality materials.
+              KAVENGO offers premium geometric art prints made with the highest quality materials.
               Our mission is to bring beautiful, affordable art to every home.
             </p>
             {/* Iyzico Payment Band */}
@@ -78,7 +78,7 @@ const Footer = () => {
         <div className="border-t border-gray-200 mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="text-gray-500 text-sm mb-4 md:mb-0">
-              © 2025 KIOSKO. All rights reserved.
+              © 2025 KAVENGO. All rights reserved.
             </div>
             <div className="flex space-x-6">
               <a href="#" className="text-gray-500 hover:text-black transition-colors duration-200">

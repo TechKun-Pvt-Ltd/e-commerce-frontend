@@ -4,9 +4,9 @@ import { Metadata } from "next";
 import Feature from "../../products/components/Feature";
 
 export const metadata: Metadata = {
-  title: "About Us | KIOSKO - Premium Frames & Art Prints",
+  title: "About Us | KAVENGO - Premium Frames & Art Prints",
   description:
-    "Learn about KIOSKO – your destination for premium photo frames, art frames, and decorative wall frames. We bring craftsmanship and elegance to every home.",
+    "Learn about KAVENGO – your destination for premium photo frames, art frames, and decorative wall frames. We bring craftsmanship and elegance to every home.",
 };
 
 export default function AboutUsPage() {
@@ -31,7 +31,7 @@ export default function AboutUsPage() {
             <span className="text-gray-300">Tell Your Story</span>
           </h1>
           <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
-            At KIOSKO, we believe every memory deserves a beautiful home. From
+            At KAVENGO, we believe every memory deserves a beautiful home. From
             elegant photo frames to stunning art prints displays – we craft
             frames that transform your walls into galleries.
           </p>
@@ -71,7 +71,7 @@ export default function AboutUsPage() {
                 Born From a Love of Beautiful Spaces
               </h2>
               <p className="text-gray-600 mb-4 leading-relaxed">
-                KIOSKO was founded with one simple idea: great frames make great
+                KAVENGO was founded with one simple idea: great frames make great
                 moments last forever. What started as a small workshop crafting
                 custom wood frames quickly grew into one of India's most trusted
                 destinations for premium frames and wall art.
@@ -84,14 +84,14 @@ export default function AboutUsPage() {
               </p>
               <p className="text-gray-600 leading-relaxed">
                 Whether you're framing a wedding photograph, a child's first
-                drawing, or a statement art print — KIOSKO is where your
+                drawing, or a statement art print — KAVENGO is where your
                 memories find their home.
               </p>
             </div>
             <div className="flex items-center justify-center">
               <img
                 src="/banner-image/ArtDrawing-removebg-preview.png"
-                alt="KIOSKO Premium Frames"
+                alt="KAVENGO Premium Frames"
                 className="w-full max-w-2xl object-contain drop-shadow-xl hover:scale-105 transition-transform duration-500"
               />
             </div>

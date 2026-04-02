@@ -4,16 +4,16 @@ import { Metadata } from "next";
 import TableOfContents from "./TableOfContents";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | KIOSKO",
+  title: "Privacy Policy | KAVENGO",
   description:
-    "Read KIOSKO's Privacy Policy to understand how we collect, use, and protect your personal information when you shop with us.",
+    "Read KAVENGO's Privacy Policy to understand how we collect, use, and protect your personal information when you shop with us.",
 };
 
 const sections = [
   {
     title: "1. Introduction",
     content: [
-      "Welcome to KIOSKO. We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website or make a purchase from us.",
+      "Welcome to KAVENGO. We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website or make a purchase from us.",
       "Please read this policy carefully. If you disagree with its terms, please discontinue use of our website. We reserve the right to make changes to this policy at any time. We will notify you of changes by updating the 'Last Updated' date at the top of this page.",
     ],
   },
@@ -65,7 +65,7 @@ const sections = [
     title: "8. Your Rights",
     content: [
       "You have the right to access, correct, or delete the personal information we hold about you. You may also object to or restrict certain processing of your data, or request that we transfer your data to another service provider.",
-      "To exercise any of these rights, please contact us at support@kiosko.in. We will respond to your request within 30 days.",
+      "To exercise any of these rights, please contact us at support@kavengo.in. We will respond to your request within 30 days.",
     ],
   },
   {
@@ -77,7 +77,7 @@ const sections = [
   {
     title: "10. Contact Us",
     content: [
-      "If you have any questions, concerns, or requests regarding this Privacy Policy, please contact us at: support@kiosko.in. You may also reach us through our Support page. We are always happy to help.",
+      "If you have any questions, concerns, or requests regarding this Privacy Policy, please contact us at: support@kavengo.in. You may also reach us through our Support page. We are always happy to help.",
     ],
   },
 ];
@@ -104,7 +104,7 @@ export default function PrivacyPolicyPage() {
           </h1>
           <p className="text-gray-300 text-lg max-w-xl mx-auto leading-relaxed">
             We value your trust. Here's how we collect, use, and protect your
-            personal information at KIOSKO.
+            personal information at KAVENGO.
           </p>
           <p className="text-gray-400 text-sm mt-6">Last updated: March 2026</p>
         </div>

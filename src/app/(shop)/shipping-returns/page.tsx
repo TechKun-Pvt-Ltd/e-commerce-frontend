@@ -3,30 +3,30 @@ import { Metadata } from "next";
 import TableOfContents from "./TableOfContents";
 
 export const metadata: Metadata = {
-  title: "Shipping & Returns | Kavengo",
+  title: "Shipping & Returns | KAVENGO",
   description:
-    "Distance Sales Agreement and Shipping & Return Policy for Kavengo.",
+    "Distance Sales Agreement and Shipping & Return Policy for KAVENGO.",
 };
 
 const sections = [
   {
     title: "1. Distance Sales Agreement (English)",
     content: [
-      "This Distance Sales Agreement (“Agreement”) is entered into between Kavengo (“Seller”) and the customer (“Buyer”) for the purchase of products through the website.",
+      "This Distance Sales Agreement (“Agreement”) is entered into between KAVENGO (“Seller”) and the customer (“Buyer”) for the purchase of products through the website.",
       "**1. Subject**\nThis Agreement regulates the rights and obligations of the parties regarding the sale and delivery of products ordered electronically.",
       "**2. Product Information**\nAll product features, prices, and delivery details are clearly stated on the product page. The Buyer confirms reviewing these details before purchase.",
-      "**3. Order & Payment**\nOrders are processed after payment confirmation. Kavengo reserves the right to cancel orders in case of pricing errors or suspicious transactions.",
+      "**3. Order & Payment**\nOrders are processed after payment confirmation. KAVENGO reserves the right to cancel orders in case of pricing errors or suspicious transactions.",
       "**4. Production Process**\nMost products are made-to-order. Production begins after order confirmation.",
       "**5. Delivery**\nOrders are shipped within the estimated production and delivery time stated on the website. Delays caused by logistics providers are beyond our control.",
       "**6. Right of Withdrawal**\n• Standard products: 14-day return right \n• Custom/personalized products: Non-refundable",
-      "**7. Liability**\nKavengo is not responsible for damages caused by misuse of products.",
+      "**7. Liability**\nKAVENGO is not responsible for damages caused by misuse of products.",
       "**8. Dispute Resolution**\nApplicable laws depend on the buyer’s country of residence."
     ],
   },
   {
     title: "2. Mesafeli Satış Sözleşmesi (Türkçe)",
     content: [
-      "İşbu sözleşme, Kavengo ile alıcı arasında elektronik ortamda gerçekleştirilen satışlara ilişkin hak ve yükümlülükleri düzenler.",
+      "İşbu sözleşme, KAVENGO ile alıcı arasında elektronik ortamda gerçekleştirilen satışlara ilişkin hak ve yükümlülükleri düzenler.",
       "**1. Konu**\nBu sözleşme, sipariş edilen ürünlerin satışı ve teslimine ilişkin şartları kapsar.",
       "**2. Ürün Bilgileri**\nÜrün özellikleri, fiyat ve teslimat bilgileri ürün sayfasında belirtilmiştir.",
       "**3. Sipariş & Ödeme**\nSiparişler ödeme onayından sonra işleme alınır.",

@@ -29,7 +29,7 @@ export default function Header() {
         <nav className="sticky top-0 z-50 w-full border-b bg-background px-4 md:px-8 flex items-center justify-between gap-4" style={{ height: NAVBAR_HEIGHT }}>
             {/* Logo */}
             <Link href="/" className="text-xl font-bold">
-                KIOSKO
+                KAVENGO
             </Link>
 
             {/* Search Input */}
