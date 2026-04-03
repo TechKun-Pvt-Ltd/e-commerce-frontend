@@ -112,13 +112,13 @@ export default function ProductsPage() {
                         </Button>
 
                         {/* Image */}
-                            <Image
-                                src={product.imageUrl || placeholderImage}
-                                alt={product.title}
-                                width={210}
-                                height={200}
-                                className="w-full h-auto aspect-square object-cover"
-                            />
+                        <Image
+                            src={product.imageUrl || placeholderImage}
+                            alt={product.title}
+                            width={210}
+                            height={200}
+                            className="w-full h-auto aspect-square object-cover"
+                        />
 
                         <div className="p-2 flex">
                             <div className="flex-1 pt-2">
@@ -150,4 +150,4 @@ export default function ProductsPage() {
             )}
         </div>
     </div>;
-}
+}  

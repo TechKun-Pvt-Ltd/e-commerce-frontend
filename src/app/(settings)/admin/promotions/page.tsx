@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogRef, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import useDataFetch from "@/hooks/use-data-fetch";
 import { PromotionForm } from "./component/PromotionForm";
-import { PromotionCard, promotionCardColors } from "./component/PromotionCard";
+import { PromotionCard, promotionCardColors, PromotionCardSkeleton } from "./component/PromotionCard";
 import { PromotionDetails } from "@/types/domains/promotion";
 import { toast } from "sonner";
 import * as promotionServices from "@/services/promotion";
@@ -35,7 +35,11 @@ export default function PromotionsPage() {
             </div>
         </div>
         <div className="py-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {(promotionData.data as PromotionDetails[])?.map((promotion, index) => {
+            {promotionData.isLoading ? (
+                Array.from({ length: 6 }).map((_, i) => (
+                    <PromotionCardSkeleton key={i} />
+                ))
+            ) : (promotionData.data as PromotionDetails[])?.map((promotion, index) => {
                 const promotionCardColorKeys = Object.keys(promotionCardColors) as (keyof typeof promotionCardColors)[];
                 return <PromotionCard
                     key={index}

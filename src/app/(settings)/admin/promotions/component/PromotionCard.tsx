@@ -3,6 +3,7 @@ import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PromotionDetails } from "@/types/domains/promotion";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const promotionCardColors = {
     purple: "bg-purple-200/60",
@@ -98,6 +99,35 @@ export const PromotionCard: React.FC<PromotionCardProps> = ({
                 </div>
             </div>
 
+        </div>
+    );
+};
+
+export const PromotionCardSkeleton = () => {
+    return (
+        <div className="w-full">
+            <Skeleton className="rounded-t-md p-4 h-32 flex flex-col justify-between rounded-b-none">
+                <div className="flex justify-between items-start">
+                    <Skeleton className="w-24 h-6 rounded-full bg-black/10" />
+                    <Skeleton className="w-10 h-10 rounded-md bg-black/10" />
+                </div>
+                <div>
+                    <Skeleton className="w-32 h-8 rounded mb-2 mt-2 bg-black/10" />
+                    <Skeleton className="w-28 h-6 rounded bg-black/10" />
+                </div>
+            </Skeleton>
+            <div className="bg-white rounded-b-md p-4 border-x border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                    <div className="space-y-2">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-3 w-24" />
+                    </div>
+                    <div className="space-y-2 text-right flex flex-col items-end">
+                        <Skeleton className="h-4 w-20" />
+                        <Skeleton className="h-3 w-24" />
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };

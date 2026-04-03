@@ -31,13 +31,6 @@ const CartPage = () => {
 
    const handleOrderPlacement = async () => {
       try {
-         // const response = await fetch("/api/orders", { method: "POST" });
-         // const data = await response.json();
-
-         // if (data.success) {
-         //     setOrderId(data.orderId);
-         //     setShowModal(true);
-         // }
          router.push("/checkout");
       } catch (error) {
          console.error("Order placement failed:", error);
@@ -45,7 +38,14 @@ const CartPage = () => {
    };
 
    if (loading) {
-      return <div className="text-center text-blue-500 text-2xl p-10">Loading...</div>;
+      return (
+          <div className="w-full flex items-center justify-center min-h-[60vh]">
+              <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                  <p className="mt-4 text-gray-600 text-lg">Loading your cart...</p>
+              </div>
+          </div>
+      );
    }
 
    if (error) {

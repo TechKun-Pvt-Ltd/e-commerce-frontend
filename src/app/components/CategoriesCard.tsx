@@ -1,4 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
+import { Skeleton } from "@/components/ui/skeleton";
+
 interface CategoryCardProps {
   image: string;
   title: string;
@@ -21,6 +23,15 @@ export const CategoryCard = ({ image, title, onClick }: CategoryCardProps) => {
       <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors duration-300">
         {title}
       </span>
+    </div>
+  );
+};
+
+export const CategoryCardSkeleton = () => {
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <Skeleton className="w-20 h-20 rounded-full" />
+      <Skeleton className="h-4 w-16" />
     </div>
   );
 };

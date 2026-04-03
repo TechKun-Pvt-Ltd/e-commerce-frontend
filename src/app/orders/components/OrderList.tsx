@@ -81,7 +81,7 @@ const OrderList: React.FC<OrderListProps> = ({ orders }) => {
                 return (
                     <div
                         key={order.orderId}
-                        className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
+                        className="bg-white rounded-xl border border-gray-200 overflow-hidden"
                     >
                         <div className="p-6">
                             {/* Header Section */}

@@ -12,7 +12,7 @@ import PromoBanner from '../components/PromoBanner';
 import { TestimonialCard } from '../components/TestimonialCard';
 import PromoBannerCard from '../components/PromoBannerCard';
 import { FeatureProducts } from '../components/FeatureProducts';
-import { CategoryCard } from '../components/CategoriesCard';
+import { CategoryCard, CategoryCardSkeleton } from '../components/CategoriesCard';
 import useDataFetch from '@/hooks/use-data-fetch';
 import * as categoryServices from "@/services/category";
 import * as productServices from "@/services/product";
@@ -295,7 +295,11 @@ export default function LandingPage() {
                     <h2 className="text-3xl text-center font-bold my-16"> Popular Categories</h2>
 
                     <div className="flex justify-center items-center gap-20 flex-wrap mb-28">
-                        {categoriesData && categoriesData.map((category) => (
+                        {allCategories.isLoading ? (
+                            Array.from({ length: 7 }).map((_, i) => (
+                                <CategoryCardSkeleton key={i} />
+                            ))
+                        ) : categoriesData && categoriesData.map((category) => (
                             <CategoryCard
                                 key={category.categoryId}
                                 image={category.imageUrl || 'https://i.pinimg.com/736x/b0/1b/09/b01b0990f1ac187bf29d742e53e02e33.jpg'}
