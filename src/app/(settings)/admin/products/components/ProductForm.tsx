@@ -24,7 +24,7 @@ import CategoriesDropdown from "@/app/components/CategoriesDropdown";
 import { ProductDetails } from "@/types/domains/product";
 import useDrivePicker from "react-google-drive-picker";
 import Image from "next/image";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 
 const productFormSchema = z
@@ -38,7 +38,7 @@ const productFormSchema = z
       images: z.array(
          z.object({
             productImageId: z.number().optional(),
-            imageUrl: z.string().url("Invalid image URL"),
+            imageUrl: z.string().min(1, "Image is required"),
             isDefault: z.boolean(),
          })
       ),
@@ -104,6 +104,7 @@ export default function ProductForm({
    onSubmit: (data: Partial<ProductFormData>) => void;
 }) {
    const [openPicker, authResponse] = useDrivePicker();
+   const fileInputRef = useRef<HTMLInputElement>(null);
    const productForm = useForm({
       resolver: zodResolver(productFormSchema),
       defaultValues: {
@@ -255,6 +256,58 @@ export default function ProductForm({
       }
    }, [openPicker, authResponse, productImages]);
 
+   const [isUploading, setIsUploading] = useState(false);
+
+   const handleDeviceUpload = useCallback(
+      async (e: React.ChangeEvent<HTMLInputElement>) => {
+         const file = e.target.files?.[0];
+         if (!file) return;
+
+         // Reset so same file can be re-selected
+         e.target.value = "";
+
+         setIsUploading(true);
+         try {
+            const formData = new FormData();
+            formData.append("file", file);
+
+            const res = await fetch("/api/upload", {
+               method: "POST",
+               body: formData,
+            });
+
+            if (!res.ok) throw new Error("Upload failed");
+
+            const { url: imageUrl } = await res.json();
+            if (!imageUrl?.startsWith("http")) throw new Error("Invalid response");
+
+            if (productImages.some((img) => img.imageUrl === imageUrl)) {
+               toast.info("This image is already added.");
+               return;
+            }
+
+            productForm.setValue(
+               "images",
+               [
+                  ...productImages,
+                  {
+                     imageUrl,
+                     isDefault: productImages.length === 0,
+                  },
+               ],
+               { shouldDirty: true }
+            );
+            toast.success("Image uploaded successfully!");
+         } catch {
+            toast.error("Failed to upload image. Please try again.");
+         } finally {
+            setIsUploading(false);
+         }
+      },
+      [productImages, productForm]
+   );
+
+
    const removeImage = useCallback(
       (imageUrl: string) => {
          const indexToRemove = productImages.findIndex((img) => img.imageUrl === imageUrl);
@@ -352,12 +405,46 @@ export default function ProductForm({
                         </div>
                      )}
                      {productImages.length < 10 && (
-                        <div
-                           className="border bg-accent rounded-md min-w-64 flex flex-col justify-center items-center gap-2 cursor-pointer"
-                           onClick={loading ? undefined : handleOpenPicker}
-                        >
-                           <Plus className="size-8 text-muted-foreground" />
-                           <p className="text-sm text-muted-foreground">Select from Google Drive</p>
+                        <div className="flex flex-col gap-3 min-w-64">
+                           {/* Hidden file input */}
+                           <input
+                              ref={fileInputRef}
+                              type="file"
+                              accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
+                              className="hidden"
+                              onChange={handleDeviceUpload}
+                           />
+
+                           {/* Upload from Device button */}
+                           <div
+                              className={`border bg-accent rounded-md flex-1 flex flex-col justify-center items-center gap-2 cursor-pointer transition-opacity ${
+                                 loading || isUploading ? "opacity-50 pointer-events-none" : "hover:bg-accent/80"
+                              }`}
+                              onClick={() => !isUploading && fileInputRef.current?.click()}
+                           >
+                              {isUploading ? (
+                                 <>
+                                    <Spinner />
+                                    <p className="text-sm text-muted-foreground">Uploading...</p>
+                                 </>
+                              ) : (
+                                 <>
+                                    <Upload className="size-8 text-muted-foreground" />
+                                    <p className="text-sm text-muted-foreground">Upload from Device</p>
+                                 </>
+                              )}
+                           </div>
+
+                           {/* Google Drive button */}
+                           <div
+                              className={`border bg-accent rounded-md flex-1 flex flex-col justify-center items-center gap-2 cursor-pointer transition-opacity ${
+                                 loading ? "opacity-50 pointer-events-none" : "hover:bg-accent/80"
+                              }`}
+                              onClick={loading ? undefined : handleOpenPicker}
+                           >
+                              <Plus className="size-8 text-muted-foreground" />
+                              <p className="text-sm text-muted-foreground">Select from Google Drive</p>
+                           </div>
                         </div>
                      )}
                   </div>
