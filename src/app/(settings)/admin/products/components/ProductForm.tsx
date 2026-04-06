@@ -24,7 +24,7 @@ import CategoriesDropdown from "@/app/components/CategoriesDropdown";
 import { ProductDetails } from "@/types/domains/product";
 import useDrivePicker from "react-google-drive-picker";
 import Image from "next/image";
-import { Plus, Trash2, Upload } from "lucide-react";
+import { ClipboardPaste, Plus, Trash2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 
 const productFormSchema = z
@@ -81,6 +81,7 @@ const categoryDetailsMap = new Map<number, CategoryData>();
 export default function ProductForm({
    mode = "create",
    product,
+   copiedProduct,
    categories,
    variations,
    attributes,
@@ -93,6 +94,7 @@ export default function ProductForm({
 }: {
    mode?: "create" | "update";
    product?: ProductDetails;
+   copiedProduct?: ProductDetails;
    categories: CategoryTree[];
    variations: Variation[];
    attributes: Attribute[];
@@ -119,6 +121,32 @@ export default function ProductForm({
       },
    });
    const firstRender = useRef(true);
+   const [pasteApplied, setPasteApplied] = useState(false);
+
+   const applyPastedProduct = useCallback((source: ProductDetails) => {
+      fetchCategoryDetails(source.categoryId).onSuccess((categoryDetails) => {
+         registerCategoryDetails(categoryDetails);
+         productForm.reset({
+            title: source.title,
+            code: source.code,
+            description: source.description,
+            starred: source.starred ?? false,
+            categoryId: source.categoryId,
+            shippingMethodId: source.shippingMethodId || 0,
+            images: source.images || [],
+            variants: source.variants.map((v) => ({
+               ...v,
+               variationOptionIds: Object.values(v.variantProperties).map((opt) => opt.variationOptionId),
+            })),
+            attributes: source.attributes || [],
+         });
+         // Mark form dirty so the submit button activates
+         productForm.setValue("title", source.title, { shouldDirty: true });
+         productForm.trigger();
+         setPasteApplied(true);
+         toast.success("Product details pasted!");
+      });
+   }, [fetchCategoryDetails, productForm]);
 
    useEffect(() => {
       if (!firstRender.current && product) {
@@ -201,9 +229,9 @@ export default function ProductForm({
          const variants = getVariantsFromVariations(getCategoryVariations(categoryDetails).map((vId) => indexedVariations[vId]));
          variants.forEach(
             (v) =>
-               (v.sku = `${categoryDetails.code}-${productForm.watch("code")}-${v.variationOptionIds
-                  .map((optId) => indexedVariationOptions[optId].code)
-                  .join("-")}`)
+            (v.sku = `${categoryDetails.code}-${productForm.watch("code")}-${v.variationOptionIds
+               .map((optId) => indexedVariationOptions[optId].code)
+               .join("-")}`)
          );
          productForm.setValue("variants", variants);
          productForm.setValue(
@@ -334,6 +362,39 @@ export default function ProductForm({
 
    return (
       <Form {...productForm}>
+         {/* Paste Banner — only in create mode when a copied product exists */}
+         {mode === "create" && copiedProduct && !pasteApplied && (
+            <div className="flex items-center gap-3 rounded-lg border px-4 py-3  mb-4">
+               <ClipboardPaste className="h-4 w-4 shrink-0 text-muted-foreground" />
+               <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium leading-none truncate">
+                     Clipboard: &ldquo;{copiedProduct.title}&rdquo;
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                     Product details are ready to paste
+                  </p>
+               </div>
+               <div className="flex items-center gap-2 shrink-0">
+                  <Button
+                     type="button"
+                     size="sm"
+                     onClick={() => applyPastedProduct(copiedProduct)}
+                  >
+                     <ClipboardPaste className="h-3.5 w-3.5" />
+                     Paste
+                  </Button>
+                  <Button
+                     type="button"
+                     variant="ghost"
+                     size="icon"
+                     className="h-8 w-8 text-muted-foreground"
+                     onClick={() => setPasteApplied(true)}
+                  >
+                     <X className="h-4 w-4" />
+                  </Button>
+               </div>
+            </div>
+         )}
          <form
             onSubmit={productForm.handleSubmit((data) => {
                const dataToSubmit: Partial<ProductFormData> = {};
@@ -368,11 +429,10 @@ export default function ProductForm({
                                     width={100}
                                     height={100}
                                     style={{ maxWidth: "none" }}
-                                    className={`w-auto h-full object-cover rounded-md transition-all duration-300 ${
-                                       image.isDefault
+                                    className={`w-auto h-full object-cover rounded-md transition-all duration-300 ${image.isDefault
                                           ? "outline outline-[3px] outline-green-500 outline-offset-[-3px]"
                                           : "outline-none"
-                                    }`}
+                                       }`}
                                     onError={(e) => {
                                        (e.target as HTMLImageElement).src = "/placeholder-image.jpeg";
                                     }}
@@ -417,9 +477,8 @@ export default function ProductForm({
 
                            {/* Upload from Device button */}
                            <div
-                              className={`border bg-accent rounded-md flex-1 flex flex-col justify-center items-center gap-2 cursor-pointer transition-opacity ${
-                                 loading || isUploading ? "opacity-50 pointer-events-none" : "hover:bg-accent/80"
-                              }`}
+                              className={`border bg-accent rounded-md flex-1 flex flex-col justify-center items-center gap-2 cursor-pointer transition-opacity ${loading || isUploading ? "opacity-50 pointer-events-none" : "hover:bg-accent/80"
+                                 }`}
                               onClick={() => !isUploading && fileInputRef.current?.click()}
                            >
                               {isUploading ? (
@@ -437,9 +496,8 @@ export default function ProductForm({
 
                            {/* Google Drive button */}
                            <div
-                              className={`border bg-accent rounded-md flex-1 flex flex-col justify-center items-center gap-2 cursor-pointer transition-opacity ${
-                                 loading ? "opacity-50 pointer-events-none" : "hover:bg-accent/80"
-                              }`}
+                              className={`border bg-accent rounded-md flex-1 flex flex-col justify-center items-center gap-2 cursor-pointer transition-opacity ${loading ? "opacity-50 pointer-events-none" : "hover:bg-accent/80"
+                                 }`}
                               onClick={loading ? undefined : handleOpenPicker}
                            >
                               <Plus className="size-8 text-muted-foreground" />
@@ -581,12 +639,12 @@ export default function ProductForm({
                                  <SelectContent>
                                     {shippingMethods.map((method) => (
                                        <SelectItem key={method.shippingMethodId} value={method.shippingMethodId.toString()}>
-                                           <div className="flex flex-col items-start text-left w-full">
-                                                <span className="font-medium text-left">{method.name}</span>
-                                                <span className="text-xs text-muted-foreground text-left">
-                                                   {method.originCountry} • {method.processingTimeMin}-{method.processingTimeMax} days processing
-                                                </span>
-                                             </div>
+                                          <div className="flex flex-col items-start text-left w-full">
+                                             <span className="font-medium text-left">{method.name}</span>
+                                             <span className="text-xs text-muted-foreground text-left">
+                                                {method.originCountry} • {method.processingTimeMin}-{method.processingTimeMax} days processing
+                                             </span>
+                                          </div>
                                        </SelectItem>
                                     ))}
                                  </SelectContent>

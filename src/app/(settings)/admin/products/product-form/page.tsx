@@ -2,7 +2,7 @@
 "use client";
 import { useAppSelector } from "@/store/hooks";
 import { categoriesUnionSelector } from "@/store/selectors";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import * as productServices from "@/services/product";
 import * as shippingServices from "@/services/shippingMethod";
 import { getCategoryById } from "@/services/category";
@@ -10,6 +10,7 @@ import useDataFetch from "@/hooks/use-data-fetch";
 import { Card, CardContent } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import ProductForm from "../components/ProductForm";
+import { ProductDetails } from "@/types/domains/product";
 
 export default function AddProductPage() {
     const router = useRouter();
@@ -17,9 +18,23 @@ export default function AddProductPage() {
     const getCategoryDetails = useDataFetch(getCategoryById);
     const getShippingMethods = useDataFetch(shippingServices.getAllShippingMethods);
     const { categories, variations, attributes, loading } = useAppSelector(categoriesUnionSelector);
+    const [copiedProduct, setCopiedProduct] = useState<ProductDetails | undefined>();
 
     useEffect(() => {
         getShippingMethods.request();
+        // Read copied product from localStorage
+        const raw = localStorage.getItem("copiedProduct");
+        if (raw) {
+            try {
+                setCopiedProduct(JSON.parse(raw) as ProductDetails);
+            } catch {
+                // ignore malformed data
+            }
+        }
+        // Clear on unmount so it doesn't persist indefinitely
+        return () => {
+            localStorage.removeItem("copiedProduct");
+        };
     }, []);
 
     return <div className="h-full space-y-8 flex flex-col">
@@ -36,6 +51,7 @@ export default function AddProductPage() {
                         categoriesLoading={loading || getCategoryDetails.isLoading}
                         shippingMethodsLoading={getShippingMethods.isLoading}
                         fetchCategoryDetails={getCategoryDetails.request}
+                        copiedProduct={copiedProduct}
                         onSubmit={data => {
                             createProduct.request({
                                 ...data,
@@ -56,4 +72,4 @@ export default function AddProductPage() {
             </Card>
         </div>
     </div>
-};
+};
