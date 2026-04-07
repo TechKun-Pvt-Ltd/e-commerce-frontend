@@ -11,6 +11,14 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -68,6 +76,9 @@ export default function ProductsPage() {
     const { items: categories, loading: categoriesLoading } = useAppSelector(state => state.categories)
     const [selectedCategory, setSelectedCategory] = useState<CategoryDropdownNode>();
     const productsData = useDataFetch(productServices.getAllProducts);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState<ProductPreview | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         const filters = selectedCategory?.categoryId !== undefined
@@ -76,8 +87,14 @@ export default function ProductsPage() {
         productsData.request(filters);
     }, [selectedCategory]);
 
+    const stopNav = (e: Event) => {
+        // DropdownMenu events are not always React MouseEvents; be defensive.
+        (e as unknown as { preventDefault?: () => void }).preventDefault?.();
+        (e as unknown as { stopPropagation?: () => void }).stopPropagation?.();
+    };
+
     const handleCopy = async (product: ProductPreview, e: Event) => {
-        e.stopPropagation();
+        stopNav(e);
         try {
             const res = await productServices.getProductById(product.productId);
             if (!res.success) throw new Error(res.error);
@@ -100,24 +117,38 @@ export default function ProductsPage() {
     };
 
     const handleEdit = (product: ProductPreview, e: Event) => {
-        e.stopPropagation();
+        stopNav(e);
         router.push(`/admin/products/product-form/${product.productId}`);
     };
 
     const handleDelete = async (product: ProductPreview, e: Event) => {
-        e.stopPropagation();
-        if (!confirm(`Delete "${product.title}"? This action cannot be undone.`)) return;
+        stopNav(e);
+        setDeleteTarget(product);
+        setDeleteDialogOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteTarget) return;
+        setIsDeleting(true);
         try {
-            await productServices.deleteProduct(product.productId);
+            const res = await productServices.deleteProduct(deleteTarget.productId);
+            if (!res.success) {
+                toast.error(res.error || "Failed to delete product.");
+                return;
+            }
             toast.success("Product deleted successfully.");
+            setDeleteDialogOpen(false);
+            setDeleteTarget(null);
             productsData.request(selectedCategory?.categoryId !== undefined ? { categoryId: selectedCategory.categoryId } : {});
         } catch {
             toast.error("Failed to delete product.");
+        } finally {
+            setIsDeleting(false);
         }
     };
 
     const handleToggleActive = async (product: ProductPreview, e: Event) => {
-        e.stopPropagation();
+        stopNav(e);
         const currentlyActive = product.status !== false;
         try {
             await productServices.updateProductBasicDetails(product.productId, {
@@ -134,6 +165,38 @@ export default function ProductsPage() {
     };
 
     return <div className="space-y-8">
+        <Dialog open={deleteDialogOpen} onOpenChange={(open) => {
+            if (!open && !isDeleting) setDeleteTarget(null);
+            setDeleteDialogOpen(open);
+        }}>
+            <DialogContent closeIcon={!isDeleting}>
+                <DialogHeader>
+                    <DialogTitle>Delete product?</DialogTitle>
+                    <DialogDescription>
+                        This will permanently delete{" "}
+                        <span className="font-medium">{deleteTarget?.title}</span>. This action cannot be undone.
+                    </DialogDescription>
+                </DialogHeader>
+                <DialogFooter className="gap-2 sm:gap-2">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setDeleteDialogOpen(false)}
+                        disabled={isDeleting}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="destructive"
+                        onClick={confirmDelete}
+                        disabled={isDeleting || !deleteTarget}
+                    >
+                        {isDeleting ? "Deleting..." : "Delete"}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
         <div className="flex justify-between items-center">
             <h1 className="text-3xl font-bold text-gray-900">Products</h1>
             <div className="flex justify-between items-center gap-4">
@@ -186,7 +249,7 @@ export default function ProductsPage() {
                                 </div>
 
                                 {/* 3-dot Dropdown */}
-                                <div onClick={(e) => e.preventDefault()}>
+                                <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
                                             <Button
