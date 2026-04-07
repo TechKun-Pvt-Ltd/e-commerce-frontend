@@ -23,17 +23,27 @@ export default function AddProductPage() {
     useEffect(() => {
         getShippingMethods.request();
         // Read copied product from localStorage
-        const raw = localStorage.getItem("copiedProduct");
-        if (raw) {
+        const readClipboard = () => {
+            const raw = localStorage.getItem("copiedProduct");
+            if (!raw) {
+                setCopiedProduct(undefined);
+                return;
+            }
             try {
                 setCopiedProduct(JSON.parse(raw) as ProductDetails);
             } catch {
-                // ignore malformed data
+                setCopiedProduct(undefined);
             }
-        }
-        // Clear on unmount so it doesn't persist indefinitely
+        };
+
+        readClipboard();
+
+        // Keep clipboard usable across navigation; also refresh when tab regains focus.
+        window.addEventListener("focus", readClipboard);
+        window.addEventListener("storage", readClipboard);
         return () => {
-            localStorage.removeItem("copiedProduct");
+            window.removeEventListener("focus", readClipboard);
+            window.removeEventListener("storage", readClipboard);
         };
     }, []);
 
@@ -59,6 +69,7 @@ export default function AddProductPage() {
                                 code: data.code ?? "",
                                 description: data.description ?? "",
                                 starred: data.starred ?? false,
+                                status: data.status !== false,
                                 categoryId: data.categoryId ?? 0,
                                 shippingMethodId: data.shippingMethodId ?? 0,
                                 images: data.images ?? [],
@@ -72,4 +83,4 @@ export default function AddProductPage() {
             </Card>
         </div>
     </div>
-};
+};

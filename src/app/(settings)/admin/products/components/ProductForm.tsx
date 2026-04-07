@@ -33,6 +33,7 @@ const productFormSchema = z
       code: z.string().nonempty("Code is required."),
       description: z.string().nonempty("Description is required."),
       starred: z.boolean(),
+      status: z.boolean(),
       categoryId: z.number().gt(0, "Category is required."),
       shippingMethodId: z.number().gt(0, "Shipping method is required."),
       images: z.array(
@@ -114,6 +115,7 @@ export default function ProductForm({
          code: "",
          description: "",
          starred: false,
+         status: true,
          shippingMethodId: 0,
          images: [],
          variants: [],
@@ -123,22 +125,58 @@ export default function ProductForm({
    const firstRender = useRef(true);
    const [pasteApplied, setPasteApplied] = useState(false);
 
+   // If user copied a new product, allow pasting again (don't get stuck hidden).
+   useEffect(() => {
+      if (mode === "create") setPasteApplied(false);
+   }, [mode, copiedProduct?.productId]);
+
    const applyPastedProduct = useCallback((source: ProductDetails) => {
-      fetchCategoryDetails(source.categoryId).onSuccess((categoryDetails) => {
+      const rawCategoryId = (source as unknown as { categoryId?: unknown })?.categoryId;
+      const categoryId = typeof rawCategoryId === "number"
+         ? rawCategoryId
+         : typeof rawCategoryId === "string"
+            ? Number(rawCategoryId)
+            : NaN;
+      if (!Number.isFinite(categoryId) || categoryId <= 0) {
+         toast.error("Copied product is missing a valid category. Please select a category and try again.");
+         return;
+      }
+
+      fetchCategoryDetails(categoryId).onSuccess((categoryDetails) => {
          registerCategoryDetails(categoryDetails);
+
+         // Keep paste logic minimal & predictable.
+         // We only use fields that are part of the backend response contract.
+         const images = (source.images || [])
+            .map((img) => ({
+               imageUrl: img.imageUrl ?? "",
+               isDefault: Boolean(img.isDefault),
+            }))
+            .filter((img) => Boolean(img.imageUrl));
+         if (images.length > 0 && !images.some((i) => i.isDefault)) images[0].isDefault = true;
+
          productForm.reset({
-            title: source.title,
-            code: source.code,
-            description: source.description,
+            title: source.title ?? "",
+            code: source.code ?? "",
+            description: source.description ?? "",
             starred: source.starred ?? false,
-            categoryId: source.categoryId,
+            status: source.status !== false,
+            categoryId,
             shippingMethodId: source.shippingMethodId || 0,
-            images: source.images || [],
-            variants: source.variants.map((v) => ({
-               ...v,
-               variationOptionIds: Object.values(v.variantProperties).map((opt) => opt.variationOptionId),
+            images,
+            variants: (source.variants || []).map((v) => ({
+               variationOptionIds: Object.values(v.variantProperties || {}).map((opt) => opt.variationOptionId),
+               sku: v.sku,
+               quantityInStock: v.quantityInStock,
+               price: v.price,
+               disabled: v.disabled,
             })),
-            attributes: source.attributes || [],
+            attributes: (source.attributes || [])
+               .map((a) => ({
+                  attributeId: a.attribute?.attributeId,
+                  value: a.value ?? "",
+               }))
+               .filter((a) => typeof a.attributeId === "number"),
          });
          // Mark form dirty so the submit button activates
          productForm.setValue("title", source.title, { shouldDirty: true });
@@ -150,6 +188,11 @@ export default function ProductForm({
 
    useEffect(() => {
       if (!firstRender.current && product) {
+         if (typeof product.categoryId !== "number" || !Number.isFinite(product.categoryId) || product.categoryId <= 0) {
+            toast.error("Product is missing a valid categoryId.");
+            return;
+         }
+
          fetchCategoryDetails(product.categoryId).onSuccess((categoryDetails) => {
             registerCategoryDetails(categoryDetails);
             productForm.reset({
@@ -157,12 +200,13 @@ export default function ProductForm({
                code: product.code,
                description: product.description,
                starred: product.starred ?? false,
+               status: product.status !== false,
                categoryId: product.categoryId,
                shippingMethodId: product.shippingMethodId || 0,
                images: product.images || [],
-               variants: product.variants.map((v) => ({
+               variants: (product.variants || []).map((v) => ({
                   ...v,
-                  variationOptionIds: Object.values(v.variantProperties).map((opt) => opt.variationOptionId),
+                  variationOptionIds: Object.values(v.variantProperties || {}).map((opt) => opt.variationOptionId),
                })),
                attributes: product.attributes || [],
             });
@@ -397,6 +441,13 @@ export default function ProductForm({
          )}
          <form
             onSubmit={productForm.handleSubmit((data) => {
+               // In create mode we must submit the full form values.
+               // In update mode we submit only dirty fields to avoid overwriting unchanged data.
+               if (mode === "create") {
+                  onSubmit(data);
+                  return;
+               }
+
                const dataToSubmit: Partial<ProductFormData> = {};
                const dirtyFields = productForm.formState.dirtyFields;
                const dirtyFieldKeys = Object.keys(dirtyFields) as (keyof ProductFormData)[];
@@ -667,6 +718,26 @@ export default function ProductForm({
                                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                                  <label className="text-sm text-muted-foreground">
                                     Check if you want this product to appear on top.
+                                 </label>
+                              </div>
+                           </FormControl>
+                           <FormMessage />
+                        </FormItem>
+                     )}
+                  />
+
+                  <FormField
+                     disabled={loading}
+                     control={productForm.control}
+                     name="status"
+                     render={({ field }) => (
+                        <FormItem className="lg:flex-1 gap-3">
+                           <FormLabel>Active</FormLabel>
+                           <FormControl>
+                              <div className="flex items-center gap-2">
+                                 <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                 <label className="text-sm text-muted-foreground">
+                                    Visible on the shop. Uncheck to hide without deleting.
                                  </label>
                               </div>
                            </FormControl>

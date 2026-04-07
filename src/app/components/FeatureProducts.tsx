@@ -38,14 +38,18 @@ export const FeatureProducts = ({ products: productsProp = [] }: FeatureProducts
     // Fetch products when tab changes
     useEffect(() => {
         const filters: ProductQueryOptions = {
-            sortOption: getSortOptionForTab(activeTab)
+            sortOption: getSortOptionForTab(activeTab),
+            status: true,
         };
         productsData.request(filters);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeTab]);
 
     // Use products from API (already sorted on server) or fallback to prop
-    const filteredProducts = (productsData.data || productsProp || []).slice(0, 8);
+    // Extra safety: if backend doesn't filter by status yet, hide inactive products in UI.
+    const filteredProducts = (productsData.data || productsProp || [])
+        .filter((p) => p.status !== false)
+        .slice(0, 8);
 
 
     return (

@@ -213,7 +213,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
                         });
 
                     // Fetch related products from same category
-                    getAllProductsFetch.request({ categoryId: data.categoryId });
+                    getAllProductsFetch.request({ categoryId: data.categoryId, status: true });
                 });
         }
     }, [productId]);
@@ -310,7 +310,8 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
     // Memoize related products
     const relatedProducts = useMemo(() =>
         getAllProductsFetch.data
-            ?.filter((p) => p.productId !== Number(productId))
+            ?.filter((p) => p.status !== false)
+            .filter((p) => p.productId !== Number(productId))
             .slice(0, 4) ?? [],
         [getAllProductsFetch.data, productId]
     );

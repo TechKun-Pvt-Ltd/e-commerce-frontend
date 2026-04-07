@@ -277,13 +277,13 @@ export default function LandingPage() {
     useEffect(() => {
         // useAppDispatch(fetchCategories());
         // useAppDispatch(fetchPromotions());
-        allProductsData.request({});
+        allProductsData.request({ status: true });
         allCategories.request();
     }, []);
 
     // const products = productsData.response;
     const categoriesData = allCategories.data;
-    const productsData = allProductsData.data || [];
+    const productsData = (allProductsData.data || []).filter((p) => p.status !== false);
     return (
         <>
             {/* Banner */}

@@ -20,7 +20,8 @@ const BestSeller = ({ products: productsProp = [], selectedCategoryId }: BestSel
     // Fetch products with categoryId filter
     useEffect(() => {
         const filters: ProductQueryOptions = {
-            sortOption: SortOption.POPULAR // Use POPULAR for best sellers (sorted by rating)
+            sortOption: SortOption.POPULAR, // Use POPULAR for best sellers (sorted by rating)
+            status: true,
         };
         if (selectedCategoryId !== null) {
             filters.categoryId = selectedCategoryId;
@@ -29,7 +30,8 @@ const BestSeller = ({ products: productsProp = [], selectedCategoryId }: BestSel
     }, [selectedCategoryId]);
 
     // Use products from API (already sorted by rating) or fallback to prop
-    const products = productsData.data || productsProp || [];
+    // Extra safety: if backend doesn't filter by status yet, hide inactive products in UI.
+    const products = (productsData.data || productsProp || []).filter((p) => p.status !== false);
 
     const bestSellerProducts = useMemo(() => {
         if (!products || products.length === 0) return [];

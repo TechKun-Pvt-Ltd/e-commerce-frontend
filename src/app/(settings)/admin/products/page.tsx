@@ -79,8 +79,20 @@ export default function ProductsPage() {
     const handleCopy = async (product: ProductPreview, e: Event) => {
         e.stopPropagation();
         try {
-            const fullProduct = await productServices.getProductById(product.productId);
-            localStorage.setItem("copiedProduct", JSON.stringify(fullProduct));
+            const res = await productServices.getProductById(product.productId);
+            if (!res.success) throw new Error(res.error);
+
+            const fullProduct = res.data;
+            // Normalize for paste: backend shape may omit categoryId or nest it.
+            const inferredCategoryId =
+                (fullProduct as unknown as { categoryId?: number }).categoryId ??
+                (fullProduct as unknown as { category?: { categoryId?: number } }).category?.categoryId ??
+                product.categoryId;
+
+            localStorage.setItem("copiedProduct", JSON.stringify({
+                ...fullProduct,
+                categoryId: inferredCategoryId,
+            }));
             toast.success(`"${product.title}" copied! Open Add Product to paste.`);
         } catch {
             toast.error("Failed to copy product details.");
@@ -106,13 +118,15 @@ export default function ProductsPage() {
 
     const handleToggleActive = async (product: ProductPreview, e: Event) => {
         e.stopPropagation();
+        const currentlyActive = product.status !== false;
         try {
             await productServices.updateProductBasicDetails(product.productId, {
                 title: product.title,
-                starred: !product.starred,
+                starred: product.starred,
                 categoryId: product.categoryId,
+                status: !currentlyActive,
             });
-            toast.success(product.starred ? "Product deactivated." : "Product activated.");
+            toast.success(currentlyActive ? "Product deactivated." : "Product activated.");
             productsData.request(selectedCategory?.categoryId !== undefined ? { categoryId: selectedCategory.categoryId } : {});
         } catch {
             toast.error("Failed to update product status.");
@@ -199,7 +213,7 @@ export default function ProductsPage() {
                                             <DropdownMenuItem
                                                 onSelect={(e) => handleToggleActive(product, e)}
                                             >
-                                                {product.starred
+                                                {product.status !== false
                                                     ? <><ToggleLeft className="h-4 w-4" /> Deactivate</>
                                                     : <><ToggleRight className="h-4 w-4" /> Activate</>
                                                 }

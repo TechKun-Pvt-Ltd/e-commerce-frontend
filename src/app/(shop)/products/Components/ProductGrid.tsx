@@ -50,7 +50,8 @@ const ProductGrid = ({ categories, products: productsProp, onCategoryChange: onC
    // Fetch products with sorting when sortBy or selectedCategoryId changes
    useEffect(() => {
       const filters: ProductQueryOptions = {
-         sortOption: sortBy
+         sortOption: sortBy,
+         status: true,
       };
       if (selectedCategoryId !== null) {
          filters.categoryId = selectedCategoryId;
@@ -115,7 +116,8 @@ const ProductGrid = ({ categories, products: productsProp, onCategoryChange: onC
    };
 
    // Use products from API (already sorted on server) or fallback to prop
-   const products = productsData.data || productsProp || [];
+   // Extra safety: if backend doesn't filter by status yet, hide inactive products in UI.
+   const products = (productsData.data || productsProp || []).filter((p) => p.status !== false);
 
    // Pagination calculations
    const totalPages = Math.ceil(products.length / itemsPerPage);
