@@ -61,8 +61,8 @@ export default function ProductCard({ product, promo }: { product: ProductPrevie
 
    return (
       <Link href={`/products/${product.productId}`} className="block w-full">
-         <div key={product.productId} className=" w-full border  overflow-hidden  p-0 cursor-pointer">
-            <div className="relative  aspect-square overflow-hidden">
+         <div key={product.productId} className="group w-full border overflow-hidden rounded-md bg-white p-0 cursor-pointer">
+            <div className="relative aspect-square overflow-hidden">
                {/* Add to Cart  */}
                <Tooltip>
                   <TooltipTrigger asChild>
@@ -88,7 +88,8 @@ export default function ProductCard({ product, promo }: { product: ProductPrevie
                               style: {
                                  display: "block",
                                  padding: "0px",
-                                 width: "500px",
+                                 width: "min(500px, calc(100vw - 24px))",
+                                 maxWidth: "500px",
                                  height: "auto",
                               },
                               dismissible: false,
@@ -131,9 +132,9 @@ export default function ProductCard({ product, promo }: { product: ProductPrevie
                <Image
                   src={product.imageUrl || placeholderImage}
                   alt={product.title}
-                  width={210}
-                  height={200}
-                  className="w-full h-auto aspect-square object-cover"
+                  fill
+                  sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                />
 
                {isDiscounted && promo && (
@@ -153,7 +154,7 @@ export default function ProductCard({ product, promo }: { product: ProductPrevie
                   </Badge>
                )}
             </div>
-            <CardContent className="p-4 ">
+            <CardContent className="p-3 sm:p-4">
                <div>
                   <div className="flex items-center space-y-2 space-x-1">
                      <div className="flex items-center">
@@ -170,8 +171,8 @@ export default function ProductCard({ product, promo }: { product: ProductPrevie
                   <h3 className="font-semibold line-clamp-2 text-sm mb-1">{product.title}</h3>
                </div>
 
-               <div className="flex items-center justify-between pt-2">
-                  <div className="flex items-center gap-2">
+               <div className="flex items-center justify-between gap-2 pt-2">
+                  <div className="flex items-center gap-2 min-w-0">
                      <span className="text-base font-bold text-foreground">${discounted.toFixed(2)}</span>
                      {isDiscounted && (
                         <span className="text-sm font-normal text-muted-foreground line-through">

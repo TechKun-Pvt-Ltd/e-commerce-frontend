@@ -1,4 +1,4 @@
-/* eslint-disable react-hooks/exhaustive-deps, react-hooks/rules-of-hooks */
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import React, { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'

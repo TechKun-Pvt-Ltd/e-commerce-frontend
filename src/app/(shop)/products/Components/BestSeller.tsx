@@ -44,7 +44,7 @@ const BestSeller = ({ products: productsProp = [], selectedCategoryId }: BestSel
             <div className="container mx-auto px-4">
 
                 <div className="mb-8 text-center">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-16">
+                    <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 sm:mb-16">
                         {selectedCategoryId !== null ? "Category Best Sellers" : "Best Sellers"}
                     </h2>
                 </div>

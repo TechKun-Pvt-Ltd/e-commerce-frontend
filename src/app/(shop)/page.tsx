@@ -292,9 +292,11 @@ export default function LandingPage() {
             </section>
             <div className='responsive-container'>
                 <section>
-                    <h2 className="text-3xl text-center font-bold my-16"> Popular Categories</h2>
+                    <h2 className="text-2xl sm:text-3xl text-center font-bold my-10 sm:my-16">
+                        Popular Categories
+                    </h2>
 
-                    <div className="flex justify-center items-center gap-20 flex-wrap mb-28">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 sm:gap-10 mb-16 sm:mb-28">
                         {categoriesData && categoriesData.map((category) => (
                             <CategoryCard
                                 key={category.categoryId}
@@ -309,8 +311,10 @@ export default function LandingPage() {
                 {/* Featured Products */}
                 <section>
 
-                    <h2 className="text-3xl text-center font-bold my-16">Featured Products</h2>
-                    <div className='mb-28' >
+                    <h2 className="text-2xl sm:text-3xl text-center font-bold my-10 sm:my-16">
+                        Featured Products
+                    </h2>
+                    <div className='mb-16 sm:mb-28'>
 
                         <FeaturedByCategory
                             categories={categories}
@@ -356,13 +360,13 @@ export default function LandingPage() {
                     <FeatureProducts products={productsData} />
                 </section>
             </div>
-            <div className=' bg-[#F1F3E7] my-16'>
+            <div className='bg-[#F1F3E7] my-10 sm:my-16'>
                 <PromoBannerCard />
             </div>
             <section>
                 <div className='responsive-container'>
-                    <div className="text-center mb-16">
-                        <h2 className="text-3xl font-bold ">
+                    <div className="text-center mb-10 sm:mb-16">
+                        <h2 className="text-2xl sm:text-3xl font-bold">
                             What Our Customers Say
                         </h2>
                         <p>
@@ -370,7 +374,7 @@ export default function LandingPage() {
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                         {testimonials.map((testimonial) => (
                             <TestimonialCard
                                 key={testimonial.id}
@@ -380,7 +384,7 @@ export default function LandingPage() {
                             />
                         ))}
                     </div>
-                    <section className=" mx-auto my-16 px-4">
+                    <section className="mx-auto my-10 sm:my-16 px-0 sm:px-4">
                         <Feature />
                     </section>
                 </div>

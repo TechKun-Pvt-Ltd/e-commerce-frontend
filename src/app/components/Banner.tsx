@@ -50,7 +50,7 @@ const Banner = () => {
 
   return (
     <section
-      className="relative w-full h-[600px] flex items-center justify-center bg-cover bg-center overflow-hidden"
+      className="relative w-full h-[420px] sm:h-[520px] lg:h-[600px] flex items-center justify-center bg-cover bg-center overflow-hidden"
       style={{
         backgroundImage: `url('https://i.pinimg.com/1200x/26/81/20/2681206974358cd48f2327bc0665dc20.jpg')`,
       }}
@@ -61,23 +61,22 @@ const Banner = () => {
           className="flex-1 max-w-2xl opacity-0 scale-90 
                      animate-[fadeZoomCenter_0.8s_ease-in-out_forwards]"
         >
-          <h2 className="text-6xl font-poppins text-amber-700 font-bold mb-6">
+          <h2 className="text-3xl sm:text-5xl lg:text-6xl font-poppins text-amber-700 font-bold mb-4 sm:mb-6">
             {title}
           </h2>
-          <h3 className="text-3xl font-poppins font-light mb-6 leading-tight">
+          <h3 className="text-lg sm:text-2xl lg:text-3xl font-poppins font-light mb-4 sm:mb-6 leading-tight">
             {subtitle}
           </h3>
           <Button
             variant="ghost"
-            className="w-40 hover:bg-black rounded-full my-4 text-black hover:text-white 
-                       border p-4 border-black "
+            className="w-40 hover:bg-black rounded-full my-3 sm:my-4 text-black hover:text-white border p-4 border-black"
           >
             Explore Now <ArrowRight className="ml-1 h-5 w-5" />
           </Button>
         </div>
       </div>
       
-      <div className="responsive-container absolute bottom-8 left-0 right-0 flex items-center justify-between px-6">
+      <div className="responsive-container absolute bottom-5 sm:bottom-8 left-0 right-0 flex items-center justify-between px-4 sm:px-6">
         <div className="flex items-center space-x-2 text-white">
           <span className="text-lg font-bold">
             {String(currentIndex + 1).padStart(2, "0")}

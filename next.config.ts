@@ -8,10 +8,22 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['img.freepik.com', 'drive.google.com', 'i.pinimg.com', 'files.catbox.moe'],
-    // remotePatterns: [new URL('https://img.freepik.com/**')]
+    // `images.domains` is deprecated; use `remotePatterns` instead.
+    remotePatterns: [
+      { protocol: 'https', hostname: 'img.freepik.com' },
+      { protocol: 'https', hostname: 'drive.google.com' },
+      { protocol: 'https', hostname: 'i.pinimg.com' },
+      { protocol: 'https', hostname: 'files.catbox.moe' },
+    ],
   },
-  reactStrictMode: false
+  reactStrictMode: false,
+
+  // Fix Turbopack/Next picking wrong root due to extra lockfiles.
+  // (Your logs show it selecting `C:\Users\Admin\package-lock.json` as root.)
+  outputFileTracingRoot: __dirname,
+  turbopack: {
+    root: __dirname,
+  },
 }
 
 export default nextConfig;

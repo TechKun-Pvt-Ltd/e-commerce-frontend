@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProductCard from "./ProductCard";
 import { Button } from "@/components/ui/button";
@@ -51,43 +51,56 @@ export const FeatureProducts = ({ products: productsProp = [] }: FeatureProducts
         .filter((p) => p.status !== false)
         .slice(0, 8);
 
+    const visibleProducts = useMemo(() => {
+        if (activeTab !== "discounted") return filteredProducts;
+        return filteredProducts.filter((p) => {
+            const promo = getPromotionForProduct(p, promotions);
+            if (!promo) return false;
+            if (promo.promotionType === "PERCENTAGE") return promo.discountValue > 0;
+            return promo.discountValue > 0;
+        });
+    }, [activeTab, filteredProducts, promotions]);
+
+    const gridClass = "grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
 
     return (
         <div className="w-full max-w-7xl mx-auto px-4 py-8">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 mb-8 bg-muted/50 rounded-full p-1">
+                <div className="mb-6">
+                    <TabsList className="w-full bg-muted/50 rounded-full p-1 flex items-center justify-start gap-1 overflow-x-auto thin-scrollbar sm:grid sm:max-w-md sm:mx-auto sm:grid-cols-3 sm:overflow-x-visible">
                     <TabsTrigger
                         value="new"
-                        className="rounded-full cursor-pointer transition-all duration-300 ease-in-out font-medium data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm"
+                        className="rounded-full cursor-pointer transition-all duration-300 ease-in-out font-medium data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm whitespace-nowrap text-xs sm:text-sm px-3 sm:px-5"
                     >
                         NEW
                     </TabsTrigger>
                     <TabsTrigger
                         value="bestsellers"
-                        className="rounded-full cursor-pointer transition-all duration-300 ease-in-out font-medium data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm"
+                        className="rounded-full cursor-pointer transition-all duration-300 ease-in-out font-medium data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm whitespace-nowrap text-xs sm:text-sm px-3 sm:px-5"
                     >
                         BEST SELLERS
                     </TabsTrigger>
                     <TabsTrigger
                         value="discounted"
-                        className="rounded-full cursor-pointer transition-all duration-300 ease-in-out font-medium data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm"
+                        className="rounded-full cursor-pointer transition-all duration-300 ease-in-out font-medium data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm whitespace-nowrap text-xs sm:text-sm px-3 sm:px-5"
                     >
                         DISCOUNTED
                     </TabsTrigger>
-                </TabsList>
+                    </TabsList>
+                </div>
 
                 <TabsContent value="new" className="mt-0">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+                    <div className={`grid ${gridClass} gap-4 sm:gap-6`}>
                         {
-                            filteredProducts.length > 0 ? (
-                                filteredProducts.map((product) => {
+                            visibleProducts.length > 0 ? (
+                                visibleProducts.map((product) => {
                                     const promo = getPromotionForProduct(product, promotions);
                                     return (
                                         <ProductCard key={product.productId} product={product} promo={promo} />
                                     );
                                 })
                             ) : (
-                                <div className="col-span-4 text-center text-gray-500 py-8">
+                                <div className="col-span-full text-center text-gray-500 py-8">
                                     No products found
                                 </div>
                             )
@@ -105,17 +118,17 @@ export const FeatureProducts = ({ products: productsProp = [] }: FeatureProducts
                 </TabsContent>
 
                 <TabsContent value="bestsellers" className="mt-0">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+                    <div className={`grid ${gridClass} gap-4 sm:gap-6`}>
                         {
-                            filteredProducts.length > 0 ? (
-                                filteredProducts.map((product) => {
+                            visibleProducts.length > 0 ? (
+                                visibleProducts.map((product) => {
                                     const promo = getPromotionForProduct(product, promotions);
                                     return (
                                         <ProductCard key={product.productId} product={product} promo={promo} />
                                     );
                                 })
                             ) : (
-                                <div className="col-span-4 text-center text-gray-500 py-8">
+                                <div className="col-span-full text-center text-gray-500 py-8">
                                     No products found
                                 </div>
                             )
@@ -133,17 +146,17 @@ export const FeatureProducts = ({ products: productsProp = [] }: FeatureProducts
                 </TabsContent>
 
                 <TabsContent value="discounted" className="mt-0">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+                    <div className={`grid ${gridClass} gap-4 sm:gap-6`}>
                         {
-                            filteredProducts.length > 0 ? (
-                                filteredProducts.map((product) => {
+                            visibleProducts.length > 0 ? (
+                                visibleProducts.map((product) => {
                                     const promo = getPromotionForProduct(product, promotions);
                                     return (
                                         <ProductCard key={product.productId} product={product} promo={promo} />
                                     );
                                 })
                             ) : (
-                                <div className="col-span-4 text-center text-gray-500 py-8">
+                                <div className="col-span-full text-center text-gray-500 py-8">
                                     No products found
                                 </div>
                             )
