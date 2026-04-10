@@ -26,14 +26,14 @@ export default function Header() {
     const canShowAdminSettings = isAdmin || isPlatformAdmin;
 
     return (<>
-        <nav className="sticky top-0 z-50 w-full border-b bg-background px-4 md:px-8 flex items-center justify-between gap-4" style={{ height: NAVBAR_HEIGHT }}>
+        <nav className="sticky top-0 z-50 w-full border-b bg-background px-4 md:px-8 flex items-center justify-between gap-3 sm:gap-4" style={{ height: NAVBAR_HEIGHT }}>
             {/* Logo */}
             <Link href="/" className="text-xl font-bold">
                 KAVENGO
             </Link>
 
             {/* Search Input */}
-            <div className="flex-1 max-w-lg">
+            <div className="hidden sm:block flex-1 max-w-lg">
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input

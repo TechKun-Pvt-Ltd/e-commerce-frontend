@@ -11,6 +11,8 @@ import {
    BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 import {
    Pagination,
    PaginationContent,
@@ -51,7 +53,8 @@ const ProductGrid = ({ categories, products: productsProp, onCategoryChange: onC
    // Fetch products with sorting when sortBy or selectedCategoryId changes
    useEffect(() => {
       const filters: ProductQueryOptions = {
-         sortOption: sortBy
+         sortOption: sortBy,
+         status: true,
       };
       if (selectedCategoryId !== null) {
          filters.categoryId = selectedCategoryId;
@@ -105,18 +108,20 @@ const ProductGrid = ({ categories, products: productsProp, onCategoryChange: onC
    const getGridClass = () => {
       switch (gridColumns) {
          case 2:
-            return "grid-cols-2";
+            // Mobile should always stay readable; keep 2 cols on small screens.
+            return "grid-cols-2 md:grid-cols-2 lg:grid-cols-2";
          case 3:
-            return "grid-cols-3";
+            return "grid-cols-2 md:grid-cols-3 lg:grid-cols-3";
          case 4:
-            return "grid-cols-4";
+            return "grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
          default:
-            return "grid-cols-4";
+            return "grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
       }
    };
 
    // Use products from API (already sorted on server) or fallback to prop
-   const products = productsData.data || productsProp || [];
+   // Extra safety: if backend doesn't filter by status yet, hide inactive products in UI.
+   const products = (productsData.data || productsProp || []).filter((p) => p.status !== false);
 
    // Pagination calculations
    const totalPages = Math.ceil(products.length / itemsPerPage);
@@ -189,9 +194,9 @@ const ProductGrid = ({ categories, products: productsProp, onCategoryChange: onC
                </BreadcrumbList>
             </Breadcrumb>
 
-            <div className="flex gap-6">
-               {/* Sidebar */}
-               <aside className="flex-shrink-0">
+            <div className="flex flex-col lg:flex-row gap-6">
+               {/* Sidebar (desktop) */}
+               <aside className="hidden lg:block flex-shrink-0">
                   <FilterSidebar
                      categories={categories}
                      onCategoryChange={handleCategoryChange}
@@ -201,8 +206,33 @@ const ProductGrid = ({ categories, products: productsProp, onCategoryChange: onC
 
                <main className="flex-1">
                   {/* Header */}
-                  <div className="flex items-center justify-between gap-4">
-                     <div className="flex items-center gap-5 border p-2 rounded">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                     <div className="flex items-center justify-between gap-3">
+                        {/* Filters (mobile/tablet) */}
+                        <div className="lg:hidden">
+                           <Sheet>
+                              <SheetTrigger asChild>
+                                 <Button variant="outline" size="sm">
+                                    Filters
+                                 </Button>
+                              </SheetTrigger>
+                              <SheetContent side="left" className="p-0 w-[90vw] sm:w-[420px]">
+                                 <SheetHeader className="p-4 border-b">
+                                    <SheetTitle>Filters</SheetTitle>
+                                 </SheetHeader>
+                                 <div className="h-[calc(100vh-57px)] overflow-auto">
+                                    <FilterSidebar
+                                       categories={categories}
+                                       onCategoryChange={handleCategoryChange}
+                                       selectedCategoryId={selectedCategoryId}
+                                    />
+                                 </div>
+                              </SheetContent>
+                           </Sheet>
+                        </div>
+
+                        {/* Grid toggle (desktop/tablet only) */}
+                        <div className="hidden sm:flex items-center gap-5 border p-2 rounded">
                         {/* 2 columns */}
                         <button
                            onClick={() => setGridColumns(2)}
@@ -254,10 +284,11 @@ const ProductGrid = ({ categories, products: productsProp, onCategoryChange: onC
                               <rect x="18" width="5" height="5" rx="1" fill="currentColor"></rect>
                            </svg>
                         </button>
+                        </div>
                      </div>
 
-                     <div className="flex items-center gap-2 text-sm">
-                        <span>Sort by:</span>
+                     <div className="flex items-center justify-between sm:justify-start gap-2 text-sm">
+                        <span className="shrink-0">Sort by:</span>
                         <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
                            <SelectTrigger className="w-48 h-8 text-sm border-gray-300">
                               <SelectValue />
@@ -273,7 +304,7 @@ const ProductGrid = ({ categories, products: productsProp, onCategoryChange: onC
                   </div>
 
                   {/* Products Grid */}
-                  <div className={`grid ${getGridClass()} gap-6 py-6 ${gridColumns === 2 ? "justify-center" : ""}`}>
+                  <div className={`grid ${getGridClass()} gap-4 sm:gap-6 py-6 ${gridColumns === 2 ? "justify-center" : ""}`}>
                      {productsData.isLoading ? (
                         Array.from({ length: 8 }).map((_, i) => (
                            <ProductCardSkeleton key={i} />

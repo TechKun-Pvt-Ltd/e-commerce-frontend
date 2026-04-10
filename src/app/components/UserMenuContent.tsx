@@ -17,13 +17,17 @@ export default function UserMenuContent() {
     return authenticated ? (
         <>
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
-            <DropdownMenuItem>
-                <CircleUserRoundIcon />
-                <Link href="/account/settings">Account Settings</Link>
+            <DropdownMenuItem asChild>
+                <Link href="/account/settings" className="flex items-center gap-2">
+                    <CircleUserRoundIcon />
+                    Account Settings
+                </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem>
-                <Package />
-                <Link href="/account/orders">Orders</Link>
+            <DropdownMenuItem asChild>
+                <Link href="/account/orders" className="flex items-center gap-2">
+                    <Package />
+                    Orders
+                </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => dispatch(logout())}>
@@ -33,13 +37,17 @@ export default function UserMenuContent() {
         </>
     ) : (
         <>
-            <DropdownMenuItem>
-                <LogIn />
-                <Link href="/auth/login">Login</Link>
+            <DropdownMenuItem asChild>
+                <Link href="/auth/login" className="flex items-center gap-2">
+                    <LogIn />
+                    Login
+                </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem>
-                <UserPlus2Icon />
-                <Link href="/auth/register">Register</Link>
+            <DropdownMenuItem asChild>
+                <Link href="/auth/register" className="flex items-center gap-2">
+                    <UserPlus2Icon />
+                    Register
+                </Link>
             </DropdownMenuItem>
         </>
     );

@@ -10,6 +10,8 @@ export interface Product {
     description: string;
     dateAdded: string;
     starred: boolean;
+    /** When false, product is hidden from the public shop (admin still sees it). */
+    status: boolean;
     variants: ProductVariant[];
     productImages: ProductImage[];
     attributes: ProductAttribute[];
@@ -54,6 +56,7 @@ export interface ProductDetails {
     description: string;
     attributes: ProductAttribute[];
     starred: boolean;
+    status: boolean;
 }
 
 export interface ProductPatchPayload {
@@ -61,6 +64,7 @@ export interface ProductPatchPayload {
     starred: boolean;
     categoryId: number;
     shippingMethodId?: number;
+    status: boolean;
 }
 
 export interface ProductPayload {
@@ -68,6 +72,7 @@ export interface ProductPayload {
     code: string;
     description: string;
     starred: boolean;
+    status: boolean;
     categoryId: number;
     shippingMethodId?: number;
     images: {
@@ -102,6 +107,8 @@ export interface ProductPreview {
     code: string;
     rating: number;
     starred: boolean;
+    /** Omit on admin list (all products). Set true on shop to load only active products. */
+    status?: boolean;
 }
 
 export interface ProductQueryOptions {
@@ -109,6 +116,8 @@ export interface ProductQueryOptions {
     categoryId?: number;
     variations?: Record<number, number>;
     sortOption?: SortOption;
+    /** When true, only products visible in the shop. Omit for admin. */
+    status?: boolean;
 }
 
 export enum SortOption {

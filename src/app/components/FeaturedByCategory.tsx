@@ -37,7 +37,7 @@ export default function FeaturedByCategory({
     promotions: PromotionDetails[];
 }) {
     return (
-        <section className=" px-4">
+        <section className="px-0 sm:px-4">
             {categories.map((category) => {
                 const categoryProducts: ProductPreview[] = [];
                 getProductsForCategory(category, products, categoryProducts);
@@ -66,23 +66,32 @@ export default function FeaturedByCategory({
                         </div>
 
                         {/* Products */}
-                        <div className="grid grid-cols-4 gap-4">
-                            <div style={{ background: `url('/product-image/Ethereal.jpg')`, backgroundSize: "cover" }}>
-                                <div className="bg-black/60 w-full h-full ">
-                                    <div className="relative top-65 left-10  text-white">
-                                        <h2 className="text-3xl"> <b>Discover</b> <br /> BestSellers</h2>
-                                        <Button variant="ghost" className="w-32 hover:bg-white rounded-full  my-4 text-white border p-4 border-white">
-                                            Shop Now
-                                        </Button>
-                                    </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                            {/* Promo banner card */}
+                            <div
+                                className="relative overflow-hidden rounded-md border min-h-[220px] sm:min-h-[260px] lg:min-h-[320px] lg:col-span-1"
+                                style={{ background: `url('/product-image/Ethereal.jpg') center / cover no-repeat` }}
+                            >
+                                <div className="absolute inset-0 bg-black/55" />
+                                <div className="relative z-10 h-full p-5 sm:p-6 flex flex-col justify-end text-white">
+                                    <h2 className="text-2xl sm:text-3xl leading-tight">
+                                        <b>Discover</b>
+                                        <br />
+                                        BestSellers
+                                    </h2>
+                                    <Button
+                                        variant="ghost"
+                                        className="w-32 hover:bg-white rounded-full mt-4 text-white hover:text-black border p-4 border-white"
+                                    >
+                                        Shop Now
+                                    </Button>
                                 </div>
                             </div>
 
-
+                            {/* Products */}
                             {sortedProducts.slice(0, 3).map((product) => (
                                 <ProductCard key={product.productId} product={product} promo={promo} />
                             ))}
-
                         </div>
                         {/* <div className="text-center">
                             <Link

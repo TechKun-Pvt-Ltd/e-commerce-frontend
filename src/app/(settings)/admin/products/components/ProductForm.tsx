@@ -24,7 +24,7 @@ import CategoriesDropdown from "@/app/components/CategoriesDropdown";
 import { ProductDetails } from "@/types/domains/product";
 import useDrivePicker from "react-google-drive-picker";
 import Image from "next/image";
-import { Plus, Trash2 } from "lucide-react";
+import { ClipboardPaste, Plus, Trash2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 
 const productFormSchema = z
@@ -33,12 +33,13 @@ const productFormSchema = z
       code: z.string().nonempty("Code is required."),
       description: z.string().nonempty("Description is required."),
       starred: z.boolean(),
+      status: z.boolean(),
       categoryId: z.number().gt(0, "Category is required."),
       shippingMethodId: z.number().gt(0, "Shipping method is required."),
       images: z.array(
          z.object({
             productImageId: z.number().optional(),
-            imageUrl: z.string().url("Invalid image URL"),
+            imageUrl: z.string().min(1, "Image is required"),
             isDefault: z.boolean(),
          })
       ),
@@ -81,6 +82,7 @@ const categoryDetailsMap = new Map<number, CategoryData>();
 export default function ProductForm({
    mode = "create",
    product,
+   copiedProduct,
    categories,
    variations,
    attributes,
@@ -93,6 +95,7 @@ export default function ProductForm({
 }: {
    mode?: "create" | "update";
    product?: ProductDetails;
+   copiedProduct?: ProductDetails;
    categories: CategoryTree[];
    variations: Variation[];
    attributes: Attribute[];
@@ -104,6 +107,7 @@ export default function ProductForm({
    onSubmit: (data: Partial<ProductFormData>) => void;
 }) {
    const [openPicker, authResponse] = useDrivePicker();
+   const fileInputRef = useRef<HTMLInputElement>(null);
    const productForm = useForm({
       resolver: zodResolver(productFormSchema),
       defaultValues: {
@@ -111,6 +115,7 @@ export default function ProductForm({
          code: "",
          description: "",
          starred: false,
+         status: true,
          shippingMethodId: 0,
          images: [],
          variants: [],
@@ -118,9 +123,76 @@ export default function ProductForm({
       },
    });
    const firstRender = useRef(true);
+   const [pasteApplied, setPasteApplied] = useState(false);
+
+   // If user copied a new product, allow pasting again (don't get stuck hidden).
+   useEffect(() => {
+      if (mode === "create") setPasteApplied(false);
+   }, [mode, copiedProduct?.productId]);
+
+   const applyPastedProduct = useCallback((source: ProductDetails) => {
+      const rawCategoryId = (source as unknown as { categoryId?: unknown })?.categoryId;
+      const categoryId = typeof rawCategoryId === "number"
+         ? rawCategoryId
+         : typeof rawCategoryId === "string"
+            ? Number(rawCategoryId)
+            : NaN;
+      if (!Number.isFinite(categoryId) || categoryId <= 0) {
+         toast.error("Copied product is missing a valid category. Please select a category and try again.");
+         return;
+      }
+
+      fetchCategoryDetails(categoryId).onSuccess((categoryDetails) => {
+         registerCategoryDetails(categoryDetails);
+
+         // Keep paste logic minimal & predictable.
+         // We only use fields that are part of the backend response contract.
+         const images = (source.images || [])
+            .map((img) => ({
+               imageUrl: img.imageUrl ?? "",
+               isDefault: Boolean(img.isDefault),
+            }))
+            .filter((img) => Boolean(img.imageUrl));
+         if (images.length > 0 && !images.some((i) => i.isDefault)) images[0].isDefault = true;
+
+         productForm.reset({
+            title: source.title ?? "",
+            code: source.code ?? "",
+            description: source.description ?? "",
+            starred: source.starred ?? false,
+            status: source.status !== false,
+            categoryId,
+            shippingMethodId: source.shippingMethodId || 0,
+            images,
+            variants: (source.variants || []).map((v) => ({
+               variationOptionIds: Object.values(v.variantProperties || {}).map((opt) => opt.variationOptionId),
+               sku: v.sku,
+               quantityInStock: v.quantityInStock,
+               price: v.price,
+               disabled: v.disabled,
+            })),
+            attributes: (source.attributes || [])
+               .map((a) => ({
+                  attributeId: a.attribute?.attributeId,
+                  value: a.value ?? "",
+               }))
+               .filter((a) => typeof a.attributeId === "number"),
+         });
+         // Mark form dirty so the submit button activates
+         productForm.setValue("title", source.title, { shouldDirty: true });
+         productForm.trigger();
+         setPasteApplied(true);
+         toast.success("Product details pasted!");
+      });
+   }, [fetchCategoryDetails, productForm]);
 
    useEffect(() => {
       if (!firstRender.current && product) {
+         if (typeof product.categoryId !== "number" || !Number.isFinite(product.categoryId) || product.categoryId <= 0) {
+            toast.error("Product is missing a valid categoryId.");
+            return;
+         }
+
          fetchCategoryDetails(product.categoryId).onSuccess((categoryDetails) => {
             registerCategoryDetails(categoryDetails);
             productForm.reset({
@@ -128,12 +200,13 @@ export default function ProductForm({
                code: product.code,
                description: product.description,
                starred: product.starred ?? false,
+               status: product.status !== false,
                categoryId: product.categoryId,
                shippingMethodId: product.shippingMethodId || 0,
                images: product.images || [],
-               variants: product.variants.map((v) => ({
+               variants: (product.variants || []).map((v) => ({
                   ...v,
-                  variationOptionIds: Object.values(v.variantProperties).map((opt) => opt.variationOptionId),
+                  variationOptionIds: Object.values(v.variantProperties || {}).map((opt) => opt.variationOptionId),
                })),
                attributes: product.attributes || [],
             });
@@ -200,9 +273,9 @@ export default function ProductForm({
          const variants = getVariantsFromVariations(getCategoryVariations(categoryDetails).map((vId) => indexedVariations[vId]));
          variants.forEach(
             (v) =>
-               (v.sku = `${categoryDetails.code}-${productForm.watch("code")}-${v.variationOptionIds
-                  .map((optId) => indexedVariationOptions[optId].code)
-                  .join("-")}`)
+            (v.sku = `${categoryDetails.code}-${productForm.watch("code")}-${v.variationOptionIds
+               .map((optId) => indexedVariationOptions[optId].code)
+               .join("-")}`)
          );
          productForm.setValue("variants", variants);
          productForm.setValue(
@@ -255,6 +328,58 @@ export default function ProductForm({
       }
    }, [openPicker, authResponse, productImages]);
 
+   const [isUploading, setIsUploading] = useState(false);
+
+   const handleDeviceUpload = useCallback(
+      async (e: React.ChangeEvent<HTMLInputElement>) => {
+         const file = e.target.files?.[0];
+         if (!file) return;
+
+         // Reset so same file can be re-selected
+         e.target.value = "";
+
+         setIsUploading(true);
+         try {
+            const formData = new FormData();
+            formData.append("file", file);
+
+            const res = await fetch("/api/upload", {
+               method: "POST",
+               body: formData,
+            });
+
+            if (!res.ok) throw new Error("Upload failed");
+
+            const { url: imageUrl } = await res.json();
+            if (!imageUrl?.startsWith("http")) throw new Error("Invalid response");
+
+            if (productImages.some((img) => img.imageUrl === imageUrl)) {
+               toast.info("This image is already added.");
+               return;
+            }
+
+            productForm.setValue(
+               "images",
+               [
+                  ...productImages,
+                  {
+                     imageUrl,
+                     isDefault: productImages.length === 0,
+                  },
+               ],
+               { shouldDirty: true }
+            );
+            toast.success("Image uploaded successfully!");
+         } catch {
+            toast.error("Failed to upload image. Please try again.");
+         } finally {
+            setIsUploading(false);
+         }
+      },
+      [productImages, productForm]
+   );
+
+
    const removeImage = useCallback(
       (imageUrl: string) => {
          const indexToRemove = productImages.findIndex((img) => img.imageUrl === imageUrl);
@@ -281,8 +406,48 @@ export default function ProductForm({
 
    return (
       <Form {...productForm}>
+         {/* Paste Banner — only in create mode when a copied product exists */}
+         {mode === "create" && copiedProduct && !pasteApplied && (
+            <div className="flex items-center gap-3 rounded-lg border px-4 py-3  mb-4">
+               <ClipboardPaste className="h-4 w-4 shrink-0 text-muted-foreground" />
+               <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium leading-none truncate">
+                     Clipboard: &ldquo;{copiedProduct.title}&rdquo;
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                     Product details are ready to paste
+                  </p>
+               </div>
+               <div className="flex items-center gap-2 shrink-0">
+                  <Button
+                     type="button"
+                     size="sm"
+                     onClick={() => applyPastedProduct(copiedProduct)}
+                  >
+                     <ClipboardPaste className="h-3.5 w-3.5" />
+                     Paste
+                  </Button>
+                  <Button
+                     type="button"
+                     variant="ghost"
+                     size="icon"
+                     className="h-8 w-8 text-muted-foreground"
+                     onClick={() => setPasteApplied(true)}
+                  >
+                     <X className="h-4 w-4" />
+                  </Button>
+               </div>
+            </div>
+         )}
          <form
             onSubmit={productForm.handleSubmit((data) => {
+               // In create mode we must submit the full form values.
+               // In update mode we submit only dirty fields to avoid overwriting unchanged data.
+               if (mode === "create") {
+                  onSubmit(data);
+                  return;
+               }
+
                const dataToSubmit: Partial<ProductFormData> = {};
                const dirtyFields = productForm.formState.dirtyFields;
                const dirtyFieldKeys = Object.keys(dirtyFields) as (keyof ProductFormData)[];
@@ -315,11 +480,10 @@ export default function ProductForm({
                                     width={100}
                                     height={100}
                                     style={{ maxWidth: "none" }}
-                                    className={`w-auto h-full object-cover rounded-md transition-all duration-300 ${
-                                       image.isDefault
+                                    className={`w-auto h-full object-cover rounded-md transition-all duration-300 ${image.isDefault
                                           ? "outline outline-[3px] outline-green-500 outline-offset-[-3px]"
                                           : "outline-none"
-                                    }`}
+                                       }`}
                                     onError={(e) => {
                                        (e.target as HTMLImageElement).src = "/placeholder-image.jpeg";
                                     }}
@@ -352,12 +516,44 @@ export default function ProductForm({
                         </div>
                      )}
                      {productImages.length < 10 && (
-                        <div
-                           className="border bg-accent rounded-md min-w-64 flex flex-col justify-center items-center gap-2 cursor-pointer"
-                           onClick={loading ? undefined : handleOpenPicker}
-                        >
-                           <Plus className="size-8 text-muted-foreground" />
-                           <p className="text-sm text-muted-foreground">Select from Google Drive</p>
+                        <div className="flex flex-col gap-3 min-w-64">
+                           {/* Hidden file input */}
+                           <input
+                              ref={fileInputRef}
+                              type="file"
+                              accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
+                              className="hidden"
+                              onChange={handleDeviceUpload}
+                           />
+
+                           {/* Upload from Device button */}
+                           <div
+                              className={`border bg-accent rounded-md flex-1 flex flex-col justify-center items-center gap-2 cursor-pointer transition-opacity ${loading || isUploading ? "opacity-50 pointer-events-none" : "hover:bg-accent/80"
+                                 }`}
+                              onClick={() => !isUploading && fileInputRef.current?.click()}
+                           >
+                              {isUploading ? (
+                                 <>
+                                    <Spinner />
+                                    <p className="text-sm text-muted-foreground">Uploading...</p>
+                                 </>
+                              ) : (
+                                 <>
+                                    <Upload className="size-8 text-muted-foreground" />
+                                    <p className="text-sm text-muted-foreground">Upload from Device</p>
+                                 </>
+                              )}
+                           </div>
+
+                           {/* Google Drive button */}
+                           <div
+                              className={`border bg-accent rounded-md flex-1 flex flex-col justify-center items-center gap-2 cursor-pointer transition-opacity ${loading ? "opacity-50 pointer-events-none" : "hover:bg-accent/80"
+                                 }`}
+                              onClick={loading ? undefined : handleOpenPicker}
+                           >
+                              <Plus className="size-8 text-muted-foreground" />
+                              <p className="text-sm text-muted-foreground">Select from Google Drive</p>
+                           </div>
                         </div>
                      )}
                   </div>
@@ -494,12 +690,12 @@ export default function ProductForm({
                                  <SelectContent>
                                     {shippingMethods.map((method) => (
                                        <SelectItem key={method.shippingMethodId} value={method.shippingMethodId.toString()}>
-                                           <div className="flex flex-col items-start text-left w-full">
-                                                <span className="font-medium text-left">{method.name}</span>
-                                                <span className="text-xs text-muted-foreground text-left">
-                                                   {method.originCountry} • {method.processingTimeMin}-{method.processingTimeMax} days processing
-                                                </span>
-                                             </div>
+                                          <div className="flex flex-col items-start text-left w-full">
+                                             <span className="font-medium text-left">{method.name}</span>
+                                             <span className="text-xs text-muted-foreground text-left">
+                                                {method.originCountry} • {method.processingTimeMin}-{method.processingTimeMax} days processing
+                                             </span>
+                                          </div>
                                        </SelectItem>
                                     ))}
                                  </SelectContent>
@@ -522,6 +718,26 @@ export default function ProductForm({
                                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                                  <label className="text-sm text-muted-foreground">
                                     Check if you want this product to appear on top.
+                                 </label>
+                              </div>
+                           </FormControl>
+                           <FormMessage />
+                        </FormItem>
+                     )}
+                  />
+
+                  <FormField
+                     disabled={loading}
+                     control={productForm.control}
+                     name="status"
+                     render={({ field }) => (
+                        <FormItem className="lg:flex-1 gap-3">
+                           <FormLabel>Active</FormLabel>
+                           <FormControl>
+                              <div className="flex items-center gap-2">
+                                 <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                 <label className="text-sm text-muted-foreground">
+                                    Visible on the shop. Uncheck to hide without deleting.
                                  </label>
                               </div>
                            </FormControl>
