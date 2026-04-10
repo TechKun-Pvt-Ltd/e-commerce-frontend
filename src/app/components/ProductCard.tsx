@@ -69,7 +69,7 @@ export default function ProductCard({ product, promo }: { product: ProductPrevie
                      <Button
                         size="icon"
                         variant="secondary"
-                        className="absolute size-8 bg-white right-2 rounded-full top-3 z-10"
+                        className="absolute size-7 sm:size-8 bg-white right-2 top-2 sm:top-3 rounded-full z-10"
                         onClick={async (e) => {
                            e.preventDefault();
                            e.stopPropagation();
@@ -97,7 +97,7 @@ export default function ProductCard({ product, promo }: { product: ProductPrevie
                            });
                         }}
                      >
-                        <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+                        <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
                      </Button>
                   </TooltipTrigger>
                   <TooltipContent side="left">
@@ -110,14 +110,16 @@ export default function ProductCard({ product, promo }: { product: ProductPrevie
                      <Button
                         size="icon"
                         variant="secondary"
-                        className="size-8 absolute shadow-md right-2 rounded-full top-14 z-10 bg-white hover:bg-gray-100"
+                        className="absolute size-7 sm:size-8 shadow-md right-2 top-11 sm:top-14 rounded-full z-10 bg-white hover:bg-gray-100"
                         onClick={e => {
                            e.preventDefault();
                            e.stopPropagation();
                            handleWishlistToggle();
                         }}
                      >
-                        <Heart className={`h-4 w-4 transition-colors ${isInWishlist ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} />
+                        <Heart
+                           className={`h-3.5 w-3.5 sm:h-4 sm:w-4 transition-colors ${isInWishlist ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`}
+                        />
                      </Button>
                   </TooltipTrigger>
                   <TooltipContent side="left">
@@ -147,8 +149,14 @@ export default function ProductCard({ product, promo }: { product: ProductPrevie
                {product.quantityInStock < 10 && (
                   <Badge
                      variant="destructive"
-                     className={`absolute rounded-full z-10 ${isDiscounted && promo ? 'top-12 left-3' : 'top-3 left-3'
-                        }`}
+                     className={[
+                        "absolute left-2 sm:left-3 rounded-full z-10",
+                        // Prevent overlapping the right-side action icons on small screens.
+                        "max-w-[calc(100%-3.25rem)] sm:max-w-none truncate",
+                        // Slightly tighter on mobile.
+                        "text-[10px] sm:text-xs px-2 py-0.5 sm:px-2.5 sm:py-0.5",
+                        isDiscounted && promo ? "top-11 sm:top-12" : "top-2 sm:top-3",
+                     ].join(" ")}
                   >
                      Only {product.quantityInStock} left
                   </Badge>
