@@ -298,7 +298,7 @@ export default function LandingPage() {
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 sm:gap-10 mb-16 sm:mb-28">
                         {allCategories.isLoading ? (
-                            Array.from({ length: 7 }).map((_, i) => (
+                            Array.from({ length: 6 }).map((_, i) => (
                                 <CategoryCardSkeleton key={i} />
                             ))
                         ) : categoriesData && categoriesData.map((category) => (
