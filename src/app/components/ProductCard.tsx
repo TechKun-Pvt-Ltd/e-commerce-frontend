@@ -37,6 +37,7 @@ export default function ProductCard({ product, promo }: { product: ProductPrevie
    const isInWishlist = wishlistItem !== undefined;
    const discounted = getDiscountedPrice(product.price, promo);
    const isDiscounted = promo && discounted < product.price;
+   const isInactive = product.status === false;
 
    const handleWishlistToggle = async () => {
       if (!authenticated) {
@@ -61,18 +62,29 @@ export default function ProductCard({ product, promo }: { product: ProductPrevie
 
    return (
       <Link href={`/products/${product.productId}`} className="block w-full">
-         <div key={product.productId} className="group w-full border overflow-hidden rounded-md bg-white p-0 cursor-pointer">
-            <div className="relative aspect-square overflow-hidden">
+         <div
+            key={product.productId}
+            className={[
+               "group w-full border overflow-hidden rounded-md bg-white p-0 cursor-pointer",
+               isInactive ? "opacity-80" : "",
+            ].join(" ")}
+         >
+            <div className={["relative aspect-square overflow-hidden", isInactive ? "grayscale" : ""].join(" ")}>
                {/* Add to Cart  */}
                <Tooltip>
                   <TooltipTrigger asChild>
                      <Button
                         size="icon"
                         variant="secondary"
-                        className="absolute size-7 sm:size-8 bg-white right-2 top-2 sm:top-3 rounded-full z-10"
+                        disabled={isInactive}
+                        className={[
+                           "absolute size-7 sm:size-8 bg-white right-2 top-2 sm:top-3 rounded-full z-10",
+                           isInactive ? "cursor-not-allowed opacity-60" : "",
+                        ].join(" ")}
                         onClick={async (e) => {
                            e.preventDefault();
                            e.stopPropagation();
+                           if (isInactive) return;
                            await dispatch(
                               addToCart({
                                  productVariantId: product.productVariantId,
@@ -110,10 +122,15 @@ export default function ProductCard({ product, promo }: { product: ProductPrevie
                      <Button
                         size="icon"
                         variant="secondary"
-                        className="absolute size-7 sm:size-8 shadow-md right-2 top-11 sm:top-14 rounded-full z-10 bg-white hover:bg-gray-100"
+                        disabled={isInactive}
+                        className={[
+                           "absolute size-7 sm:size-8 shadow-md right-2 top-11 sm:top-14 rounded-full z-10 bg-white hover:bg-gray-100",
+                           isInactive ? "cursor-not-allowed opacity-60 hover:bg-white" : "",
+                        ].join(" ")}
                         onClick={e => {
                            e.preventDefault();
                            e.stopPropagation();
+                           if (isInactive) return;
                            handleWishlistToggle();
                         }}
                      >
@@ -136,10 +153,25 @@ export default function ProductCard({ product, promo }: { product: ProductPrevie
                   alt={product.title}
                   fill
                   sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                  className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                  className={[
+                     "object-cover transition-transform duration-300",
+                     isInactive ? "" : "group-hover:scale-[1.03]",
+                  ].join(" ")}
                />
 
-               {isDiscounted && promo && (
+               {isInactive && (
+                  <>
+                     <div className="absolute inset-0 bg-black/30 z-[5]" />
+                     <Badge
+                        variant="secondary"
+                        className="absolute top-3 left-3 rounded-full bg-black text-white z-10 border border-white/20"
+                     >
+                        Deactivated
+                     </Badge>
+                  </>
+               )}
+
+               {isDiscounted && promo && !isInactive && (
                   <Badge variant="default" className="absolute top-3 left-3 rounded-full bg-primary text-primary-foreground z-10">
                      {promo.promotionType === "PERCENTAGE"
                         ? `${promo.discountValue}% OFF`

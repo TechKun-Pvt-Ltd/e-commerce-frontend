@@ -12,6 +12,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { CategoryDetails, CategoryTree } from "@/types/domains/category";
+import { CategoryDTO } from "@/types/domains/category";
 import { Variation, VariationOption } from "@/types/domains/variation";
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
@@ -26,6 +27,13 @@ import useDrivePicker from "react-google-drive-picker";
 import Image from "next/image";
 import { ClipboardPaste, Plus, Trash2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import AddCategoryForm from "@/app/(settings)/admin/categories/components/AddCategoryForm";
+import useDataFetch from "@/hooks/use-data-fetch";
+import * as categoryServices from "@/services/category";
+import { useAppDispatch } from "@/store/hooks";
+import { fetchCategories } from "@/store/slices/categorySlice";
+import { useRouter } from "next/navigation";
 
 const productFormSchema = z
    .object({
@@ -50,7 +58,7 @@ const productFormSchema = z
             quantityInStock: z.number(),
             price: z.number(),
             disabled: z.boolean(),
-            variationOptionIds: z.array(z.number()).min(1, "At least one variation option is required."),
+            variationOptionIds: z.array(z.number().gt(0, "Please select an option.")).min(1, "At least one variation option is required."),
          })
       ),
       attributes: z.array(
@@ -60,7 +68,14 @@ const productFormSchema = z
          })
       ),
    })
-   .refine((data) => data.variants.length > 0, { message: "At least one variant is required." });
+   .refine((data) => data.variants.length > 0, { message: "At least one variant is required." })
+   .refine(
+      (data) => {
+         const keys = data.variants.map((v) => v.variationOptionIds.join("-"));
+         return new Set(keys).size === keys.length;
+      },
+      { message: "Duplicate variants are not allowed." }
+   );
 
 type ProductFormData = z.infer<typeof productFormSchema>;
 
@@ -106,7 +121,12 @@ export default function ProductForm({
    fetchCategoryDetails: RequestFunction<[categoryId: number], CategoryDetails>;
    onSubmit: (data: Partial<ProductFormData>) => void;
 }) {
+   const dispatch = useAppDispatch();
+   const router = useRouter();
    const [openPicker, authResponse] = useDrivePicker();
+   const addCategoryDialogRef = React.useRef<{ open: () => void; close: () => void }>(null);
+   const [categoryDialogParent, setCategoryDialogParent] = useState<CategoryData | null>(null);
+   const createCategory = useDataFetch(categoryServices.createCategory);
    const fileInputRef = useRef<HTMLInputElement>(null);
    const productForm = useForm({
       resolver: zodResolver(productFormSchema),
@@ -261,11 +281,25 @@ export default function ProductForm({
             productForm.setValue(
                `variants.${i}.sku`,
                `${selectedCategoryDetails?.code || ""}-${productCode}-${v.variationOptionIds
-                  .map((optId) => indexedVariationOptions[optId].code)
+                  .filter((optId) => optId > 0)
+                  .map((optId) => indexedVariationOptions[optId]?.code)
+                  .filter(Boolean)
                   .join("-")}`
             )
          ),
       [productVariants, productForm, selectedCategoryDetails, indexedVariationOptions]
+   );
+
+   const computeSku = useCallback(
+      (variationOptionIds: number[]) => {
+         const productCode = productForm.getValues("code") || "";
+         return `${selectedCategoryDetails?.code || ""}-${productCode}-${variationOptionIds
+            .filter((optId) => optId > 0)
+            .map((optId) => indexedVariationOptions[optId]?.code)
+            .filter(Boolean)
+            .join("-")}`;
+      },
+      [indexedVariationOptions, productForm, selectedCategoryDetails]
    );
 
    const updateVariantsAndAttributes = useCallback(
@@ -274,7 +308,9 @@ export default function ProductForm({
          variants.forEach(
             (v) =>
             (v.sku = `${categoryDetails.code}-${productForm.watch("code")}-${v.variationOptionIds
-               .map((optId) => indexedVariationOptions[optId].code)
+               .filter((optId) => optId > 0)
+               .map((optId) => indexedVariationOptions[optId]?.code)
+               .filter(Boolean)
                .join("-")}`)
          );
          productForm.setValue("variants", variants);
@@ -287,6 +323,38 @@ export default function ProductForm({
          );
       },
       [productForm, indexedVariations, indexedVariationOptions]
+   );
+
+   const addEmptyVariantRow = useCallback(() => {
+      if (!selectedCategoryDetails) {
+         toast.error("Please select a category first.");
+         return;
+      }
+      const variationIds = getCategoryVariations(selectedCategoryDetails);
+      if (!variationIds.length) {
+         toast.error("Selected category has no variations.");
+         return;
+      }
+      const next = [
+         ...productForm.getValues("variants"),
+         {
+            sku: computeSku(variationIds.map(() => 0)),
+            price: 0,
+            quantityInStock: 0,
+            disabled: false,
+            variationOptionIds: variationIds.map(() => 0),
+         },
+      ];
+      productForm.setValue("variants", next, { shouldDirty: true });
+   }, [computeSku, productForm, selectedCategoryDetails]);
+
+   const removeVariantRow = useCallback(
+      (index: number) => {
+         const next = [...productForm.getValues("variants")];
+         next.splice(index, 1);
+         productForm.setValue("variants", next, { shouldDirty: true });
+      },
+      [productForm]
    );
 
    const handleOpenPicker = useCallback(() => {
@@ -405,7 +473,8 @@ export default function ProductForm({
    );
 
    return (
-      <Form {...productForm}>
+      <>
+         <Form {...productForm}>
          {/* Paste Banner — only in create mode when a copied product exists */}
          {mode === "create" && copiedProduct && !pasteApplied && (
             <div className="flex items-center gap-3 rounded-lg border px-4 py-3  mb-4">
@@ -652,6 +721,23 @@ export default function ProductForm({
                                     categories={categories}
                                     disabled={field.disabled}
                                     selectedCategoryNode={categoryDetailsMap.get(field.value)}
+                                    onAddCategory={() => {
+                                       setCategoryDialogParent(null);
+                                       addCategoryDialogRef.current?.open();
+                                    }}
+                                    onAddSubcategory={(parentNode) => {
+                                       const cached = categoryDetailsMap.get(parentNode.categoryId);
+                                       if (cached) {
+                                          setCategoryDialogParent(cached);
+                                          addCategoryDialogRef.current?.open();
+                                          return;
+                                       }
+                                       fetchCategoryDetails(parentNode.categoryId).onSuccess((res) => {
+                                          const details = registerCategoryDetails(res);
+                                          setCategoryDialogParent(details);
+                                          addCategoryDialogRef.current?.open();
+                                       });
+                                    }}
                                     onSelect={(node) => {
                                        if (categoryDetailsMap.has(node.categoryId)) {
                                           field.onChange(node.categoryId);
@@ -750,7 +836,13 @@ export default function ProductForm({
                <Separator />
 
                <div className="space-y-4">
-                  <Label>Product Variants</Label>
+                  <div className="flex items-center justify-between gap-3">
+                     <Label>Product Variants</Label>
+                     <Button type="button" variant="outline" size="sm" disabled={loading || !categoryVariationIds.length} onClick={addEmptyVariantRow}>
+                        <Plus className="h-4 w-4" />
+                        Add Variant
+                     </Button>
+                  </div>
                   {categoryVariationIds.length ? (
                      <div data-slot="table-container" className="relative w-full overflow-x-auto">
                         <Table className="border-separate border-spacing-0 border rounded-md overflow-hidden">
@@ -766,15 +858,46 @@ export default function ProductForm({
                                  <TableHead className="border-b min-w-24 w-[15%]">Price</TableHead>
                                  <TableHead className="border-b min-w-24 w-[15%]">Stock</TableHead>
                                  <TableHead className="border-b">Disabled</TableHead>
+                                 <TableHead className="border-b w-[1%]"></TableHead>
                               </TableRow>
                            </TableHeader>
                            <TableBody>
                               {productVariants.map((variant, index) => (
                                  <TableRow key={index}>
                                     <TableCell>{index + 1}</TableCell>
-                                    {variant.variationOptionIds.map((optId) => (
-                                       <TableCell key={optId}>{indexedVariationOptions[optId].name}</TableCell>
-                                    ))}
+                                    {categoryVariationIds.map((variationId, colIndex) => {
+                                       const currentOptId = variant.variationOptionIds?.[colIndex] ?? 0;
+                                       const options = indexedVariations[variationId]?.variationOptions || [];
+                                       return (
+                                          <TableCell key={`${variationId}-${colIndex}`}>
+                                             <Select
+                                                disabled={loading}
+                                                value={currentOptId ? String(currentOptId) : ""}
+                                                onValueChange={(value) => {
+                                                   const nextOptId = Number(value);
+                                                   const nextVariant = { ...productForm.getValues(`variants.${index}`) };
+                                                   const nextOptionIds = [...(nextVariant.variationOptionIds || [])];
+                                                   while (nextOptionIds.length < categoryVariationIds.length) nextOptionIds.push(0);
+                                                   nextOptionIds[colIndex] = nextOptId;
+                                                   nextVariant.variationOptionIds = nextOptionIds;
+                                                   nextVariant.sku = computeSku(nextOptionIds);
+                                                   productForm.setValue(`variants.${index}`, nextVariant as any, { shouldDirty: true, shouldValidate: true });
+                                                }}
+                                             >
+                                                <SelectTrigger className="min-w-36">
+                                                   <SelectValue placeholder="Select" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                   {options.map((o) => (
+                                                      <SelectItem key={o.variationOptionId} value={String(o.variationOptionId)}>
+                                                         {o.name}
+                                                      </SelectItem>
+                                                   ))}
+                                                </SelectContent>
+                                             </Select>
+                                          </TableCell>
+                                       );
+                                    })}
                                     <TableCell>
                                        <FormField
                                           disabled={loading}
@@ -854,6 +977,18 @@ export default function ProductForm({
                                           )}
                                        />
                                     </TableCell>
+                                    <TableCell>
+                                       <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-8 w-8"
+                                          disabled={loading}
+                                          onClick={() => removeVariantRow(index)}
+                                       >
+                                          <Trash2 className="h-4 w-4" />
+                                       </Button>
+                                    </TableCell>
                                  </TableRow>
                               ))}
                            </TableBody>
@@ -916,6 +1051,59 @@ export default function ProductForm({
             </Button>
          </form>
       </Form>
+
+      <Dialog ref={addCategoryDialogRef}>
+         <DialogContent className="gap-6" aria-describedby="">
+            <DialogHeader>
+               <DialogTitle>
+                  {categoryDialogParent ? `Add subcategory under: ${categoryDialogParent.name}` : `Add Category`}
+               </DialogTitle>
+            </DialogHeader>
+            {categoryDialogParent && (
+               <div className="text-sm text-muted-foreground">
+                  Parent:{" "}
+                  {(() => {
+                     const parts: string[] = [];
+                     let current: CategoryData | undefined = categoryDialogParent;
+                     while (current) {
+                        parts.unshift(current.name);
+                        current = current.parentCategory;
+                     }
+                     return parts.join(" > ");
+                  })()}
+               </div>
+            )}
+            <AddCategoryForm
+               parentCategory={categoryDialogParent}
+               variations={variations}
+               attributes={attributes}
+               loading={createCategory.isLoading}
+               onAdd={(data) => {
+                  const payload: CategoryDTO = {
+                     ...data,
+                     ...(categoryDialogParent ? { parentCategoryId: categoryDialogParent.categoryId } : {}),
+                  };
+
+                  createCategory.request(payload).onSuccess((res) => {
+                     dispatch(fetchCategories());
+                     addCategoryDialogRef.current?.close();
+                     // Select the newly created category if possible
+                     if (res?.categoryId) {
+                        fetchCategoryDetails(res.categoryId).onSuccess((categoryDetails) => {
+                           const details = registerCategoryDetails(categoryDetails);
+                           productForm.setValue("categoryId", details.categoryId, { shouldDirty: true });
+                           updateVariantsAndAttributes(details);
+                        });
+                     }
+                     toast.success("Category created successfully!");
+                  });
+               }}
+               manageVariations={() => router.push("/admin/variations")}
+               manageAttributes={() => router.push("/admin/attributes")}
+            />
+         </DialogContent>
+      </Dialog>
+      </>
    );
 }
 

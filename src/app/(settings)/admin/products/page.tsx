@@ -5,6 +5,7 @@ import { Star, MoreVertical, Copy, Pencil, Trash2, ToggleLeft, ToggleRight } fro
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -233,7 +234,14 @@ export default function ProductsPage() {
             ) : productsData.data?.map((product, index) => (
                 <div key={index} className="relative">
                     <Link className="block w-full" href={`/admin/products/product-form/${product.productId}`}>
-                        <div className="rounded-md border overflow-hidden shadow-sm hover:shadow-md transition relative w-full">
+                        <div
+                            className={[
+                                "rounded-md border overflow-hidden shadow-sm transition relative w-full",
+                                product.status === false
+                                    ? "opacity-80"
+                                    : "hover:shadow-md",
+                            ].join(" ")}
+                        >
                             <Button
                                 size="icon"
                                 variant="secondary"
@@ -244,13 +252,24 @@ export default function ProductsPage() {
                             </Button>
 
                             {/* Image */}
-                            <Image
-                                src={product.imageUrl || placeholderImage}
-                                alt={product.title}
-                                width={210}
-                                height={200}
-                                className="w-full h-auto aspect-square object-cover"
-                            />
+                            <div className={["relative", product.status === false ? "grayscale" : ""].join(" ")}>
+                                <Image
+                                    src={product.imageUrl || placeholderImage}
+                                    alt={product.title}
+                                    width={210}
+                                    height={200}
+                                    className="w-full h-auto aspect-square object-cover"
+                                />
+
+                                {product.status === false && (
+                                    <>
+                                        <div className="absolute inset-0 bg-black/30" />
+                                        <Badge className="absolute top-2 left-2 bg-black text-white border border-white/20">
+                                            Deactivated
+                                        </Badge>
+                                    </>
+                                )}
+                            </div>
 
                             <div className="p-2 flex">
                                 <div className="flex-1 pt-2">

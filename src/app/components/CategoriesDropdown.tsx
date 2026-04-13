@@ -1,6 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuPortal, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuPortal, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { CategoryTree } from "@/types/domains/category";
 import { ChevronRight, ChevronsUpDown } from "lucide-react";
 import React from "react";
@@ -38,11 +38,20 @@ function renderCategoryDropdown(category: CategoryTree, parentCategory: Category
     </div>
 };
 
-export default function CategoriesDropdown({ disabled = false, categories, selectedCategoryNode, onSelect }: {
+export default function CategoriesDropdown({
+    disabled = false,
+    categories,
+    selectedCategoryNode,
+    onSelect,
+    onAddCategory,
+    onAddSubcategory
+}: {
     disabled?: boolean;
     categories: CategoryTree[];
     selectedCategoryNode: CategoryDropdownNode | undefined;
     onSelect: (id: CategoryDropdownNode) => void;
+    onAddCategory?: () => void;
+    onAddSubcategory?: (parent: CategoryDropdownNode) => void;
 }) {
     const selectedCategory = getParentStack(selectedCategoryNode);
 
@@ -68,6 +77,18 @@ export default function CategoriesDropdown({ disabled = false, categories, selec
             </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
+            {/* Optional quick actions */}
+            {onAddCategory && (
+                <DropdownMenuItem onClick={onAddCategory} className="font-medium">
+                    + Add Category
+                </DropdownMenuItem>
+            )}
+            {onAddSubcategory && selectedCategoryNode && (
+                <DropdownMenuItem onClick={() => onAddSubcategory(selectedCategoryNode)} className="font-medium">
+                    + Add subcategory under: {selectedCategoryNode.name}
+                </DropdownMenuItem>
+            )}
+            {(onAddCategory || (onAddSubcategory && selectedCategoryNode)) && <DropdownMenuSeparator />}
             {categories.map(cat => renderCategoryDropdown(cat, undefined, node => {
                 if (node.categoryId === selectedCategoryNode?.categoryId)
                     return;
