@@ -1,109 +1,56 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 
-const slides = [
-  {
-    id: 1,
-    title: "LATEST ITEMS",
-    subtitle: "Running Out Fast Items, Catch Them with Advantageous Prices!",
-    image: "https://i.pinimg.com/736x/52/d5/d7/52d5d71d07a1d93cea79de873fcd8777.jpg",
-    link: "/shop/latest",
-  },
-  {
-    id: 2,
-    title: "NEW ARRIVALS",
-    subtitle: "Discover Trendy Collections Before They’re Gone!",
-    image: "/images/product2.jpg",
-    link: "/shop/new",
-  },
-  {
-    id: 3,
-    title: "MEGA SALE",
-    subtitle: "Exclusive Discounts On Top Categories — Limited Time Only!",
-    image: "/images/product3.jpg",
-    link: "/shop/sale",
-  },
-];
+const HERO_LEFT =
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuC84UWnQ9TTXJj0iVO0xX63Kip-_UqcfyVRnailflVn50Zd-y8rNYm99ytqKWFLoNqmQsWl70fP-12Tb58JLkxmEguQS4JHHBQ6I-1R_5UQCRh7FOFNb2z7TwRl2XFMrVtQjZFZULWEgp4ZSnlPjk0Er64RJPFw5gFLUn8E34F9qxJpKAWXAIM-0gp1jXwaCgc_hATupWxBC6qnX-Pcf35zkeT2--Gk6a6UUR9VSO3RNefu093I1Wr8lXtPNahh0iNtAPf0DGNUglU";
+
+const HERO_RIGHT =
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuDT2mxfqyKBne6ZkgeS8tnatrp73Uglh2_P3Q22SiAMd1pHaQ34bdpJIMVGp0snHbz3SZnhYWUG_kuWAhhnI_uroL_dUe4DQcp65pb9O2g24zTeFebZXZM_sEPL6eNxBXn0_b0gzl71W3VmQJZi2vfA9ei4HmIFaNUiZT3J6xc6_DhC4iA90560m4dj1j3sN1CcPQ9myT3GduRqMJ_BQUiur0kXiFMgGJ0vbLKNtO185spwfJRvpVl2eFgB5ONtAylvr_k90zfIkrU";
 
 const Banner = () => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % slides.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const prevSlide = () => {
-    setCurrentIndex((prev) => (prev - 1 + slides.length) % slides.length);
-  };
-
-  const nextSlide = () => {
-    setCurrentIndex((prev) => (prev + 1) % slides.length);
-  };
-
-  const { title, subtitle } = slides[currentIndex];
-
   return (
-    <section
-      className="relative w-full h-[420px] sm:h-[520px] lg:h-[600px] flex items-center justify-center bg-cover bg-center overflow-hidden"
-      style={{
-        backgroundImage: `url('https://i.pinimg.com/1200x/26/81/20/2681206974358cd48f2327bc0665dc20.jpg')`,
-      }}
-    >
-      <div className="responsive-container">
-        <div
-          key={currentIndex}
-          className="flex-1 max-w-2xl opacity-0 scale-90 
-                     animate-[fadeZoomCenter_0.8s_ease-in-out_forwards]"
-        >
-          <h2 className="text-3xl sm:text-5xl lg:text-6xl font-poppins text-amber-700 font-bold mb-4 sm:mb-6">
-            {title}
-          </h2>
-          <h3 className="text-lg sm:text-2xl lg:text-3xl font-poppins font-light mb-4 sm:mb-6 leading-tight">
-            {subtitle}
-          </h3>
-          <Button
-            variant="ghost"
-            className="w-40 hover:bg-black rounded-full my-3 sm:my-4 text-black hover:text-white border p-4 border-black"
-          >
-            Explore Now <ArrowRight className="ml-1 h-5 w-5" />
-          </Button>
+    <section className="relative min-h-[520px] md:min-h-[700px] lg:min-h-[800px] flex items-center overflow-hidden bg-stone-100">
+      <div className="absolute inset-0 flex flex-col md:flex-row">
+        <div className="relative h-56 sm:h-64 md:h-full md:w-1/2 overflow-hidden shrink-0">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            alt="Minimalist decor and sculpture in soft light"
+            src={HERO_LEFT}
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <div className="relative flex-1 md:w-1/2 min-h-[240px] md:min-h-0">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            alt="Luxury living space with neutral tones"
+            src={HERO_RIGHT}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-black/10" aria-hidden />
         </div>
       </div>
-      
-      <div className="responsive-container absolute bottom-5 sm:bottom-8 left-0 right-0 flex items-center justify-between px-4 sm:px-6">
-        <div className="flex items-center space-x-2 text-white">
-          <span className="text-lg font-bold">
-            {String(currentIndex + 1).padStart(2, "0")}
+
+      <div className="relative z-10 w-full max-w-[1536px] mx-auto px-5 sm:px-8 md:px-12 py-10 md:py-16">
+        <div className="bg-white/85 backdrop-blur-md p-8 md:p-12 lg:p-16 max-w-2xl shadow-[0_20px_40px_rgba(78,70,57,0.06)]">
+          <span className="font-medium text-[11px] sm:text-xs tracking-[0.25em] uppercase text-amber-900 mb-4 sm:mb-6 block">
+            New Arrivals / Autumn 24
           </span>
-          <div className="w-16 h-0.5 bg-white"></div>
-          <span className="text-lg text-gray-300">
-            {String(slides.length).padStart(2, "0")}
-          </span>
-        </div>
-        <div className="flex space-x-2">
+          <h1 className="font-semibold text-4xl sm:text-5xl md:text-6xl lg:text-7xl tracking-tight text-stone-900 leading-[1.1] mb-6 md:mb-8">
+            The KAVENGO
+            <br />
+            Signature
+          </h1>
+          <p className="text-base sm:text-lg text-stone-600 leading-relaxed mb-8 md:mb-10 max-w-lg">
+            Elevating contemporary living through a meticulously curated collection of
+            artisanal artifacts and luxury home decor.
+          </p>
           <Button
-            variant="ghost"
-            size="icon"
-            onClick={prevSlide}
-            className="bg-white/20 hover:bg-white/40 text-white rounded-full 
-                       transition-transform duration-300 hover:scale-110"
+            asChild
+            className="rounded-full bg-amber-900 text-white hover:bg-amber-800 px-8 sm:px-10 py-5 h-auto text-xs tracking-[0.2em] uppercase font-semibold"
           >
-            <ChevronLeft className="h-5 w-5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={nextSlide}
-            className="bg-white/20 hover:bg-white/40 text-white rounded-full 
-                       transition-transform duration-300 hover:scale-110"
-          >
-            <ChevronRight className="h-5 w-5" />
+            <Link href="/products">Explore Now</Link>
           </Button>
         </div>
       </div>

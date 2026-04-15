@@ -1,5 +1,5 @@
 import './globals.css';
-import { Inter } from 'next/font/google';
+import { Inter, Plus_Jakarta_Sans } from 'next/font/google';
 import { Metadata } from "next";
 import ReduxProvider from './ReduxProvider';
 import { AppGateway } from './AppGateway';
@@ -10,7 +10,12 @@ export const metadata: Metadata = {
     description: "Your one-stop shop for all your needs",
 };
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+const plusJakarta = Plus_Jakarta_Sans({
+    subsets: ['latin'],
+    variable: '--font-headline',
+    weight: ['400', '600', '700', '800'],
+});
 
 export default function RootLayout({
     children,
@@ -19,7 +24,10 @@ export default function RootLayout({
 }) {
     return (
         <html lang="en">
-            <body className={`${inter.className} overflow-x-hidden`} style={{ width: '100vw' }}>
+            <body
+                className={`${inter.variable} ${plusJakarta.variable} ${inter.className} overflow-x-hidden`}
+                style={{ width: '100vw' }}
+            >
                 <NextTopLoader
                     color="#000"
                     initialPosition={0.08}

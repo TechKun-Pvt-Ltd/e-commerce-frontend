@@ -69,24 +69,24 @@ export const FeatureProducts = ({ products: productsProp = [] }: FeatureProducts
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <div className="mb-6">
                     <TabsList className="w-full bg-muted/50 rounded-full p-1 flex items-center justify-start gap-1 overflow-x-auto thin-scrollbar sm:grid sm:max-w-md sm:mx-auto sm:grid-cols-3 sm:overflow-x-visible">
-                    <TabsTrigger
-                        value="new"
-                        className="rounded-full cursor-pointer transition-all duration-300 ease-in-out font-medium data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm whitespace-nowrap text-xs sm:text-sm px-3 sm:px-5"
-                    >
-                        NEW
-                    </TabsTrigger>
-                    <TabsTrigger
-                        value="bestsellers"
-                        className="rounded-full cursor-pointer transition-all duration-300 ease-in-out font-medium data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm whitespace-nowrap text-xs sm:text-sm px-3 sm:px-5"
-                    >
-                        BEST SELLERS
-                    </TabsTrigger>
-                    <TabsTrigger
-                        value="discounted"
-                        className="rounded-full cursor-pointer transition-all duration-300 ease-in-out font-medium data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm whitespace-nowrap text-xs sm:text-sm px-3 sm:px-5"
-                    >
-                        DISCOUNTED
-                    </TabsTrigger>
+                        <TabsTrigger
+                            value="new"
+                            className="rounded-full cursor-pointer transition-all duration-300 ease-in-out font-medium data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm whitespace-nowrap text-xs sm:text-sm px-3 sm:px-5"
+                        >
+                            NEW
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="bestsellers"
+                            className="rounded-full cursor-pointer transition-all duration-300 ease-in-out font-medium data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm whitespace-nowrap text-xs sm:text-sm px-3 sm:px-5"
+                        >
+                            BEST SELLERS
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="discounted"
+                            className="rounded-full cursor-pointer transition-all duration-300 ease-in-out font-medium data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm whitespace-nowrap text-xs sm:text-sm px-3 sm:px-5"
+                        >
+                            DISCOUNTED
+                        </TabsTrigger>
                     </TabsList>
                 </div>
 
