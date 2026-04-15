@@ -881,7 +881,11 @@ export default function ProductForm({
                                                    nextOptionIds[colIndex] = nextOptId;
                                                    nextVariant.variationOptionIds = nextOptionIds;
                                                    nextVariant.sku = computeSku(nextOptionIds);
-                                                   productForm.setValue(`variants.${index}`, nextVariant as any, { shouldDirty: true, shouldValidate: true });
+                                                   productForm.setValue(
+                                                      `variants.${index}`,
+                                                      nextVariant as ProductFormData["variants"][number],
+                                                      { shouldDirty: true, shouldValidate: true }
+                                                   );
                                                 }}
                                              >
                                                 <SelectTrigger className="min-w-36">
