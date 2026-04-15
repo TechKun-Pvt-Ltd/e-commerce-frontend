@@ -9,7 +9,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Tags, LogOut, MoreVerticalIcon, Shapes, SlidersHorizontal, Package, LayoutDashboard, Percent, ShipWheelIcon, Truck, CreditCardIcon } from "lucide-react"
+import { Tags, LogOut, MoreVerticalIcon, Shapes, SlidersHorizontal, Package, LayoutDashboard, Percent, ShipWheelIcon, Truck, CreditCardIcon, TableIcon } from "lucide-react"
 import Link from "next/link";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -39,13 +39,22 @@ const items = [
             {
                 title: "New Product",
                 url: "/admin/products/product-form"
+            },
+            {
+                title: "Bulk Upload",
+                url: "/admin/products/bulk-upload"
             }
         ]
     },
     {
+        title: "Bulk Upload",
+        url: "/admin/products/bulk-upload",
+        icon: TableIcon
+    },
+    {
         title: "Categories",
         url: "/admin/categories",
-        icon: Tags  // Tags icon represents categories/taxonomy
+        icon: Tags
     },
     {
         title: "Variations",
