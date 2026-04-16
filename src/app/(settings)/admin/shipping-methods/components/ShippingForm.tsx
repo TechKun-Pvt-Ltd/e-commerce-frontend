@@ -9,6 +9,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ShippingMethodDTO } from "@/types/domains/shipping_method";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { COUNTRY_OPTIONS, normalizeStoredCountryCode } from "@/lib/countries";
 import { Minus, Plus } from "lucide-react";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { ControllerFieldState, ControllerRenderProps, useForm, UseFormStateReturn } from "react-hook-form";
@@ -56,13 +57,11 @@ const defaultFieldValues = {
 
 type FieldValues = z.infer<typeof shippingSchema>;
 
-const countries = [
-    "US", "CA", "UK", "NZ", "JP", "AU", "IN", "BR", "MX", 
-    "DE", "FR", "IT", "ES", "NL", "SE", "NO", "DK", "FI",
-    "AE", "SA", "TR", "KR", "SG", "MY", "TH", "VN", "PH",
-    "CN", "HK", "TW", "ID", "BD", "PK", "LK", "NP", "AF",
-    "IE", "KW"
-];
+/** Compact country picker: smaller box, default text size. */
+const countrySelectTriggerClass =
+    "h-8 w-full max-w-[9rem] px-2 text-sm gap-1 [&_svg:not([class*='size-'])]:size-4";
+const countrySelectContentClass = "max-h-48";
+const countrySelectItemClass = "py-1";
 
 export default function ShippingForm({
     shippingMethod,
@@ -76,14 +75,14 @@ export default function ShippingForm({
     const firstRender = useRef(true);
     const defaultValues = useMemo(() => shippingMethod ? {
         name: shippingMethod.name || "",
-        originCountry: shippingMethod.originCountry || "",
+        originCountry: normalizeStoredCountryCode(shippingMethod.originCountry),
         originPostalCode: shippingMethod.originPostalCode || "",
         processingTimeMin: shippingMethod.processingTimeMin ?? 1,
         processingTimeMax: shippingMethod.processingTimeMax ?? 3,
         shippingOptions: shippingMethod.shippingOptions.map((opt, i) => ({
             id: opt.id,
             key: i,
-            destinationCountry: opt.destinationCountry || "",
+            destinationCountry: normalizeStoredCountryCode(opt.destinationCountry),
             carrier: opt.carrier || "",
             costFirstItem: opt.costFirstItem ?? 0,
             costAdditionalItem: opt.costAdditionalItem ?? 0,
@@ -111,13 +110,13 @@ export default function ShippingForm({
                     value={field.value || ""}
                     onValueChange={field.onChange}
                 >
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className={countrySelectTriggerClass}>
                         <SelectValue placeholder="Country" />
                     </SelectTrigger>
-                    <SelectContent>
-                        {countries.map((country) => (
-                            <SelectItem key={country} value={country}>
-                                {country}
+                    <SelectContent className={countrySelectContentClass}>
+                        {COUNTRY_OPTIONS.map(({ value, label }) => (
+                            <SelectItem key={value} value={value} className={countrySelectItemClass}>
+                                {label}
                             </SelectItem>
                         ))}
                     </SelectContent>
@@ -257,13 +256,13 @@ export default function ShippingForm({
                                         value={field.value || ""}
                                         onValueChange={field.onChange}
                                     >
-                                        <SelectTrigger>
+                                        <SelectTrigger className={countrySelectTriggerClass}>
                                             <SelectValue placeholder="Select origin country" />
                                         </SelectTrigger>
-                                        <SelectContent>
-                                            {countries.map((country) => (
-                                                <SelectItem key={country} value={country}>
-                                                    {country}
+                                        <SelectContent className={countrySelectContentClass}>
+                                            {COUNTRY_OPTIONS.map(({ value, label }) => (
+                                                <SelectItem key={value} value={value} className={countrySelectItemClass}>
+                                                    {label}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
