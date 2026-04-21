@@ -153,6 +153,7 @@ export default function ProductCard({ product, promo }: { product: ProductPrevie
                   alt={product.title}
                   fill
                   sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  quality={90}
                   className={[
                      "object-cover transition-transform duration-300",
                      isInactive ? "" : "group-hover:scale-[1.03]",

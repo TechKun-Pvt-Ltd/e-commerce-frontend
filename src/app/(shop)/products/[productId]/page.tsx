@@ -435,6 +435,8 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
                                 alt={product.title}
                                 width={100}
                                 height={100}
+                                sizes="(max-width: 1024px) 100vw, 50vw"
+                                quality={95}
                                 className="w-full h-full object-cover"
                             />
                         ) : (
@@ -455,6 +457,8 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
                                     alt={`Thumbnail ${index + 1}`}
                                     width={100}
                                     height={100}
+                                    sizes="100px"
+                                    quality={90}
                                     className="w-full h-full object-cover"
                                 />
                             </button>
