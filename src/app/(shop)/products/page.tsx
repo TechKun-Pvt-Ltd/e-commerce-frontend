@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import React, { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
@@ -11,11 +10,12 @@ import * as categoryServices from "@/services/category";
 function ProductsContent() {
     const searchParams = useSearchParams();
     const allCategories = useDataFetch(categoryServices.getAllCategories);
+    const { request: fetchAllCategories } = allCategories;
     const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
 
     useEffect(() => {
-        allCategories.request();
-    }, []);
+        fetchAllCategories();
+    }, [fetchAllCategories]);
 
     // NOTE: We intentionally do NOT auto-apply category from URL.
     // UX requirement: show ALL products first, then filter only after user selects a category.
@@ -25,7 +25,6 @@ function ProductsContent() {
         if (!searchParams.get("categoryId")) {
             setSelectedCategoryId(null);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams]);
 
     const categoriesData = allCategories.data;

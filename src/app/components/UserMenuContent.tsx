@@ -41,7 +41,7 @@ export default function UserMenuContent() {
                     try {
                         await dispatch(logout()).unwrap();
                         toast.success("Logged out", { id: t });
-                    } catch (e) {
+                    } catch {
                         toast.error("Logout failed", { id: t });
                     } finally {
                         setIsLoggingOut(false);

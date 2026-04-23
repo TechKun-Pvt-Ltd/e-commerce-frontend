@@ -9,6 +9,14 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { CategoryTree } from "@/types/domains/category";
 
+const normalizeRange = (raw: [number, number]): [number, number] => {
+    const min = Number.isFinite(raw[0]) ? raw[0] : 0;
+    const max = Number.isFinite(raw[1]) ? raw[1] : 0;
+    const a = Math.max(0, Math.min(100000, Math.round(min)));
+    const b = Math.max(0, Math.min(100000, Math.round(max)));
+    return a <= b ? [a, b] : [b, a];
+};
+
 interface FilterSidebarProps {
     categories: CategoryTree[];
     onCategoryChange: (categoryId: number | null) => void;
@@ -35,14 +43,6 @@ const FilterSidebar = ({
         price: true,
     });
 
-    const normalizeRange = (raw: [number, number]): [number, number] => {
-        const min = Number.isFinite(raw[0]) ? raw[0] : 0;
-        const max = Number.isFinite(raw[1]) ? raw[1] : 0;
-        const a = Math.max(0, Math.min(100000, Math.round(min)));
-        const b = Math.max(0, Math.min(100000, Math.round(max)));
-        return a <= b ? [a, b] : [b, a];
-    };
-
     // Sync internal state with prop when it changes
     useEffect(() => {
         if (selectedCategoryIdProp !== undefined) {
@@ -55,19 +55,19 @@ const FilterSidebar = ({
         if (priceRangeProp) {
             setPriceRange(priceRangeProp);
         }
-    }, [priceRangeProp?.[0], priceRangeProp?.[1]]);
+    }, [priceRangeProp]);
 
     // Read price params from URL (deep-link / refresh)
     useEffect(() => {
         const minParam = searchParams.get("minPrice");
         const maxParam = searchParams.get("maxPrice");
         if (minParam == null && maxParam == null) return;
-        const min = minParam != null ? Number(minParam) : (priceRangeProp?.[0] ?? priceRange[0]);
-        const max = maxParam != null ? Number(maxParam) : (priceRangeProp?.[1] ?? priceRange[1]);
-        const next = normalizeRange([min, max]);
-        setPriceRange(next);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchParams]);
+        setPriceRange((prev) => {
+            const min = minParam != null ? Number(minParam) : (priceRangeProp?.[0] ?? prev[0]);
+            const max = maxParam != null ? Number(maxParam) : (priceRangeProp?.[1] ?? prev[1]);
+            return normalizeRange([min, max]);
+        });
+    }, [searchParams, priceRangeProp]);
 
     const toggleSection = (section: keyof typeof openSections) => {
         setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
