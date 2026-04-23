@@ -17,20 +17,15 @@ function ProductsContent() {
         allCategories.request();
     }, []);
 
-    // Read category from query params and set it as initial selected category
+    // NOTE: We intentionally do NOT auto-apply category from URL.
+    // UX requirement: show ALL products first, then filter only after user selects a category.
     useEffect(() => {
-        const categoryIdParam = searchParams.get('categoryId');
-        if (categoryIdParam) {
-            const categoryId = parseInt(categoryIdParam, 10);
-            if (!isNaN(categoryId)) {
-                setSelectedCategoryId(categoryId);
-            } else {
-                setSelectedCategoryId(null);
-            }
-        } else {
-            // If no categoryId in URL, set to null
+        // Still react to navigation by clearing selection when user lands fresh on /products
+        // (but keep current selection if user is already interacting).
+        if (!searchParams.get("categoryId")) {
             setSelectedCategoryId(null);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams]);
 
     const categoriesData = allCategories.data;

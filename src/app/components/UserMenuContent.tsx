@@ -1,6 +1,6 @@
 "use client";
 import React from 'react';
-import { LogIn, UserPlus2Icon, Package, CircleUserRoundIcon, LogOut } from "lucide-react"
+import { LogIn, UserPlus2Icon, Package, CircleUserRoundIcon, LogOut, Loader2 } from "lucide-react"
 import {
     DropdownMenuItem,
     DropdownMenuLabel,
@@ -9,10 +9,12 @@ import {
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import Link from 'next/link';
 import { logout } from '@/store/slices/authSlice';
+import { toast } from "sonner";
 
 export default function UserMenuContent() {
     const dispatch = useAppDispatch();
     const { authenticated } = useAppSelector(state => state.auth);
+    const [isLoggingOut, setIsLoggingOut] = React.useState(false);
 
     return authenticated ? (
         <>
@@ -30,9 +32,24 @@ export default function UserMenuContent() {
                 </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => dispatch(logout())}>
-                <LogOut />
-                Logout
+            <DropdownMenuItem
+                disabled={isLoggingOut}
+                onClick={async () => {
+                    if (isLoggingOut) return;
+                    setIsLoggingOut(true);
+                    const t = toast.loading("Logging out...");
+                    try {
+                        await dispatch(logout()).unwrap();
+                        toast.success("Logged out", { id: t });
+                    } catch (e) {
+                        toast.error("Logout failed", { id: t });
+                    } finally {
+                        setIsLoggingOut(false);
+                    }
+                }}
+            >
+                {isLoggingOut ? <Loader2 className="animate-spin" /> : <LogOut />}
+                {isLoggingOut ? "Logging out..." : "Logout"}
             </DropdownMenuItem>
         </>
     ) : (

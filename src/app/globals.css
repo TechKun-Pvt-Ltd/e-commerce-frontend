@@ -166,27 +166,27 @@
 
 .responsive-container {
   width: 100%;
-  max-width: 1500px; /* You can adjust the maximum width based on your design */
-  margin: 0 auto; /* Center the container */
-  padding-inline: 80px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding-inline: clamp(1rem, 3vw, 3rem);
 
   @media only screen and (min-width: 1920px) and (max-width: 2560px) {
-    padding-inline: 80px;
+    padding-inline: clamp(2rem, 3vw, 3.5rem);
   }
   @media only screen and (min-width: 1440px) and (max-width: 1919px) {
-    padding-inline: 70px;
+    padding-inline: clamp(1.5rem, 2.5vw, 3rem);
   }
 
-  @media only screen and (min-width: 1280px) and (max-width: 1441px) {
-    padding-inline: 100px;
+  @media only screen and (min-width: 1280px) and (max-width: 1439px) {
+    padding-inline: clamp(1.25rem, 2vw, 2.5rem);
   }
 
   @media only screen and (min-width: 767px) and (max-width: 1279px) {
-    padding-inline: 50px;
+    padding-inline: clamp(1.25rem, 4vw, 2rem);
   }
 
   @media only screen and (min-width: 100px) and (max-width: 767px) {
-    padding-inline: 20px;
+    padding-inline: 1rem;
   }
 }
 
@@ -198,6 +198,18 @@
   100% {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+@keyframes progress {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(300%);
   }
 }
 

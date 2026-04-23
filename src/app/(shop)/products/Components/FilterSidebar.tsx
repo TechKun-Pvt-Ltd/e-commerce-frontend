@@ -13,18 +13,35 @@ interface FilterSidebarProps {
     categories: CategoryTree[];
     onCategoryChange: (categoryId: number | null) => void;
     selectedCategoryId?: number | null;
+    priceRange?: [number, number];
+    onPriceRangeChange?: (range: [number, number]) => void;
 }
 
-const FilterSidebar = ({ categories, onCategoryChange, selectedCategoryId: selectedCategoryIdProp }: FilterSidebarProps) => {
+const FilterSidebar = ({
+    categories,
+    onCategoryChange,
+    selectedCategoryId: selectedCategoryIdProp,
+    priceRange: priceRangeProp,
+    onPriceRangeChange,
+}: FilterSidebarProps) => {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const [priceRange, setPriceRange] = useState([0, 100000]);
+    // Draft state (user adjusts UI), applied only on "Apply Filters"
+    const [priceRange, setPriceRange] = useState<[number, number]>(priceRangeProp ?? [0, 100000]);
     const [categorySearch, setCategorySearch] = useState("");
     const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(selectedCategoryIdProp || null);
     const [openSections, setOpenSections] = useState({
         category: true,
         price: true,
     });
+
+    const normalizeRange = (raw: [number, number]): [number, number] => {
+        const min = Number.isFinite(raw[0]) ? raw[0] : 0;
+        const max = Number.isFinite(raw[1]) ? raw[1] : 0;
+        const a = Math.max(0, Math.min(100000, Math.round(min)));
+        const b = Math.max(0, Math.min(100000, Math.round(max)));
+        return a <= b ? [a, b] : [b, a];
+    };
 
     // Sync internal state with prop when it changes
     useEffect(() => {
@@ -33,26 +50,56 @@ const FilterSidebar = ({ categories, onCategoryChange, selectedCategoryId: selec
         }
     }, [selectedCategoryIdProp]);
 
+    // Sync internal price range with prop when it changes
+    useEffect(() => {
+        if (priceRangeProp) {
+            setPriceRange(priceRangeProp);
+        }
+    }, [priceRangeProp?.[0], priceRangeProp?.[1]]);
+
+    // Read price params from URL (deep-link / refresh)
+    useEffect(() => {
+        const minParam = searchParams.get("minPrice");
+        const maxParam = searchParams.get("maxPrice");
+        if (minParam == null && maxParam == null) return;
+        const min = minParam != null ? Number(minParam) : (priceRangeProp?.[0] ?? priceRange[0]);
+        const max = maxParam != null ? Number(maxParam) : (priceRangeProp?.[1] ?? priceRange[1]);
+        const next = normalizeRange([min, max]);
+        setPriceRange(next);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchParams]);
+
     const toggleSection = (section: keyof typeof openSections) => {
         setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
     };
 
     const handleCategoryChange = (value: string) => {
-        // RadioGroup returns string, convert to number or null
+        // Category should apply immediately (no Apply button needed)
         const categoryId = value === "" ? null : parseInt(value, 10);
         setSelectedCategoryId(categoryId);
         onCategoryChange(categoryId);
 
-        // Update URL with categoryId query parameter
+        const params = new URLSearchParams(searchParams.toString());
         if (categoryId !== null) {
-            router.push(`/products?categoryId=${categoryId}`);
+            params.set("categoryId", String(categoryId));
         } else {
-            // Remove categoryId from URL if deselected
-            const params = new URLSearchParams(searchParams.toString());
-            params.delete('categoryId');
-            const newUrl = params.toString() ? `/products?${params.toString()}` : '/products';
-            router.push(newUrl);
+            params.delete("categoryId");
         }
+        const newUrl = params.toString() ? `/products?${params.toString()}` : "/products";
+        router.push(newUrl);
+    };
+
+    const applyFilters = () => {
+        const normalizedRange = normalizeRange(priceRange);
+        const params = new URLSearchParams(searchParams.toString());
+
+        params.set("minPrice", String(normalizedRange[0]));
+        params.set("maxPrice", String(normalizedRange[1]));
+
+        const newUrl = params.toString() ? `/products?${params.toString()}` : "/products";
+        router.push(newUrl);
+
+        onPriceRangeChange?.(normalizedRange);
     };
 
     // Recursively flatten all categories and subcategories for filtering
@@ -77,19 +124,19 @@ const FilterSidebar = ({ categories, onCategoryChange, selectedCategoryId: selec
             {/* Header */}
             <div className="flex items-center justify-between p-4 h-16 border-b border-gray-200">
                 <h2 className="font-medium text-gray-900">Filter</h2>
-                {selectedCategoryId !== null && (
+                {(priceRange[0] !== 0 || priceRange[1] !== 100000) && (
                     <Button
                         variant="outline"
                         size="sm"
                         onClick={() => {
-                            setSelectedCategoryId(null);
                             setPriceRange([0, 100000]);
-                            onCategoryChange(null);
-                            // Remove categoryId from URL
                             const params = new URLSearchParams(searchParams.toString());
-                            params.delete('categoryId');
+                            params.delete('minPrice');
+                            params.delete('maxPrice');
                             const newUrl = params.toString() ? `/products?${params.toString()}` : '/products';
                             router.push(newUrl);
+
+                            onPriceRangeChange?.([0, 100000]);
                         }}
                     >
                         Clear
@@ -162,7 +209,7 @@ const FilterSidebar = ({ categories, onCategoryChange, selectedCategoryId: selec
                             <div className="px-2">
                                 <Slider
                                     value={priceRange}
-                                    onValueChange={setPriceRange}
+                                    onValueChange={(v) => setPriceRange(normalizeRange([v[0], v[1]]))}
                                     max={100000}
                                     min={0}
                                     step={100}
@@ -170,28 +217,38 @@ const FilterSidebar = ({ categories, onCategoryChange, selectedCategoryId: selec
                                 />
                             </div>
                             <div className="flex items-center justify-between text-sm text-gray-600">
-                                <span>{priceRange[0]} SAR</span>
-                                <span>{priceRange[1]} SAR</span>
+                                <span>${priceRange[0]}</span>
+                                <span>${priceRange[1]}</span>
                             </div>
                             <div className="flex gap-2">
                                 <Input
                                     type="number"
                                     placeholder="0"
                                     value={priceRange[0]}
-                                    onChange={(e) => setPriceRange([parseInt(e.target.value) || priceRange[1]])}
+                                    onChange={(e) => {
+                                        const nextMin = e.target.value === "" ? 0 : Number(e.target.value);
+                                        setPriceRange(normalizeRange([nextMin, priceRange[1]]));
+                                    }}
                                     className="text-center text-sm"
                                 />
                                 <Input
                                     type="number"
                                     placeholder="100"
                                     value={priceRange[1]}
-                                    onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
+                                    onChange={(e) => {
+                                        const nextMax = e.target.value === "" ? 0 : Number(e.target.value);
+                                        setPriceRange(normalizeRange([priceRange[0], nextMax]));
+                                    }}
                                     className="text-center text-sm"
                                 />
                             </div>
                         </div>
                     )}
                 </div>
+
+                <Button className="w-full" onClick={applyFilters}>
+                    Apply Filters
+                </Button>
             </div>
         </div>
     );

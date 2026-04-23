@@ -18,7 +18,7 @@ setAutoFreeze(false);
 
 export function AppGateway({ children }: { children: React.ReactNode }) {
    const dispatch = useAppDispatch();
-   const { authenticated, user } = useAppSelector(state => state.auth);
+   const { authenticated, user, loading } = useAppSelector(state => state.auth);
    useEffect(() => {
       dispatch(getMyInformation());
       dispatch(fetchCategories());
@@ -38,6 +38,13 @@ export function AppGateway({ children }: { children: React.ReactNode }) {
 
    return (
       <TooltipProvider delayDuration={0}>
+         {loading && (
+            <div className="fixed left-0 top-0 z-[9999] w-full">
+               <div className="h-1 w-full overflow-hidden bg-primary/15">
+                  <div className="h-full w-1/3 animate-[progress_1.1s_ease-in-out_infinite] bg-primary" />
+               </div>
+            </div>
+         )}
          {children}
          <Toaster />
       </TooltipProvider>
