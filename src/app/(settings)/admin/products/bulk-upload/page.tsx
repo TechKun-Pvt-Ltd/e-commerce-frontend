@@ -354,6 +354,7 @@ async function resolveProducts(
                       code,
                       description: desc,
                       starred,
+                      status: true,
                       categoryId: categoryId!,
                       shippingMethodId: shippingMethodId ?? undefined,
                       images,
@@ -444,8 +445,8 @@ export default function BulkUploadPage() {
                 variations
             );
             setProducts(validated);
-        } catch (e: any) {
-            toast.error(e.message || "Unexpected error during validation.");
+        } catch (e: unknown) {
+            toast.error(e instanceof Error ? e.message : "Unexpected error during validation.");
         } finally {
             setIsValidating(false);
         }

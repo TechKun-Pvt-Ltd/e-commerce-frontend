@@ -41,18 +41,18 @@ export async function POST(req: NextRequest) {
 
         try {
             productsValues = await fetchTab(sheetId, "products", accessToken);
-        } catch (e: any) {
+        } catch (e: unknown) {
             return NextResponse.json(
-                { error: `Could not read "products" tab: ${e.message}` },
+                { error: `Could not read "products" tab: ${e instanceof Error ? e.message : "unknown error"}` },
                 { status: 400 }
             );
         }
 
         try {
             variantsValues = await fetchTab(sheetId, "variants", accessToken);
-        } catch (e: any) {
+        } catch (e: unknown) {
             return NextResponse.json(
-                { error: `Could not read "variants" tab: ${e.message}` },
+                { error: `Could not read "variants" tab: ${e instanceof Error ? e.message : "unknown error"}` },
                 { status: 400 }
             );
         }
@@ -61,9 +61,9 @@ export async function POST(req: NextRequest) {
             products: parseTab(productsValues),
             variants: parseTab(variantsValues),
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         return NextResponse.json(
-            { error: error.message || "Unexpected error reading sheet." },
+            { error: error instanceof Error ? error.message : "Unexpected error reading sheet." },
             { status: 500 }
         );
     }
