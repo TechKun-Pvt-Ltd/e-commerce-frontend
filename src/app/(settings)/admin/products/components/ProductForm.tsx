@@ -20,6 +20,7 @@ import { Attribute, AttributeType } from "@/types/domains/attribute";
 import { ShippingMethod } from "@/types/domains/shipping_method";
 import { extractConsonants } from "@/lib/utils";
 import Spinner from "@/components/ui/spinner";
+import { Skeleton } from "@/components/ui/skeleton";
 import { RequestFunction } from "@/hooks/use-data-fetch";
 import CategoriesDropdown from "@/app/components/CategoriesDropdown";
 import { ProductDetails } from "@/types/domains/product";
@@ -63,8 +64,8 @@ const productFormSchema = z
       ),
       attributes: z.array(
          z.object({
-            attributeId: z.number(),
-            value: z.string(),
+            attributeId: z.number().gt(0, "Please select an attribute."),
+            value: z.string().nonempty("Value is required."),
          })
       ),
    })
@@ -144,6 +145,9 @@ export default function ProductForm({
    });
    const firstRender = useRef(true);
    const [pasteApplied, setPasteApplied] = useState(false);
+   // In update mode the form is empty until product + category details both load.
+   // Track readiness so we can show skeletons instead of flashing empty state.
+   const [formPopulated, setFormPopulated] = useState(mode !== "update");
 
    // If user copied a new product, allow pasting again (don't get stuck hidden).
    useEffect(() => {
@@ -228,8 +232,12 @@ export default function ProductForm({
                   ...v,
                   variationOptionIds: Object.values(v.variantProperties || {}).map((opt) => opt.variationOptionId),
                })),
-               attributes: product.attributes || [],
+               attributes: (product.attributes || []).map((a) => ({
+                  attributeId: a.attribute?.attributeId,
+                  value: a.value ?? "",
+               })).filter((a) => typeof a.attributeId === "number"),
             });
+            setFormPopulated(true);
          });
          return;
       }
@@ -323,6 +331,23 @@ export default function ProductForm({
          );
       },
       [productForm, indexedVariations, indexedVariationOptions]
+   );
+
+   const addAttributeRow = useCallback(() => {
+      productForm.setValue(
+         "attributes",
+         [...productForm.getValues("attributes"), { attributeId: 0, value: "" }],
+         { shouldDirty: true }
+      );
+   }, [productForm]);
+
+   const removeAttributeRow = useCallback(
+      (index: number) => {
+         const next = [...productForm.getValues("attributes")];
+         next.splice(index, 1);
+         productForm.setValue("attributes", next, { shouldDirty: true });
+      },
+      [productForm]
    );
 
    const addEmptyVariantRow = useCallback(() => {
@@ -528,6 +553,98 @@ export default function ProductForm({
             })}
             className="space-y-8"
          >
+            {!formPopulated ? (
+               <div className="space-y-6">
+                  {/* Images skeleton */}
+                  <div className="space-y-4">
+                     <Skeleton className="h-4 w-28" />
+                     <Skeleton className="h-72 w-full rounded-md" />
+                  </div>
+
+                  {/* Title + Code skeleton */}
+                  <div className="flex flex-col md:flex-row gap-6 md:gap-4">
+                     <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-9 w-full" />
+                     </div>
+                     <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-9 w-full" />
+                     </div>
+                  </div>
+
+                  {/* Description skeleton */}
+                  <div className="space-y-2">
+                     <Skeleton className="h-4 w-24" />
+                     <Skeleton className="h-24 w-full" />
+                  </div>
+
+                  {/* Category / Shipping / Starred / Active skeleton */}
+                  <div className="flex flex-col lg:flex-row lg:items-start gap-6 lg:gap-4">
+                     <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-20" />
+                        <Skeleton className="h-9 w-full" />
+                     </div>
+                     <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-9 w-full" />
+                     </div>
+                     <div className="lg:flex-1 space-y-3">
+                        <Skeleton className="h-4 w-16" />
+                        <div className="flex items-center gap-2">
+                           <Skeleton className="h-4 w-4 rounded-sm" />
+                           <Skeleton className="h-4 w-52" />
+                        </div>
+                     </div>
+                     <div className="lg:flex-1 space-y-3">
+                        <Skeleton className="h-4 w-12" />
+                        <div className="flex items-center gap-2">
+                           <Skeleton className="h-4 w-4 rounded-sm" />
+                           <Skeleton className="h-4 w-52" />
+                        </div>
+                     </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Variants skeleton */}
+                  <div className="space-y-4">
+                     <div className="flex items-center justify-between">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-8 w-28 rounded-md" />
+                     </div>
+                     <div className="border rounded-md overflow-hidden">
+                        <div className="flex gap-3 p-3 border-b bg-muted/40">
+                           {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-4 flex-1" />)}
+                        </div>
+                        {Array.from({ length: 3 }).map((_, i) => (
+                           <div key={i} className="flex gap-3 p-3 border-b last:border-b-0">
+                              {Array.from({ length: 6 }).map((_, j) => <Skeleton key={j} className="h-9 flex-1" />)}
+                           </div>
+                        ))}
+                     </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Attributes skeleton */}
+                  <div className="space-y-4">
+                     <div className="flex items-center justify-between">
+                        <Skeleton className="h-4 w-36" />
+                        <Skeleton className="h-8 w-28 rounded-md" />
+                     </div>
+                     <div className="space-y-3">
+                        {Array.from({ length: 2 }).map((_, i) => (
+                           <div key={i} className="flex gap-3">
+                              <Skeleton className="h-9 flex-1" />
+                              <Skeleton className="h-9 flex-1" />
+                              <Skeleton className="h-9 w-8" />
+                           </div>
+                        ))}
+                     </div>
+                  </div>
+               </div>
+            ) : (
             <div className="space-y-6">
                <div className="space-y-4">
                   <Label>Product Images</Label>
@@ -932,6 +1049,7 @@ export default function ProductForm({
                                                    <Input
                                                       type="number"
                                                       {...field}
+                                                      onFocus={(e) => e.target.select()}
                                                       onChange={(e) => {
                                                          const value = e.target.value;
                                                          field.onChange(value === "" ? "" : parseFloat(value));
@@ -954,6 +1072,7 @@ export default function ProductForm({
                                                    <Input
                                                       type="number"
                                                       {...field}
+                                                      onFocus={(e) => e.target.select()}
                                                       onChange={(e) => {
                                                          const value = e.target.value;
                                                          field.onChange(value === "" ? "" : parseFloat(value));
@@ -999,55 +1118,145 @@ export default function ProductForm({
                   ) : (
                      <div className="text-sm text-muted-foreground">Select a category to get variants.</div>
                   )}
+
                </div>
 
-               {productAttributes.map((attr, index) => (
-                  <FormField
-                     disabled={loading}
-                     key={attr.attributeId}
-                     control={productForm.control}
-                     name={`attributes.${index}.value`}
-                     render={({ field }) => {
-                        const attribute = indexedAttributes[attr.attributeId];
+               <Separator />
 
-                        return (
-                           <FormItem className="max-w-xs">
-                              <FormLabel>{attribute.name}</FormLabel>
-                              <FormControl>
-                                 {attribute.type === AttributeType.CUSTOM ? (
-                                    <Input className="w-full" {...field} />
-                                 ) : (
-                                    <Select
-                                       disabled={field.disabled}
-                                       value={field.value}
-                                       onValueChange={(value) => field.onChange(value)}
-                                    >
-                                       <SelectTrigger className="w-full">
-                                          <SelectValue placeholder="Select a value" />
-                                       </SelectTrigger>
-                                       <SelectContent>
-                                          {attribute.allowedValues.map((option) => (
-                                             <SelectItem key={option} value={option}>
-                                                {option}
-                                             </SelectItem>
-                                          ))}
-                                       </SelectContent>
-                                    </Select>
-                                 )}
-                              </FormControl>
-                              <FormMessage />
-                           </FormItem>
-                        );
-                     }}
-                  />
-               ))}
+               <div className="space-y-4">
+                  <div className="flex items-center justify-between gap-3">
+                     <Label>Product Attributes</Label>
+                     <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={loading || !attributes.length || productAttributes.length >= attributes.length}
+                        onClick={addAttributeRow}
+                     >
+                        <Plus className="h-4 w-4" />
+                        Add Attribute
+                     </Button>
+                  </div>
+
+                  {productAttributes.length > 0 ? (
+                     <div className="space-y-3">
+                        {/* Column headers */}
+                        <div className="flex gap-3 items-center px-0">
+                           <Label className="flex-1 text-muted-foreground font-normal text-xs">Attribute</Label>
+                           <Label className="flex-1 text-muted-foreground font-normal text-xs">Value</Label>
+                           <div className="w-8" />
+                        </div>
+
+                        {productAttributes.map((attr, index) => {
+                           const usedIds = new Set(
+                              productAttributes.map((a) => a.attributeId).filter((id) => id > 0)
+                           );
+                           const selectedAttribute = attr.attributeId ? indexedAttributes[attr.attributeId] : undefined;
+
+                           return (
+                              <div key={index} className="flex gap-3 items-start">
+                                 {/* Attribute selector */}
+                                 <FormField
+                                    disabled={loading}
+                                    control={productForm.control}
+                                    name={`attributes.${index}.attributeId`}
+                                    render={({ field }) => (
+                                       <FormItem className="flex-1">
+                                          <FormControl>
+                                             <Select
+                                                disabled={field.disabled}
+                                                value={field.value ? String(field.value) : ""}
+                                                onValueChange={(value) => {
+                                                   field.onChange(parseInt(value));
+                                                   productForm.setValue(`attributes.${index}.value`, "", { shouldDirty: true });
+                                                }}
+                                             >
+                                                <SelectTrigger>
+                                                   <SelectValue placeholder="Select attribute" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                   {attributes
+                                                      .filter((a) => a.attributeId === attr.attributeId || !usedIds.has(a.attributeId))
+                                                      .map((a) => (
+                                                         <SelectItem key={a.attributeId} value={String(a.attributeId)}>
+                                                            {a.name}
+                                                         </SelectItem>
+                                                      ))}
+                                                </SelectContent>
+                                             </Select>
+                                          </FormControl>
+                                          <FormMessage />
+                                       </FormItem>
+                                    )}
+                                 />
+
+                                 {/* Value input / select */}
+                                 <FormField
+                                    disabled={loading || !attr.attributeId}
+                                    control={productForm.control}
+                                    name={`attributes.${index}.value`}
+                                    render={({ field }) => (
+                                       <FormItem className="flex-1">
+                                          <FormControl>
+                                             {!selectedAttribute ? (
+                                                <Input {...field} placeholder="Select attribute first" disabled />
+                                             ) : selectedAttribute.type === AttributeType.CUSTOM ? (
+                                                <Input {...field} placeholder="Enter value" />
+                                             ) : (
+                                                <Select
+                                                   disabled={field.disabled}
+                                                   value={field.value}
+                                                   onValueChange={field.onChange}
+                                                >
+                                                   <SelectTrigger>
+                                                      <SelectValue placeholder="Select value" />
+                                                   </SelectTrigger>
+                                                   <SelectContent>
+                                                      {selectedAttribute.allowedValues.map((option) => (
+                                                         <SelectItem key={option} value={option}>
+                                                            {option}
+                                                         </SelectItem>
+                                                      ))}
+                                                   </SelectContent>
+                                                </Select>
+                                             )}
+                                          </FormControl>
+                                          <FormMessage />
+                                       </FormItem>
+                                    )}
+                                 />
+
+                                 {/* Remove button */}
+                                 <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-9 w-8 shrink-0"
+                                    disabled={loading}
+                                    onClick={() => removeAttributeRow(index)}
+                                 >
+                                    <Trash2 className="h-4 w-4" />
+                                 </Button>
+                              </div>
+                           );
+                        })}
+                     </div>
+                  ) : (
+                     <div className="text-sm text-muted-foreground">
+                        {attributes.length
+                           ? `No attributes added. Click "Add Attribute" to add one.`
+                           : "No attributes available. Create attributes first."}
+                     </div>
+                  )}
+               </div>
             </div>
+            )}
 
             {productForm.formState.errors.root && (
                <div className="text-sm font-medium text-destructive">{productForm.formState.errors.root.message}</div>
             )}
 
-            <Button type="submit" disabled={loading || !productForm.formState.isDirty}>
+            <Button type="submit" disabled={!formPopulated || loading || !productForm.formState.isDirty}>
                {loading && <Spinner />}
                {mode === "update" ? "Update Product" : "Create Product"}
             </Button>
