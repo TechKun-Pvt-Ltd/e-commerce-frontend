@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -364,10 +364,8 @@ export default function ProductForm({
             developerKey: process.env.NEXT_PUBLIC_GOOGLE_API_KEY!,
             token: authResponse?.access_token,
             viewId: "DOCS_IMAGES",
-            setParentFolder: "1NJhIxv5HPgYIjUcDnrPVYY-L0ffMQFSs",
             multiselect: false,
             supportDrives: true,
-            // showUploadView: true,
             viewMimeTypes: "image/png,image/jpeg,image/jpg,image/gif,image/webp",
 
             callbackFunction(data) {
@@ -391,10 +389,10 @@ export default function ProductForm({
                );
             },
          });
-      } catch (error) {
+      } catch {
          toast.error("Failed to open Google Drive picker. Please try again.");
       }
-   }, [openPicker, authResponse, productImages]);
+   }, [openPicker, authResponse, productImages, productForm]);
 
    const [isUploading, setIsUploading] = useState(false);
 
@@ -881,7 +879,11 @@ export default function ProductForm({
                                                    nextOptionIds[colIndex] = nextOptId;
                                                    nextVariant.variationOptionIds = nextOptionIds;
                                                    nextVariant.sku = computeSku(nextOptionIds);
-                                                   productForm.setValue(`variants.${index}`, nextVariant as any, { shouldDirty: true, shouldValidate: true });
+                                                   productForm.setValue(
+                                                      `variants.${index}`,
+                                                      nextVariant as ProductFormData["variants"][number],
+                                                      { shouldDirty: true, shouldValidate: true }
+                                                   );
                                                 }}
                                              >
                                                 <SelectTrigger className="min-w-36">

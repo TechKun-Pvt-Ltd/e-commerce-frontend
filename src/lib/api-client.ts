@@ -26,6 +26,16 @@ class ApiClient {
     }
 
     private async request<T>(method: string, endpoint: string, requestOptions: Options, contentType: ContentType): ApiResponse<T> {
+        const safeParseResponseBody = async (response: Response): Promise<unknown> => {
+            const text = await response.text();
+            if (!text) return undefined;
+            try {
+                return JSON.parse(text);
+            } catch {
+                return text;
+            }
+        };
+
         const params: Record<string, string> = {};
         if (requestOptions.params)
             Object.entries(requestOptions.params)
@@ -55,11 +65,19 @@ class ApiClient {
                 body: JSON.stringify(options)
             });
             if (!response.ok)
-                return response.json()
-                    .then(data => ({
-                        success: false,
-                        error: data.message
-                    }));
+                return safeParseResponseBody(response)
+                    .then((data) => {
+                        const message =
+                            (data && typeof data === 'object' && 'message' in data && typeof (data as { message?: unknown }).message === 'string')
+                                ? (data as { message: string }).message
+                                : typeof data === 'string' && data.trim()
+                                    ? data
+                                    : `Request failed (${response.status})`;
+                        return {
+                            success: false,
+                            error: message,
+                        };
+                    });
 
             if (contentType === ContentType.JSON && response.headers.get("content-type")?.includes(ContentType.JSON))
                 return response.text()

@@ -46,6 +46,7 @@ const ProductGrid = ({ categories, products: productsProp, onCategoryChange: onC
    const [currentCategory, setCurrentCategory] = useState<CategoryTree | null>(null);
    const [sortBy, setSortBy] = useState<SortOption>(SortOption.POPULAR);
    const [currentPage, setCurrentPage] = useState(1);
+   const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
    const itemsPerPage = 8;
    const productsData = useDataFetch(productServices.getAllProducts);
    const promotions = useAppSelector((state) => state.promotions.items);
@@ -121,7 +122,11 @@ const ProductGrid = ({ categories, products: productsProp, onCategoryChange: onC
 
    // Use products from API (already sorted on server) or fallback to prop
    // Extra safety: if backend doesn't filter by status yet, hide inactive products in UI.
-   const products = (productsData.data || productsProp || []).filter((p) => p.status !== false);
+   const products = useMemo(() => {
+      const base = (productsData.data || productsProp || []).filter((p) => p.status !== false);
+      const [minP, maxP] = priceRange;
+      return base.filter((p) => p.price >= minP && p.price <= maxP);
+   }, [productsData.data, productsProp, priceRange]);
 
    // Pagination calculations
    const totalPages = Math.ceil(products.length / itemsPerPage);
@@ -201,6 +206,11 @@ const ProductGrid = ({ categories, products: productsProp, onCategoryChange: onC
                      categories={categories}
                      onCategoryChange={handleCategoryChange}
                      selectedCategoryId={selectedCategoryId}
+                     priceRange={priceRange}
+                     onPriceRangeChange={(r) => {
+                        setPriceRange(r);
+                        setCurrentPage(1);
+                     }}
                   />
                </aside>
 
@@ -225,6 +235,11 @@ const ProductGrid = ({ categories, products: productsProp, onCategoryChange: onC
                                        categories={categories}
                                        onCategoryChange={handleCategoryChange}
                                        selectedCategoryId={selectedCategoryId}
+                                       priceRange={priceRange}
+                                       onPriceRangeChange={(r) => {
+                                          setPriceRange(r);
+                                          setCurrentPage(1);
+                                       }}
                                     />
                                  </div>
                               </SheetContent>

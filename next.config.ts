@@ -13,6 +13,8 @@ const nextConfig = {
       { protocol: 'https', hostname: 'img.freepik.com' },
       { protocol: 'https', hostname: 'drive.google.com' },
       { protocol: 'https', hostname: 'i.pinimg.com' },
+      { protocol: 'https', hostname: 'res.cloudinary.com' },
+      // Legacy images (older data) may still reference Catbox URLs.
       { protocol: 'https', hostname: 'files.catbox.moe' },
     ],
   },

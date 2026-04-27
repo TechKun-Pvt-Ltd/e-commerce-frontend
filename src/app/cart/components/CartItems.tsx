@@ -50,6 +50,8 @@ const CartItems: React.FC<CartItemsProps> = ({ items, onQuantityChange, onRemove
                             src={item.imageUrl || placeholderImage}
                             alt={item.title}
                             fill
+                            sizes="128px"
+                            quality={90}
                             className="object-cover rounded-lg"
                         />
                     </div>

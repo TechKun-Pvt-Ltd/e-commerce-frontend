@@ -100,6 +100,8 @@ export default function EditCategoryForm({
    manageAttributes: () => void;
 }) {
    const [openPicker, authResponse] = useDrivePicker();
+   const fileInputRef = React.useRef<HTMLInputElement>(null);
+   const [isUploading, setIsUploading] = useState(false);
    const form = useForm<z.infer<typeof categorySchema>>({
       resolver: zodResolver(categorySchema),
       defaultValues: {
@@ -127,21 +129,52 @@ export default function EditCategoryForm({
             showUploadView: true,
             viewMimeTypes: "image/png,image/jpeg,image/jpg,image/gif,image/webp",
 
-            // showUploadFolders: true,
             callbackFunction(data) {
                if (!(data.action === "picked" && data.docs && data.docs.length > 0)) return;
-
                const file = data.docs[0];
                const fileId = file.id;
                const imageUrl = `https://drive.google.com/uc?id=${fileId}&export=view`;
-
                form.setValue("imageUrl", imageUrl, { shouldDirty: true });
             },
          });
-      } catch (error) {
+      } catch {
          toast.error("Failed to open Google Drive picker. Please try again.");
       }
    }, [openPicker, authResponse, form]);
+
+   const handleDeviceUpload = useCallback(
+      async (e: React.ChangeEvent<HTMLInputElement>) => {
+         const file = e.target.files?.[0];
+         if (!file) return;
+
+         // Reset so same file can be re-selected
+         e.target.value = "";
+
+         setIsUploading(true);
+         try {
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("folder", "categories");
+
+            const res = await fetch("/api/upload", {
+               method: "POST",
+               body: formData,
+            });
+
+            if (!res.ok) throw new Error("Upload failed");
+            const { url } = await res.json();
+            if (!url?.startsWith("http")) throw new Error("Invalid response");
+
+            form.setValue("imageUrl", url, { shouldDirty: true });
+            toast.success("Image uploaded successfully!");
+         } catch {
+            toast.error("Failed to upload image. Please try again.");
+         } finally {
+            setIsUploading(false);
+         }
+      },
+      [form]
+   );
 
    return (
       <Form {...form}>
@@ -252,6 +285,13 @@ export default function EditCategoryForm({
                         <FormItem>
                            <FormLabel>Image</FormLabel>
                            <FormControl>
+                              <input
+                                 ref={fileInputRef}
+                                 type="file"
+                                 accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
+                                 className="hidden"
+                                 onChange={handleDeviceUpload}
+                              />
                               {image ? (
                                  <div className="h-60 flex align-center justify-center relative w-full ">
                                     <Image
@@ -279,7 +319,7 @@ export default function EditCategoryForm({
                                        <div
                                           className="absolute top-13 right-3 transform pointer-events-auto p-1 rounded-full bg-white bg-opacity-70 hover:bg-opacity-100 cursor-pointer"
                                           onClick={(e) => {
-                                             handleOpenPicker();
+                                             if (!loading && !isUploading) fileInputRef.current?.click();
                                           }}
                                           aria-label="Update image"
                                        >
@@ -288,12 +328,24 @@ export default function EditCategoryForm({
                                     </div>
                                  </div>
                               ) : (
-                                 <div
-                                    className="border bg-accent rounded-md flex flex-col justify-center items-center gap-2 cursor-pointer py-8"
-                                    onClick={handleOpenPicker}
-                                 >
-                                    <Plus className="size-8 text-muted-foreground" />
-                                    <p className="text-sm text-muted-foreground">Select from Google Drive</p>
+                                 <div className="flex flex-col sm:flex-row gap-3">
+                                    <div
+                                       className="border bg-accent rounded-md flex-1 flex flex-col justify-center items-center gap-2 cursor-pointer py-8"
+                                       onClick={() => {
+                                          if (!loading && !isUploading) fileInputRef.current?.click();
+                                       }}
+                                    >
+                                       <Plus className="size-8 text-muted-foreground" />
+                                       <p className="text-sm text-muted-foreground">{isUploading ? "Uploading..." : "Upload from Device"}</p>
+                                    </div>
+                                    <div
+                                       className={`border bg-accent rounded-md flex-1 flex flex-col justify-center items-center gap-2 cursor-pointer py-8 transition-opacity ${loading ? "opacity-50 pointer-events-none" : "hover:bg-accent/80"
+                                          }`}
+                                       onClick={loading ? undefined : handleOpenPicker}
+                                    >
+                                       <Plus className="size-8 text-muted-foreground" />
+                                       <p className="text-sm text-muted-foreground">Select from Google Drive</p>
+                                    </div>
                                  </div>
                               )}
                            </FormControl>

@@ -19,6 +19,7 @@ import { CartItemPreview } from "@/types/domains/cart";
 import { Address } from "@/types/domains/address";
 import { toast } from "sonner";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { COUNTRY_OPTIONS } from "@/lib/countries";
 import { CreditCard, Truck, MapPin, Home } from "lucide-react";
 
 const checkoutSchema = z.object({
@@ -423,14 +424,14 @@ export default function CheckoutForm({
                                  <FormItem>
                                     <FormLabel>Country</FormLabel>
                                     <FormControl>
-                                       <Select value={field.value} onValueChange={field.onChange}>
+                                       <Select value={field.value || ""} onValueChange={field.onChange}>
                                           <SelectTrigger>
                                              <SelectValue placeholder="Select country" />
                                           </SelectTrigger>
                                           <SelectContent>
-                                             {countries.map((country) => (
-                                                <SelectItem key={country} value={country}>
-                                                   {country}
+                                             {COUNTRY_OPTIONS.map(({ value, label }) => (
+                                                <SelectItem key={value} value={value}>
+                                                   {label}
                                                 </SelectItem>
                                              ))}
                                           </SelectContent>

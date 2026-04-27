@@ -15,7 +15,7 @@ const mockCartItems: CartItemPreview[] = [
    {
       cartItemId: 1,
       addedAt: new Date(),
-      imageUrl: "https://drive.google.com/uc?export=view&id=1P5LsB3Kl1wb0j_D8BrkhVJetaSRqdTMX",
+      imageUrl: "https://img.freepik.com/premium-photo/young-woman-order-purchase-product-internet-using-laptop-blithe_31965-289001.jpg?w=996",
       title: "iPhone X",
       productVariantId: 2001,
       price: 299.99,

@@ -425,17 +425,19 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
 
     return (
         <div className="responsive-container">
-            <div className="relative p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="relative grid grid-cols-1 gap-5 py-4 md:py-6 lg:grid-cols-2 lg:items-start lg:gap-6">
 
-                <div>
-                    <div className="border rounded-md overflow-hidden h-96 md:h-[500px]">
+                <div className="min-w-0">
+                    <div className="relative border rounded-md overflow-hidden h-96 md:h-[500px] bg-muted/40">
                         {product?.productImages && product.productImages.length > 0 ? (
                             <Image
                                 src={activeImage?.imageUrl || product.productImages[0]?.imageUrl}
                                 alt={product.title}
-                                width={100}
-                                height={100}
-                                className="w-full h-full object-cover"
+                                fill
+                                sizes="(max-width: 1024px) 100vw, 50vw"
+                                quality={95}
+                                priority
+                                className="object-contain object-center p-1.5"
                             />
                         ) : (
                             <div className="flex items-center justify-center h-full bg-gray-100">
@@ -443,24 +445,26 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
                             </div>
                         )}
                     </div>
-                    <div className="mt-4 flex gap-3">
+                    <div className="mt-4 flex flex-wrap gap-3">
                         {product?.productImages?.map((img, index) => (
                             <button
                                 key={img.productImageId}
+                                type="button"
                                 onClick={() => setActiveImage(img)}
-                                className={`rounded-md overflow-hidden p-0 w-35 h-35 ${activeImage?.productImageId === img.productImageId ? "border-black border-3 z-10" : "border-mute"}`}
+                                className={`relative h-20 w-20 shrink-0 overflow-hidden rounded-md border bg-muted/40 p-0 ${activeImage?.productImageId === img.productImageId ? "border-foreground ring-1 ring-foreground ring-offset-1" : "border-border"}`}
                             >
                                 <Image
                                     src={img.imageUrl}
                                     alt={`Thumbnail ${index + 1}`}
-                                    width={100}
-                                    height={100}
-                                    className="w-full h-full object-cover"
+                                    fill
+                                    sizes="80px"
+                                    quality={90}
+                                    className="object-contain object-center p-1"
                                 />
                             </button>
                         ))}
                     </div>
-                    <div className="py-8 ">
+                    <div className="pt-5 pb-2">
                         <ProductReviews
                             productId={Number(productId)}
                             currentCustomerId={currentCustomerId}
@@ -469,12 +473,12 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
                 </div>
 
 
-                <div className="space-y-6">
+                <div className="min-w-0 space-y-4">
                     <h1 className="text-2xl font-bold">{product?.title}</h1>
                     {/* <p className="text-muted-foreground">{product?.description}</p> */}
 
                     {/* Attribute List */}
-                    <div className="flex gap-8 space-y-2 ">
+                    <div className="flex flex-wrap gap-x-4 gap-y-2">
                         {product?.attributes?.map((attr) => (
                             <div key={attr.productAttributeId} className="text-sm ">
                                 <span className="font-medium">{attr.attribute.name}: </span>
@@ -484,7 +488,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
                     </div>
 
                     {/* Variation Selects */}
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                         {Object.entries(variationMap).map(([key, value]) => (
                             <div key={key}>
                                 <label className="text-sm font-medium">{value.variationName}</label>
@@ -633,9 +637,9 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
 
                 </div>
             </div>
-            <div className="mt-12 px-6 pb-8">
-                <h1 className="text-2xl md:text-3xl text-center font-bold mb-8">Related Products</h1>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="mt-8 pb-6">
+                <h1 className="text-2xl md:text-3xl text-center font-bold mb-5">Related Products</h1>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 md:gap-5 lg:grid-cols-4">
                     {getAllProductsFetch.isLoading ? (
                         <div className="col-span-full text-center py-12">
                             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>

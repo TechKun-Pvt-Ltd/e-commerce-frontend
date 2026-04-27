@@ -1,4 +1,44 @@
 import { NextRequest, NextResponse } from "next/server";
+import { v2 as cloudinary } from "cloudinary";
+
+export const runtime = "nodejs";
+
+// Supports either CLOUDINARY_URL or the individual CLOUDINARY_* vars.
+if (process.env.CLOUDINARY_URL) {
+   cloudinary.config({
+      secure: true,
+      cloudinary_url: process.env.CLOUDINARY_URL,
+   });
+} else {
+   cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+   });
+}
+
+type CloudinaryUploadResult = {
+   secure_url?: string;
+};
+
+function uploadBufferToCloudinary(buffer: Buffer, opts: { folder?: string; publicId?: string }) {
+   return new Promise<CloudinaryUploadResult>((resolve, reject) => {
+      const upload = cloudinary.uploader.upload_stream(
+         {
+            resource_type: "image",
+            folder: opts.folder,
+            public_id: opts.publicId,
+            overwrite: true,
+         },
+         (error, result) => {
+            if (error) reject(error);
+            else resolve((result ?? {}) as CloudinaryUploadResult);
+         }
+      );
+
+      upload.end(buffer);
+   });
+}
 
 export async function POST(request: NextRequest) {
    try {
@@ -9,20 +49,28 @@ export async function POST(request: NextRequest) {
          return NextResponse.json({ error: "No file provided" }, { status: 400 });
       }
 
-      // Forward to catbox.moe server-side — no CORS restrictions here
-      const uploadFormData = new FormData();
-      uploadFormData.append("reqtype", "fileupload");
-      uploadFormData.append("fileToUpload", file);
+      const hasCloudinary =
+         Boolean(process.env.CLOUDINARY_URL) ||
+         (Boolean(process.env.CLOUDINARY_CLOUD_NAME) && Boolean(process.env.CLOUDINARY_API_KEY) && Boolean(process.env.CLOUDINARY_API_SECRET));
 
-      const res = await fetch("https://catbox.moe/user/api.php", {
-         method: "POST",
-         body: uploadFormData,
-      });
+      if (!hasCloudinary) {
+         return NextResponse.json({ error: "Cloudinary is not configured" }, { status: 500 });
+      }
 
-      if (!res.ok) throw new Error(`Catbox responded with ${res.status}`);
+      const maxBytes = 10 * 1024 * 1024;
+      if (typeof file.size === "number" && file.size > maxBytes) {
+         return NextResponse.json({ error: "File too large (max 10MB)" }, { status: 413 });
+      }
 
-      const url = (await res.text()).trim();
-      if (!url.startsWith("http")) throw new Error("Invalid URL returned from catbox");
+      const folder = (formData.get("folder") as string | null) ?? process.env.CLOUDINARY_FOLDER ?? "e-commerce";
+      const publicId = (formData.get("publicId") as string | null) ?? undefined;
+
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      const result = await uploadBufferToCloudinary(buffer, { folder, publicId });
+      const url = result.secure_url;
+      if (!url?.startsWith("http")) throw new Error("Invalid URL returned from Cloudinary");
 
       return NextResponse.json({ url });
    } catch (error) {
