@@ -22,6 +22,9 @@ const menuItems = [
     { label: "Cart", href: "/cart" },
 ];
 
+const BRAND_NAME = "KAVENGO";
+const BRAND_LOGO_SRC = "/logo/KAVENGO%20LOGO.svg";
+
 export default function Header() {
     const [wishlistOpen, setWishlistOpen] = useState(false);
     const [mounted, setMounted] = useState(false);
@@ -50,8 +53,13 @@ export default function Header() {
                         <SheetContent side="left" className="p-0 w-[90vw] max-w-[360px]">
                             <SheetHeader className="p-4 border-b">
                                 <SheetTitle className="text-left">
-                                    <Link href="/" className="text-lg font-bold">
-                                        KAVENGO
+                                    <Link href="/" className="inline-flex items-center gap-2 text-lg font-bold">
+                                        <img
+                                            src={BRAND_LOGO_SRC}
+                                            alt={`${BRAND_NAME} logo`}
+                                            className="h-7 w-7 object-contain"
+                                        />
+                                        <span className="truncate">{BRAND_NAME}</span>
                                     </Link>
                                 </SheetTitle>
                             </SheetHeader>
@@ -79,8 +87,13 @@ export default function Header() {
                 </div>
 
                 {/* Logo */}
-                <Link href="/" className="text-xl font-bold truncate">
-                    KAVENGO
+                <Link href="/" className="inline-flex items-center gap-2 min-w-0">
+                    <img
+                        src={BRAND_LOGO_SRC}
+                        alt={`${BRAND_NAME} logo`}
+                        className="h-9 w-9 object-contain"
+                    />
+                    <span className="text-xl font-bold truncate">{BRAND_NAME}</span>
                 </Link>
             </div>
 

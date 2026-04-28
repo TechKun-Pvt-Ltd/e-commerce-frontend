@@ -6,8 +6,12 @@ import { AppGateway } from './AppGateway';
 import NextTopLoader from 'nextjs-toploader';
 
 export const metadata: Metadata = {
-    title: "E-Commerce Store",
-    description: "Your one-stop shop for all your needs",
+    title: "KAVENGO",
+    description: "KAVENGO online store",
+    icons: {
+        icon: "/logo/KAVENGO%20LOGO.svg",
+        shortcut: "/logo/KAVENGO%20LOGO.svg",
+    },
 };
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
