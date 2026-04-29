@@ -9,7 +9,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Tags, LogOut, MoreVerticalIcon, Shapes, SlidersHorizontal, Package, LayoutDashboard, Percent, ShipWheelIcon, Truck, CreditCardIcon, TableIcon } from "lucide-react"
+import { Tags, LogOut, MoreVerticalIcon, Shapes, SlidersHorizontal, Package, LayoutDashboard, Percent, ShipWheelIcon, Truck, CreditCardIcon, TableIcon, BotMessageSquare } from "lucide-react"
 import Link from "next/link";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -79,8 +79,13 @@ const items = [
     {
         title: "Order Shipping",
         url: "/admin/orders-shipping",
-        icon: ShipWheelIcon  // ShipWheelIcon icon represents adjustable Order Shipping/properties
-    }
+        icon: ShipWheelIcon
+    },
+    {
+        title: "AI Assistant",
+        url: "/admin/agent",
+        icon: BotMessageSquare
+    },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -126,7 +131,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         }
     }, [loading, authenticated]);
 
-    return <SidebarProvider className="" style={{ minHeight: 0 }}>
+    return <SidebarProvider className="" style={{ height: `calc(100vh - ${NAVBAR_HEIGHT})`, minHeight: 0, overflow: 'hidden' }}>
         <Sidebar collapsible="icon" style={{height: `calc(100vh - ${NAVBAR_HEIGHT})`, insetBlock: NAVBAR_HEIGHT} as any}>
             <SidebarHeader>
                 <SidebarMenu>
@@ -167,7 +172,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <SidebarMenu>
                     {items.map(item => (
                         <SidebarMenuItem key={item.title}>
-                            <SidebarMenuButton tooltip={item.title} asChild>
+                            <SidebarMenuButton
+                                tooltip={item.title}
+                                asChild
+                                isActive={pathname === item.url || pathname.startsWith(item.url + "/")}
+                            >
                                 <Link href={item.url}>
                                     <item.icon />
                                     <span>{item.title}</span>
@@ -191,8 +200,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </SidebarMenu>
             </SidebarFooter>
         </Sidebar>
-        <main className="self-stretch flex-1 min-w-0 overflow-x-hidden bg-gray-50 flex flex-col">
-            <div className="flex items-center gap-2 px-4 py-2">
+        <main className="flex-1 min-w-0 min-h-0 overflow-hidden bg-gray-50 flex flex-col">
+            <div className="flex items-center gap-2 px-4 py-2 shrink-0">
                 <SidebarTrigger />
                 <Separator orientation="vertical" className="mr-2" style={{height: '1rem'}} />
                 <Breadcrumb>
@@ -215,7 +224,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     </BreadcrumbList>
                 </Breadcrumb>
             </div>
-            <div className="px-6 py-4 flex-1">{children}</div>
+            <div className="px-6 py-4 flex-1 min-h-0 overflow-y-auto relative">{children}</div>
         </main>
     </SidebarProvider>;
 };
