@@ -1,6 +1,7 @@
 "use client";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import useDrivePicker from "react-google-drive-picker";
+import * as XLSX from "xlsx";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -12,7 +13,7 @@ import { ProductPayload } from "@/types/domains/product";
 import { extractConsonants } from "@/lib/utils";
 import { toast } from "sonner";
 import Spinner from "@/components/ui/spinner";
-import { FileSpreadsheet, Upload, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
+import { FileSpreadsheet, Upload, CheckCircle2, XCircle, AlertCircle, HardDrive } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -379,12 +380,66 @@ async function resolveProducts(
     return results;
 }
 
+// ─── Local Excel parser ───────────────────────────────────────────────────────
+
+function parseExcelFile(file: File): Promise<{ products: Record<string, string>[]; variants: Record<string, string>[] }> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = new Uint8Array(e.target?.result as ArrayBuffer);
+                const workbook = XLSX.read(data, { type: "array" });
+
+                const productsSheetName = workbook.SheetNames.find(
+                    (n) => n.toLowerCase().trim() === "products"
+                );
+                const variantsSheetName = workbook.SheetNames.find(
+                    (n) => n.toLowerCase().trim() === "variants"
+                );
+
+                if (!productsSheetName) {
+                    reject(new Error('No sheet named "products" found in the Excel file.'));
+                    return;
+                }
+
+                const toRows = (sheetName: string): Record<string, string>[] => {
+                    const sheet = workbook.Sheets[sheetName];
+                    const rows: Record<string, string>[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
+                    if (rows.length < 2) return [];
+                    const headers = (rows[0] as unknown as string[]).map((h) => String(h).trim());
+                    return rows
+                        .slice(1)
+                        .filter((row) => (row as unknown as string[]).some((cell) => String(cell).trim()))
+                        .map((row) => {
+                            const obj: Record<string, string> = {};
+                            headers.forEach((header, i) => {
+                                obj[header] = String((row as unknown as string[])[i] ?? "").trim();
+                            });
+                            return obj;
+                        });
+                };
+
+                resolve({
+                    products: toRows(productsSheetName),
+                    variants: variantsSheetName ? toRows(variantsSheetName) : [],
+                });
+            } catch (err) {
+                reject(err instanceof Error ? err : new Error("Failed to parse Excel file."));
+            }
+        };
+        reader.onerror = () => reject(new Error("Failed to read file."));
+        reader.readAsArrayBuffer(file);
+    });
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function BulkUploadPage() {
     const [openPicker, authResponse] = useDrivePicker();
     const authRef = useRef(authResponse);
     useEffect(() => { authRef.current = authResponse; }, [authResponse]);
+
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [isValidating, setIsValidating] = useState(false);
     const [isUploading, setIsUploading]   = useState(false);
@@ -394,12 +449,45 @@ export default function BulkUploadPage() {
     const errorCount  = products.filter((p) => p.errors.length > 0).length;
     const hasProducts = products.length > 0;
 
-    // ── Load & validate ────────────────────────────────────────────────────────
+    // ── Shared: validate parsed rows against the backend ──────────────────────
+    const validateAndSet = useCallback(async (sheetProducts: Record<string, string>[], sheetVariants: Record<string, string>[]) => {
+        if (!sheetProducts.length) { toast.error('No rows found in the "products" sheet/tab.'); return; }
+
+        const [catRes, shipRes, varRes] = await Promise.all([
+            fetch("/api/forward", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ path: "/categories", method: "GET" }),
+            }),
+            fetch("/api/forward", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ path: "/shipping-methods", method: "GET" }),
+            }),
+            fetch("/api/forward", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ path: "/variations", method: "GET" }),
+            }),
+        ]);
+
+        if (!catRes.ok || !shipRes.ok || !varRes.ok) {
+            toast.error("Failed to load reference data from the backend.");
+            return;
+        }
+
+        const [categoryTree, shippingMethods, variations]: [CategoryTree[], ShippingMethod[], Variation[]] =
+            await Promise.all([catRes.json(), shipRes.json(), varRes.json()]);
+
+        const validated = await resolveProducts(sheetProducts, sheetVariants, categoryTree, shippingMethods, variations);
+        setProducts(validated);
+    }, []);
+
+    // ── Load & validate from Google Drive ─────────────────────────────────────
     const loadAndValidate = useCallback(async (sheetId: string, accessToken: string) => {
         setIsValidating(true);
         setProducts([]);
         try {
-            // 1. Fetch sheet data
             const sheetRes = await fetch("/api/bulk-upload/fetchSheetData", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -407,50 +495,32 @@ export default function BulkUploadPage() {
             });
             const sheetJson = await sheetRes.json();
             if (sheetJson.error) { toast.error(sheetJson.error); return; }
-            if (!sheetJson.products?.length) { toast.error('No rows found in "products" tab.'); return; }
-
-            // 2. Fetch reference data in parallel
-            const [catRes, shipRes, varRes] = await Promise.all([
-                fetch("/api/forward", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ path: "/categories", method: "GET" }),
-                }),
-                fetch("/api/forward", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ path: "/shipping-methods", method: "GET" }),
-                }),
-                fetch("/api/forward", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ path: "/variations", method: "GET" }),
-                }),
-            ]);
-
-            if (!catRes.ok || !shipRes.ok || !varRes.ok) {
-                toast.error("Failed to load reference data from the backend.");
-                return;
-            }
-
-            const [categoryTree, shippingMethods, variations]: [CategoryTree[], ShippingMethod[], Variation[]] =
-                await Promise.all([catRes.json(), shipRes.json(), varRes.json()]);
-
-            // 3. Run resolver
-            const validated = await resolveProducts(
-                sheetJson.products,
-                sheetJson.variants ?? [],
-                categoryTree,
-                shippingMethods,
-                variations
-            );
-            setProducts(validated);
+            await validateAndSet(sheetJson.products ?? [], sheetJson.variants ?? []);
         } catch (e: unknown) {
             toast.error(e instanceof Error ? e.message : "Unexpected error during validation.");
         } finally {
             setIsValidating(false);
         }
-    }, []);
+    }, [validateAndSet]);
+
+    // ── Load & validate from local Excel file ─────────────────────────────────
+    const handleLocalFile = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        // Reset so the same file can be re-selected
+        e.target.value = "";
+
+        setIsValidating(true);
+        setProducts([]);
+        try {
+            const { products: sheetProducts, variants: sheetVariants } = await parseExcelFile(file);
+            await validateAndSet(sheetProducts, sheetVariants);
+        } catch (err: unknown) {
+            toast.error(err instanceof Error ? err.message : "Failed to parse Excel file.");
+        } finally {
+            setIsValidating(false);
+        }
+    }, [validateAndSet]);
 
     // ── Open Drive picker ──────────────────────────────────────────────────────
     const handleSelectSheet = useCallback(() => {
@@ -517,17 +587,37 @@ export default function BulkUploadPage() {
     // ── Render ─────────────────────────────────────────────────────────────────
     return (
         <div className="space-y-6">
+            {/* Hidden file input for local Excel upload */}
+            <input
+                ref={fileInputRef}
+                type="file"
+                accept=".xlsx,.xls"
+                className="hidden"
+                onChange={handleLocalFile}
+            />
+
             <div className="flex items-center justify-between">
                 <h1 className="text-3xl font-bold text-gray-900">Bulk Upload Products</h1>
-                <Button
-                    onClick={handleSelectSheet}
-                    disabled={isValidating || isUploading}
-                    variant="outline"
-                    className="gap-2"
-                >
-                    {isValidating ? <Spinner className="size-4" /> : <FileSpreadsheet className="size-4" />}
-                    {isValidating ? "Validating…" : "Select Sheet from Google Drive"}
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isValidating || isUploading}
+                        variant="outline"
+                        className="gap-2"
+                    >
+                        <HardDrive className="size-4" />
+                        Upload Excel from Device
+                    </Button>
+                    <Button
+                        onClick={handleSelectSheet}
+                        disabled={isValidating || isUploading}
+                        variant="outline"
+                        className="gap-2"
+                    >
+                        {isValidating ? <Spinner className="size-4" /> : <FileSpreadsheet className="size-4" />}
+                        {isValidating ? "Validating…" : "Select Sheet from Google Drive"}
+                    </Button>
+                </div>
             </div>
 
             {/* Instructions */}
@@ -537,7 +627,10 @@ export default function BulkUploadPage() {
                         <CardTitle className="text-base">How to format your spreadsheet</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4 text-sm text-muted-foreground">
-                        <p>Your Google Sheet must have exactly two tabs named <strong>products</strong> and <strong>variants</strong>.</p>
+                        <p>
+                            Use <strong>Select Sheet from Google Drive</strong> to pick a Google Sheet, or <strong>Upload Excel from Device</strong> to upload a local <code>.xlsx</code> / <code>.xls</code> file.
+                            Either way the file must have exactly two sheets/tabs named <strong>products</strong> and <strong>variants</strong>.
+                        </p>
 
                         <div>
                             <p className="font-medium text-foreground mb-1">Tab 1 — products</p>
@@ -663,15 +756,26 @@ export default function BulkUploadPage() {
             {/* Upload button */}
             {hasProducts && (
                 <div className="flex items-center justify-between">
-                    <Button
-                        variant="outline"
-                        onClick={handleSelectSheet}
-                        disabled={isValidating || isUploading}
-                        className="gap-2"
-                    >
-                        {isValidating ? <Spinner className="size-4" /> : <FileSpreadsheet className="size-4" />}
-                        {isValidating ? "Validating…" : "Re-select Sheet"}
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={isValidating || isUploading}
+                            className="gap-2"
+                        >
+                            <HardDrive className="size-4" />
+                            Re-upload from Device
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={handleSelectSheet}
+                            disabled={isValidating || isUploading}
+                            className="gap-2"
+                        >
+                            {isValidating ? <Spinner className="size-4" /> : <FileSpreadsheet className="size-4" />}
+                            {isValidating ? "Validating…" : "Re-select from Drive"}
+                        </Button>
+                    </div>
                     <Button
                         onClick={handleUpload}
                         disabled={isUploading || readyCount === 0}
