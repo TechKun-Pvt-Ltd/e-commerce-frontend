@@ -189,7 +189,7 @@ export default function CheckoutForm({
                 shippingMethodId: shippingMethods[item.cartItemId]!.shippingMethodId,
                 price: item.price,
                 quantity: item.quantity,
-                productName: (item as any).productName ?? "Product",
+                productName: (item as { productName?: string }).productName ?? "Product",
                 categoryName: "General",
             })),
             shippingAddressId,

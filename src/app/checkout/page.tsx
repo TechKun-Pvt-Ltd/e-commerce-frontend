@@ -7,7 +7,7 @@ import * as shippingServices from "@/services/shippingMethod";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { PaymentInitiateRequest, PaymentInitiateResponse } from "@/services/iyzico";
 import { ShippingMethod } from "@/types/domains/shipping_method";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState, Suspense } from "react";
 import { toast } from "sonner";
 import CheckoutForm from "./components/CheckoutForm";
@@ -17,7 +17,6 @@ import { clearBuyNowItem } from "@/store/slices/buyNowSlice";
 const shippingMethodsMap: Record<number, ShippingMethod> = {};
 
 function CheckoutPageInner() {
-    const router = useRouter();
     const dispatch = useAppDispatch();
     const searchParams = useSearchParams();
     const isBuyNow = searchParams.get("mode") === "buynow";
