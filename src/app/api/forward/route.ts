@@ -33,6 +33,13 @@ export async function POST(req: NextRequest) {
   }
 
 
+  if (!res) {
+    return new NextResponse(JSON.stringify({ message: 'Backend unreachable' }), {
+      status: 503,
+      headers,
+    });
+  }
+
   if (res.status === 204) {
     return new NextResponse(null, {
       status: res.status,
@@ -40,7 +47,7 @@ export async function POST(req: NextRequest) {
       headers,
     });
   }
-  
+
   return new NextResponse(JSON.stringify(res.data), {
     status: res.status,
     statusText: res.statusText,
