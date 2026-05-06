@@ -149,7 +149,7 @@ export const ReviewForm = ({
 
         {/* Submit & Cancel Buttons */}
         <div className="flex items-center gap-2">
-          <Button type="submit" rounded="none" className="rounded-none" disabled={isSubmitting || !isFormValid || loginRequired}>
+          <Button type="submit" className="rounded-none" disabled={isSubmitting || !isFormValid || loginRequired}>
             {isSubmitting ? (
               <>
                 <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin mr-2" />

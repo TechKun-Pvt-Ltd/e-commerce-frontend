@@ -78,7 +78,6 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
     const [isZoomOpen, setIsZoomOpen] = useState(false);
     const [quantity, setQuantity] = useState(1);
     const [attemptedSubmit, setAttemptedSubmit] = useState(false);
-    const [descExpanded, setDescExpanded] = useState(false);
     const [attrsExpanded, setAttrsExpanded] = useState(false);
     const swipeTouchStartX = useRef<number | null>(null);
     const swipeTouchStartY = useRef<number | null>(null);
@@ -299,6 +298,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
             dateAdded: new Date(product.dateAdded),
             quantityInStock: product.variants[0]?.quantityInStock || 0,
             imageUrl: product.productImages[0]?.imageUrl || "",
+            images: product.productImages.map(img => img.imageUrl),
         };
         return getPromotionForProduct(productPreview, promotions);
     }, [product, promotions, priceRange, productRating]);

@@ -67,6 +67,7 @@ export const ProductReviews = ({
       .onError(() => {
         // silently fail — reviews are public; 401 means backend needs config fix
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId]);
 
   useEffect(() => {
@@ -75,6 +76,7 @@ export const ProductReviews = ({
 
   useEffect(() => {
     loadReviews(currentPage, sort);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId, currentPage, sort]);
 
   const handleSubmitReview = (reviewData: { productId: number; rating: number; reviewText: string }) => {

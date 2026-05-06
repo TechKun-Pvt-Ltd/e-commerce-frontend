@@ -23,6 +23,17 @@ import { SlidersHorizontal, X } from "lucide-react";
 
 const PAGE_SIZE = 12;
 
+const findCategoryById = (cats: CategoryTree[], id: number): CategoryTree | null => {
+   for (const cat of cats) {
+      if (cat.categoryId === id) return cat;
+      if (cat.subcategories?.length) {
+         const found = findCategoryById(cat.subcategories, id);
+         if (found) return found;
+      }
+   }
+   return null;
+};
+
 interface ProductGridProps {
    categories: CategoryTree[];
    products: ProductPreview[];
@@ -103,17 +114,6 @@ const ProductGrid = ({ categories, onCategoryChange: onCategoryChangeProp, selec
          setCurrentCategory(null);
       }
    }, [selectedCategoryIdProp, categories]);
-
-   const findCategoryById = (cats: CategoryTree[], id: number): CategoryTree | null => {
-      for (const cat of cats) {
-         if (cat.categoryId === id) return cat;
-         if (cat.subcategories?.length) {
-            const found = findCategoryById(cat.subcategories, id);
-            if (found) return found;
-         }
-      }
-      return null;
-   };
 
    const handleCategoryChange = (categoryId: number | null) => {
       setSelectedCategoryId(categoryId);

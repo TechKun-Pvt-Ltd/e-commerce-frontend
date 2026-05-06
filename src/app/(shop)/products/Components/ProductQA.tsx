@@ -58,10 +58,12 @@ export const ProductQA = ({ productId }: ProductQAProps) => {
             .onError(() => {
                 // silently fail — questions are public; 401 means backend needs config fix
             });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [productId]);
 
     useEffect(() => {
         loadAnsweredQuestions();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [productId]);
 
     const toggleFaq = (id: string) => {
