@@ -6,7 +6,7 @@ export default function WishlistLayout({ children }: { children: React.ReactNode
     return (
         <>
             <Header />
-            <main>{children}</main>
+            <main className="pt-[5rem] overflow-x-clip">{children}</main>
             <Footer />
         </>
     );

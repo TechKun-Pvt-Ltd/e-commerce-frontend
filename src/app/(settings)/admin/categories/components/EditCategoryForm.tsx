@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
 "use client";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useImperativeHandle, useState } from "react";
 import Image from "next/image";
 import { Plus, Trash2, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -82,15 +82,11 @@ const getDefaultValue = (category: CategoryData | null, variations: Variation[],
    };
 };
 
-export default function EditCategoryForm({
-   category,
-   loading = false,
-   variations,
-   attributes,
-   onSubmit,
-   manageVariations,
-   manageAttributes,
-}: {
+export interface EditCategoryFormRef {
+   setCodeError: () => void;
+}
+
+const EditCategoryForm = React.forwardRef<EditCategoryFormRef, {
    category: CategoryData | null;
    loading?: boolean;
    variations: Variation[];
@@ -98,7 +94,15 @@ export default function EditCategoryForm({
    onSubmit: (data: Partial<Omit<CategoryData, "categoryId" | "parentCategory">>) => void;
    manageVariations: () => void;
    manageAttributes: () => void;
-}) {
+}>(function EditCategoryForm({
+   category,
+   loading = false,
+   variations,
+   attributes,
+   onSubmit,
+   manageVariations,
+   manageAttributes,
+}, ref) {
    const [openPicker, authResponse] = useDrivePicker();
    const fileInputRef = React.useRef<HTMLInputElement>(null);
    const [isUploading, setIsUploading] = useState(false);
@@ -112,6 +116,12 @@ export default function EditCategoryForm({
          imageUrl: "",
       },
    });
+
+   useImperativeHandle(ref, () => ({
+      setCodeError: () => form.setError("code", {
+         message: "This code is already taken. Please choose a different one."
+      })
+   }), [form]);
 
    useEffect(() => {
       form.reset(getDefaultValue(category, variations, attributes));
@@ -161,7 +171,10 @@ export default function EditCategoryForm({
                body: formData,
             });
 
-            if (!res.ok) throw new Error("Upload failed");
+            if (!res.ok) {
+               const body = await res.json().catch(() => ({}));
+               throw new Error(body.error || "Upload failed");
+            }
             const { url } = await res.json();
             if (!url?.startsWith("http")) throw new Error("Invalid response");
 
@@ -275,6 +288,13 @@ export default function EditCategoryForm({
                      </FormItem>
                   )}
                />
+               <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
+                  className="hidden"
+                  onChange={handleDeviceUpload}
+               />
                <FormField
                   control={form.control}
                   name="imageUrl"
@@ -285,13 +305,6 @@ export default function EditCategoryForm({
                         <FormItem>
                            <FormLabel>Image</FormLabel>
                            <FormControl>
-                              <input
-                                 ref={fileInputRef}
-                                 type="file"
-                                 accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
-                                 className="hidden"
-                                 onChange={handleDeviceUpload}
-                              />
                               {image ? (
                                  <div className="h-60 flex align-center justify-center relative w-full ">
                                     <Image
@@ -361,4 +374,6 @@ export default function EditCategoryForm({
          </form>
       </Form>
    );
-}
+});
+
+export default EditCategoryForm;

@@ -4,33 +4,21 @@ import { useSearchParams } from 'next/navigation'
 import BannerSection from '../products/Components/BannerSection'
 import ProductGrid from '../products/Components/ProductGrid'
 import BestSeller from '../products/Components/BestSeller'
-import useDataFetch from '@/hooks/use-data-fetch';
-import * as categoryServices from "@/services/category";
+import { useAppSelector } from '@/store/hooks';
 
 function ProductsContent() {
     const searchParams = useSearchParams();
-    const allCategories = useDataFetch(categoryServices.getAllCategories);
-    const { request: fetchAllCategories } = allCategories;
+    const categoriesData = useAppSelector((state) => state.categories.items);
     const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
 
     useEffect(() => {
-        fetchAllCategories();
-    }, [fetchAllCategories]);
-
-    // NOTE: We intentionally do NOT auto-apply category from URL.
-    // UX requirement: show ALL products first, then filter only after user selects a category.
-    useEffect(() => {
-        // Still react to navigation by clearing selection when user lands fresh on /products
-        // (but keep current selection if user is already interacting).
         if (!searchParams.get("categoryId")) {
             setSelectedCategoryId(null);
         }
     }, [searchParams]);
 
-    const categoriesData = allCategories.data;
-
     return (
-        <div className='container-responsive'>
+        <>
             <BannerSection />
             <ProductGrid
                 categories={categoriesData || []}
@@ -39,15 +27,15 @@ function ProductsContent() {
                 selectedCategoryId={selectedCategoryId}
             />
             <BestSeller selectedCategoryId={selectedCategoryId} />
-        </div>
+        </>
     )
 }
 
 export default function page() {
     return (
         <Suspense fallback={
-            <div className='container-responsive py-20 flex justify-center items-center min-h-[50vh]'>
-                <div className="w-8 h-8 rounded-full border-4 border-indigo-600 border-t-transparent animate-spin"></div>
+            <div className='responsive-container py-20 flex justify-center items-center min-h-[50vh]'>
+                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
             </div>
         }>
             <ProductsContent />

@@ -9,6 +9,7 @@ export interface WishlistItem {
 
 export interface WishlistItemDTO {
     wishlistItemId: number;
+    productTitle?: string;
     productImageUrl: string;
     productId?: number;
     categoryId?: number;

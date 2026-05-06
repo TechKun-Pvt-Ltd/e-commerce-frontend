@@ -3,8 +3,6 @@ import React, { useMemo, useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProductCard from "./ProductCard";
 import ProductCardSkeleton from "./ProductCardSkeleton";
-import { Button } from "@/components/ui/button";
-import { ShoppingCartIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ProductPreview, ProductQueryOptions, SortOption } from "@/types/domains/product";
 import * as productServices from "@/services/product";
@@ -71,19 +69,19 @@ export const FeatureProducts = ({ products: productsProp = [] }: FeatureProducts
                     <TabsList className="w-full bg-muted/50 rounded-full p-1 flex items-center justify-start gap-1 overflow-x-auto thin-scrollbar sm:grid sm:max-w-md sm:mx-auto sm:grid-cols-3 sm:overflow-x-visible">
                         <TabsTrigger
                             value="new"
-                            className="rounded-full cursor-pointer transition-all duration-300 ease-in-out font-medium data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm whitespace-nowrap text-xs sm:text-sm px-3 sm:px-5"
+                            className="rounded-full cursor-pointer transition-all duration-300 ease-in-out font-medium data-[state=active]:bg-[oklch(0.16_0.02_55)] data-[state=active]:text-white data-[state=active]:shadow-sm whitespace-nowrap text-xs sm:text-sm px-3 sm:px-5"
                         >
                             NEW
                         </TabsTrigger>
                         <TabsTrigger
                             value="bestsellers"
-                            className="rounded-full cursor-pointer transition-all duration-300 ease-in-out font-medium data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm whitespace-nowrap text-xs sm:text-sm px-3 sm:px-5"
+                            className="rounded-full cursor-pointer transition-all duration-300 ease-in-out font-medium data-[state=active]:bg-[oklch(0.16_0.02_55)] data-[state=active]:text-white data-[state=active]:shadow-sm whitespace-nowrap text-xs sm:text-sm px-3 sm:px-5"
                         >
                             BEST SELLERS
                         </TabsTrigger>
                         <TabsTrigger
                             value="discounted"
-                            className="rounded-full cursor-pointer transition-all duration-300 ease-in-out font-medium data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-sm whitespace-nowrap text-xs sm:text-sm px-3 sm:px-5"
+                            className="rounded-full cursor-pointer transition-all duration-300 ease-in-out font-medium data-[state=active]:bg-[oklch(0.16_0.02_55)] data-[state=active]:text-white data-[state=active]:shadow-sm whitespace-nowrap text-xs sm:text-sm px-3 sm:px-5"
                         >
                             DISCOUNTED
                         </TabsTrigger>
@@ -111,14 +109,13 @@ export const FeatureProducts = ({ products: productsProp = [] }: FeatureProducts
                             )
                         }
                     </div>
-                    <div className="flex items-center justify-center mt-8">
-                        <Button
-                            variant="ghost"
-                            className="w-36 hover:bg-black rounded-full my-4 text-black hover:text-white border p-4 border-black"
+                    <div className="flex items-center justify-center mt-10">
+                        <button
                             onClick={() => router.push('/products')}
+                            className="inline-block border border-foreground/25 px-10 py-3 text-xs font-semibold tracking-[0.18em] uppercase text-foreground transition-colors duration-200 hover:bg-foreground hover:text-background"
                         >
-                            <ShoppingCartIcon /> All Products
-                        </Button>
+                            All Products
+                        </button>
                     </div>
                 </TabsContent>
 
@@ -143,14 +140,13 @@ export const FeatureProducts = ({ products: productsProp = [] }: FeatureProducts
                             )
                         }
                     </div>
-                    <div className="flex items-center justify-center mt-8">
-                        <Button
-                            variant="ghost"
-                            className="w-36 hover:bg-black rounded-full my-4 text-black hover:text-white border p-4 border-black"
+                    <div className="flex items-center justify-center mt-10">
+                        <button
                             onClick={() => router.push('/products')}
+                            className="inline-block border border-foreground/25 px-10 py-3 text-xs font-semibold tracking-[0.18em] uppercase text-foreground transition-colors duration-200 hover:bg-foreground hover:text-background"
                         >
-                            <ShoppingCartIcon /> All Products
-                        </Button>
+                            All Products
+                        </button>
                     </div>
                 </TabsContent>
 
@@ -175,14 +171,13 @@ export const FeatureProducts = ({ products: productsProp = [] }: FeatureProducts
                             )
                         }
                     </div>
-                    <div className="flex items-center justify-center mt-8">
-                        <Button
-                            variant="ghost"
-                            className="w-36 hover:bg-black rounded-full my-4 text-black hover:text-white border p-4 border-black"
+                    <div className="flex items-center justify-center mt-10">
+                        <button
                             onClick={() => router.push('/products')}
+                            className="inline-block border border-foreground/25 px-10 py-3 text-xs font-semibold tracking-[0.18em] uppercase text-foreground transition-colors duration-200 hover:bg-foreground hover:text-background"
                         >
-                            <ShoppingCartIcon /> All Products
-                        </Button>
+                            All Products
+                        </button>
                     </div>
                 </TabsContent>
             </Tabs>

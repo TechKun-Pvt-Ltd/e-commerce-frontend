@@ -23,19 +23,18 @@ const Banner = () => {
         setDefaultUrl(res.data.imageUrl);
       }
     })();
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, []);
 
-  // Only override the right hero image with uploaded/default banner.
   const leftUrl = HERO_LEFT;
   const rightUrl = useMemo(() => defaultUrl ?? HERO_RIGHT, [defaultUrl]);
 
   return (
-    <section className="relative min-h-[520px] md:min-h-[700px] lg:min-h-[800px] flex items-center overflow-hidden bg-stone-100">
-      <div className="absolute inset-0 flex flex-col md:flex-row">
-        <div className="relative h-56 sm:h-64 md:h-full md:w-1/2 overflow-hidden shrink-0">
+    <section className="relative flex items-start sm:items-center overflow-hidden bg-stone-100 min-h-[calc(100vh-5rem)] lg:min-h-[calc(100vh-9rem)]">
+
+      {/* Background — stacked on mobile, split on sm+ */}
+      <div className="absolute inset-0 flex flex-col sm:flex-row">
+        <div className="relative flex-1 sm:h-full sm:w-1/2 overflow-hidden shrink-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             alt="Minimalist decor and sculpture in soft light"
@@ -43,7 +42,7 @@ const Banner = () => {
             className="w-full h-full object-cover"
           />
         </div>
-        <div className="relative flex-1 md:w-1/2 min-h-[240px] md:min-h-0">
+        <div className="relative flex-1 sm:w-1/2 overflow-hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             alt="Luxury living space with neutral tones"
@@ -54,26 +53,29 @@ const Banner = () => {
         </div>
       </div>
 
-      <div className="relative z-10 w-full max-w-[1536px] mx-auto px-5 sm:px-8 md:px-12 py-10 md:py-16">
-        <div className="bg-white/85 backdrop-blur-md p-8 md:p-12 lg:p-16 max-w-2xl shadow-[0_20px_40px_rgba(78,70,57,0.06)]">
-          <span className="font-medium text-[11px] sm:text-xs tracking-[0.25em] uppercase text-amber-900 mb-4 sm:mb-6 block">
+      {/* Content */}
+      <div className="relative z-10 w-full max-w-[1536px] mx-auto px-5 sm:px-8 md:px-12 pt-7 pb-10 sm:py-10 md:py-14">
+        <div className="bg-white/45 backdrop-blur-md p-6 sm:p-8 md:p-10 lg:p-12 max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg shadow-[0_12px_40px_rgba(78,70,57,0.10)]">
+
+          <span className="block mb-3 text-[11px] font-semibold tracking-[0.25em] uppercase text-[oklch(0.16_0.02_55)]">
             New Arrivals / Autumn 24
           </span>
-          <h1 className="font-semibold text-4xl sm:text-5xl md:text-6xl lg:text-7xl tracking-tight text-stone-900 leading-[1.1] mb-6 md:mb-8">
-            The KAVENGO
-            <br />
-            Signature
+
+          <h1 className="font-display text-[2rem] sm:text-4xl md:text-5xl lg:text-6xl tracking-tight text-stone-900 leading-[1.08] mb-4 sm:mb-5">
+            The KAVENGO<br />Signature
           </h1>
-          <p className="text-base sm:text-lg text-stone-600 leading-relaxed mb-8 md:mb-10 max-w-lg">
-            Elevating contemporary living through a meticulously curated collection of
-            artisanal artifacts and luxury home decor.
+
+          <p className="text-sm sm:text-base text-stone-600 leading-relaxed mb-6 sm:mb-7">
+            Elevating contemporary living through a curated collection of artisanal wall art and luxury home decor.
           </p>
+
           <Button
             asChild
-            className="rounded-full bg-amber-900 text-white hover:bg-amber-800 px-8 sm:px-10 py-5 h-auto text-xs tracking-[0.2em] uppercase font-semibold"
+            className="rounded-none bg-[oklch(0.16_0.02_55)] text-white hover:bg-[oklch(0.24_0.02_55)] px-7 sm:px-9 py-4 h-auto text-[11px] tracking-[0.2em] uppercase font-semibold"
           >
             <Link href="/products">Explore Now</Link>
           </Button>
+
         </div>
       </div>
     </section>

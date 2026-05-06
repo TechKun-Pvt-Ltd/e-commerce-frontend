@@ -35,6 +35,7 @@ interface ReviewFormProps {
   }) => void;
   onCancel?: () => void;
   isSubmitting?: boolean;
+  loginRequired?: boolean;
 }
 
 export const ReviewForm = ({
@@ -44,6 +45,7 @@ export const ReviewForm = ({
   onSubmit,
   onCancel,
   isSubmitting = false,
+  loginRequired = false,
 }: ReviewFormProps) => {
   const form = useForm<ReviewFormData>({
     resolver: zodResolver(reviewFormSchema),
@@ -137,9 +139,17 @@ export const ReviewForm = ({
           )}
         />
 
+        {/* Login notice */}
+        {loginRequired && (
+          <p className="text-sm text-muted-foreground">
+            You need to be logged in to submit a review.{" "}
+            <a href="/login" className="text-foreground underline underline-offset-2 font-medium">Login</a>
+          </p>
+        )}
+
         {/* Submit & Cancel Buttons */}
         <div className="flex items-center gap-2">
-          <Button type="submit" disabled={isSubmitting || !isFormValid}>
+          <Button type="submit" rounded="none" className="rounded-none" disabled={isSubmitting || !isFormValid || loginRequired}>
             {isSubmitting ? (
               <>
                 <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin mr-2" />
@@ -162,8 +172,8 @@ export const ReviewForm = ({
             )}
           </Button>
 
-          {mode === "edit" && onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel}>
+          {onCancel && (
+            <Button type="button" variant="outline" className="rounded-none" onClick={onCancel}>
               Cancel
             </Button>
           )}

@@ -2,14 +2,14 @@
 // /app/admin/categories/page.tsx
 "use client";
 
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import CategoryTreeNode from "./components/CategoryTreeNode";
 import { CategoryDetails, CategoryDTO, CategoryTree } from "@/types/domains/category";
-import AddCategoryForm from "./components/AddCategoryForm";
+import AddCategoryForm, { AddCategoryFormRef } from "./components/AddCategoryForm";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Plus, SquarePen } from "lucide-react";
-import EditCategoryForm from "./components/EditCategoryForm";
+import EditCategoryForm, { EditCategoryFormRef } from "./components/EditCategoryForm";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { updateCategories } from "@/store/slices/categorySlice";
 import CategoryTreeSkeleton from "./components/CategoryTreeSkeleton";
@@ -28,6 +28,8 @@ const categoryDetailsMap = new Map<number, CategoryData>();
 export default function AdminCategoryPage() {
    const addDialogRef = React.useRef<{ open: () => void; close: () => void }>(null);
    const deleteDialogRef = React.useRef<{ open: () => void; close: () => void }>(null);
+   const addFormRef = useRef<AddCategoryFormRef>(null);
+   const editFormRef = useRef<EditCategoryFormRef>(null);
    const [targetParent, setTargetParent] = useState<CategoryData | null>(null);
    const [deletionTarget, setDeletionTarget] = useState<CategoryTree | null>(null);
    const [selectedCategory, setSelectedCategory] = useState<CategoryData | null>(null);
@@ -189,13 +191,22 @@ export default function AdminCategoryPage() {
                   <div className="relative bg-card text-card-foreground rounded-md border p-6">
                      {selectedCategory || getCategory.isLoading ? (
                         <EditCategoryForm
+                           ref={editFormRef}
                            loading={updateCategory.isLoading}
                            category={selectedCategory}
                            variations={variations}
                            attributes={attributes}
                            onSubmit={(data) =>
                               selectedCategory &&
-                              updateCategory.request(selectedCategory?.categoryId, data).onSuccess(onUpdateCategorySuccess)
+                              updateCategory.request(selectedCategory?.categoryId, data)
+                                 .onSuccess(onUpdateCategorySuccess)
+                                 .onError((msg) => {
+                                    if (msg.includes("category_code_key") || msg.includes("duplicate key")) {
+                                       editFormRef.current?.setCodeError();
+                                    } else {
+                                       toast.error(msg);
+                                    }
+                                 })
                            }
                            manageVariations={goToVariationSettings}
                            manageAttributes={goToAttributeSettings}
@@ -222,6 +233,7 @@ export default function AdminCategoryPage() {
                   <DialogTitle>Add Category</DialogTitle>
                </DialogHeader>
                <AddCategoryForm
+                  ref={addFormRef}
                   parentCategory={targetParent}
                   variations={variations}
                   attributes={attributes}
@@ -230,7 +242,15 @@ export default function AdminCategoryPage() {
                      const payload: CategoryDTO = { ...data };
                      if (targetParent) payload.parentCategoryId = targetParent.categoryId;
 
-                     createCategory.request(payload).onSuccess(onCreateCategorySuccess);
+                     createCategory.request(payload)
+                        .onSuccess(onCreateCategorySuccess)
+                        .onError((msg) => {
+                           if (msg.includes("category_code_key") || msg.includes("duplicate key")) {
+                              addFormRef.current?.setCodeError();
+                           } else {
+                              toast.error(msg);
+                           }
+                        });
                   }}
                   manageVariations={goToVariationSettings}
                   manageAttributes={goToAttributeSettings}

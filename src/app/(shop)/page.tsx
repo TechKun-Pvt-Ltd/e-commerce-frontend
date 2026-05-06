@@ -43,7 +43,7 @@ export default function LandingPage() {
         [productsData]
     );
     return (
-        <>
+        <div className="lg:pt-[4rem]">
             <section>
                 <Banner />
             </section>
@@ -64,7 +64,7 @@ export default function LandingPage() {
 
                     <div className="mt-14 sm:mt-16 lg:mt-20">
                         <div className="mb-10 text-center sm:mb-12">
-                            <h2 className="inline-block border-b-2 border-foreground pb-2 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+                            <h2 className="font-display inline-block border-b-2 border-foreground pb-2 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
                                 Featured products
                             </h2>
                         </div>
@@ -77,6 +77,6 @@ export default function LandingPage() {
             </div>
             <FramesManifestoSection />
             <JoinTheCollectiveSection />
-        </>
+        </div>
     );
 }

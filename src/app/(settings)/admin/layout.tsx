@@ -21,7 +21,7 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbP
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { NAVBAR_HEIGHT } from "@/lib/constants";
+import { NAV_TOP_HEIGHT } from "@/lib/constants";
 import { UserRole } from "@/types/domains/user";
 import Spinner from "@/components/ui/spinner";
 
@@ -131,8 +131,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         }
     }, [loading, authenticated]);
 
-    return <SidebarProvider className="" style={{ minHeight: 0 }}>
-        <Sidebar collapsible="icon" style={{height: `calc(100vh - ${NAVBAR_HEIGHT})`, insetBlock: NAVBAR_HEIGHT} as any}>
+    return <SidebarProvider className="" style={{ minHeight: 0, paddingTop: NAV_TOP_HEIGHT }}>
+        <Sidebar collapsible="icon" style={{height: `calc(100vh - ${NAV_TOP_HEIGHT})`, insetBlock: NAV_TOP_HEIGHT} as any}>
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
