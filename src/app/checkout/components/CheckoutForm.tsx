@@ -103,7 +103,6 @@ export default function CheckoutForm({
     const discountAmount = 0;
     const billTotal = subtotalAmount + shippingAmount + taxAmount - discountAmount;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const form = useForm<FieldValues>({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         resolver: zodResolver(checkoutSchema) as any,
