@@ -1,186 +1,167 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
-import React, { useEffect, useRef } from "react";
-import { Button } from "@/components/ui/button";
+import React from "react";
 import { toast } from "sonner";
-import { Minus, Plus, Trash, X } from "lucide-react";
+import { X, ShoppingCart, FrameIcon, Minus, Plus, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { CartItemPreview } from "@/types/domains/cart";
 import { updateCart } from "@/store/slices/cartSlice";
-import placeholderImage from "@/../public/placeholder-image.jpeg";
+import { CartItemPreview } from "@/types/domains/cart";
 import Link from "next/link";
 
-const mockCartItems: CartItemPreview[] = [
-   {
-      cartItemId: 1,
-      addedAt: new Date(),
-      imageUrl: "https://img.freepik.com/premium-photo/young-woman-order-purchase-product-internet-using-laptop-blithe_31965-289001.jpg?w=996",
-      title: "iPhone X",
-      productVariantId: 2001,
-      price: 299.99,
-      sku: "IPHONE-X-64GB-BLK",
-      quantityInStock: 10,
-      quantity: 1,
-   },
-   {
-      cartItemId: 2,
-      addedAt: new Date(),
-      imageUrl:
-         "https://img.freepik.com/premium-photo/young-woman-order-purchase-product-internet-using-laptop-blithe_31965-289001.jpg?w=996",
-      title: "Dell Latitude",
-      productVariantId: 2001,
-      price: 349.99,
-      sku: "DELL-LAT-5420-i5",
-      quantityInStock: 15,
-      quantity: 1,
-   },
-   {
-      cartItemId: 3,
-      addedAt: new Date(),
-      imageUrl:
-         "https://img.freepik.com/premium-photo/young-woman-order-purchase-product-internet-using-laptop-blithe_31965-289001.jpg?w=996",
-      title: "Lenovo Pro",
-      productVariantId: 2001,
-      price: 279.99,
-      sku: "LEN-PRO-T14-i7",
-      quantityInStock: 12,
-      quantity: 1,
-   },
-   {
-      cartItemId: 4,
-      addedAt: new Date(),
-      imageUrl:
-         "https://img.freepik.com/premium-photo/young-woman-order-purchase-product-internet-using-laptop-blithe_31965-289001.jpg?w=996",
-      title: "Laptop Pro",
-      productVariantId: 2002,
-      price: 499.99,
-      sku: "LAP-PRO-2023-i9",
-      quantityInStock: 8,
-      quantity: 1,
-   },
-];
-
-const formatter = new Intl.NumberFormat("en-US", {
-   style: "currency",
-   currency: "USD",
-});
-
 export default function CartToast() {
-   const dispatch = useAppDispatch();
-   const { items: cartItems, totalItems, totalAmount } = useAppSelector((state) => state.cart);
-   const [exitAnimationIndex, setExitAnimationIndex] = React.useState<number>();
-   const listRef = useRef<HTMLUListElement>(null);
-   const prevLengthRef = useRef(cartItems.length);
+    const dispatch = useAppDispatch();
+    const { items: cartItems, totalAmount } = useAppSelector((state) => state.cart);
 
-   // useEffect(() => {
-   //     dispatch(updateCart(mockCartItems));
-   // }, []);
+    // Newest first
+    const sorted = [...cartItems].sort((a, b) => b.cartItemId - a.cartItemId);
 
-   useEffect(() => {
-      if (cartItems.length > prevLengthRef.current && listRef.current)
-         listRef.current.scrollTo({ behavior: "smooth", top: listRef.current.scrollHeight });
+    const fmt = (n: number) => `$${n.toFixed(2)}`;
 
-      prevLengthRef.current = cartItems.length;
-   }, [cartItems]);
+    function changeQty(item: CartItemPreview, delta: number) {
+        const newQty = item.quantity + delta;
+        if (newQty < 1 || newQty > item.quantityInStock) return;
+        const updated = cartItems.map(i =>
+            i.cartItemId === item.cartItemId ? { ...i, quantity: newQty } : i
+        );
+        dispatch(updateCart(updated));
+    }
 
-   function closeToast() {
-      toast.dismiss("cart-toast");
-   }
+    function removeItem(cartItemId: number) {
+        const updated = cartItems.filter(i => i.cartItemId !== cartItemId);
+        if (updated.length === 0) toast.dismiss("cart-toast");
+        dispatch(updateCart(updated));
+    }
 
-   return (
-      <div className="w-full">
-         <div className="px-4 py-4 border-b flex items-center justify-between">
-            <h3 className="text-base">Cart Items</h3>
-            <X size="20" className="text-gray-600 hover:text-gray-900" onClick={closeToast} />
-         </div>
-         <ul ref={listRef} className="px-4 w-full border-b divide-y max-h-56 overflow-y-auto thin-scrollbar">
-            {cartItems.map((item, i) => (
-               <li
-                  key={item.cartItemId}
-                  className={`w-full ${i === exitAnimationIndex
-                        ? "animate-out zoom-out-95 fade-out-0 duration-300"
-                        : "animate-in zoom-in-95 fade-in-0 slide-in-from-top-2 duration-500"
-                     } flex items-center justify-between py-4`}
-                  onAnimationEnd={(animationEvent) => {
-                     if (animationEvent.animationName !== "exit") return;
+    return (
+        <div className="w-full bg-white border border-[#c9a84c]/30 shadow-xl overflow-hidden">
 
-                     const newCartItems = [...cartItems];
-                     newCartItems.splice(i, 1);
-                     if (newCartItems.length === 0) closeToast();
-                     dispatch(updateCart(newCartItems));
-                     setExitAnimationIndex(undefined);
-                  }}
-               >
-                  <div className="flex items-center gap-2.5 w-5/12">
-                     <Image
-                        src={item.imageUrl || placeholderImage}
-                        alt={item.title}
-                        width={50}
-                        height={50}
-                        className="rounded w-10 h-auto aspect-square object-cover"
-                     />
-                     <div className="w-full overflow-hidden">
-                        <h4 className="font-medium text-base overflow-hidden whitespace-nowrap text-ellipsis">{item.title}</h4>
-                        <p className="font-normal text-sm text-gray-700 overflow-hidden whitespace-nowrap text-ellipsis">
-                           {item.sku}
-                        </p>
-                     </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                     <div className="flex items-center gap-2">
-                        <Minus
-                           size="28"
-                           className="px-2 py-1 text-gray-600 hover:bg-gray-100"
-                           onClick={() => {
-                              if (item.quantity <= 1) return;
-
-                              item.quantity -= 1;
-                              const newCartItems = [...cartItems];
-                              newCartItems[i] = item;
-                              dispatch(updateCart(newCartItems));
-                           }}
-                        />
-                        <span className="min-w-[0.8rem] font-normal text-center">{item.quantity}</span>
-                        <Plus
-                           size="28"
-                           className="px-2 py-1 text-gray-600 hover:bg-gray-100"
-                           onClick={() => {
-                              if (item.quantity >= item.quantityInStock) return;
-
-                              item.quantity += 1;
-                              const newCartItems = [...cartItems];
-                              newCartItems[i] = item;
-                              dispatch(updateCart(newCartItems));
-                           }}
-                        />
-                     </div>
-                     <p className="w-[5rem] text-base text-right">{formatter.format(item.price * item.quantity)}</p>
-                     <Button variant="ghost" size="icon" onClick={() => setExitAnimationIndex(i)}>
-                        <Trash />
-                     </Button>
-                  </div>
-               </li>
-            ))}
-         </ul>
-         <div className="px-4 pt-3 pb-4">
-            <div className="mb-3 flex items-end justify-between font-medium">
-               <div className="text-base text-gray-700">Total {totalItems} items</div>
-               <div className="text-lg text-right">{formatter.format(totalAmount)}</div>
+            {/* Header */}
+            <div className="bg-[oklch(0.42_0.02_55)] px-4 py-3 flex items-center justify-between border-b-2 border-[#c9a84c]">
+                <div className="flex items-center gap-2">
+                    <ShoppingCart className="h-4 w-4 text-[#c9a84c]" />
+                    <p className="text-[11px] tracking-[0.2em] uppercase text-white font-medium">
+                        Cart · {cartItems.length} {cartItems.length === 1 ? "item" : "items"}
+                    </p>
+                </div>
+                <button
+                    onClick={() => toast.dismiss("cart-toast")}
+                    className="text-white/50 hover:text-white transition-colors"
+                    aria-label="Close"
+                >
+                    <X className="h-4 w-4" />
+                </button>
             </div>
-            <div className="flex gap-2">
-               <Link href={"/cart"}  className="flex-1" >
-                  <Button  className="w-full" variant="outline" size="sm">
-                     Go to Cart
-                  </Button>
-               </Link>
-               <Link href={"/checkout"} className="flex-1" >
-                  <Button className="w-full" variant="default" size="sm">
-                     Place Order
-                  </Button>
-               </Link>
+
+            {/* Items — newest at top */}
+            <ul className="divide-y divide-border/40 max-h-60 overflow-y-auto thin-scrollbar">
+                {sorted.map((item, i) => (
+                    <li
+                        key={item.cartItemId}
+                        className={`flex gap-3 px-4 py-3 ${i === 0 ? "bg-[#c9a84c]/5" : "bg-white"}`}
+                    >
+                        {/* Gold top-line on newest item */}
+                        {/* Image */}
+                        <div className="relative w-12 h-12 flex-shrink-0 bg-muted overflow-hidden self-start mt-0.5">
+                            {item.imageUrl ? (
+                                <Image
+                                    src={item.imageUrl}
+                                    alt={item.title}
+                                    fill
+                                    unoptimized
+                                    className="object-cover"
+                                />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center bg-[oklch(0.42_0.02_55)]/8">
+                                    <FrameIcon className="h-4 w-4 text-[#c9a84c]/30" strokeWidth={1} />
+                                </div>
+                            )}
+                            {i === 0 && <div className="absolute top-0 left-0 right-0 h-0.5 bg-[#c9a84c]" />}
+                        </div>
+
+                        {/* Info + controls */}
+                        <div className="flex-1 min-w-0">
+                            {/* Title */}
+                            <p className="text-xs font-semibold text-foreground truncate leading-tight mb-1">
+                                {item.title}
+                            </p>
+
+                            {/* Variation options instead of SKU */}
+                            {item.variationOptions && item.variationOptions.length > 0 ? (
+                                <div className="flex flex-wrap gap-1 mb-2">
+                                    {item.variationOptions.map(vo => (
+                                        <span
+                                            key={vo.variationOptionId}
+                                            className="text-[10px] border border-border/50 text-foreground/60 px-1.5 py-0.5 bg-muted/40"
+                                        >
+                                            {vo.optionName}
+                                        </span>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-[10px] text-muted-foreground/50 truncate mb-2">—</p>
+                            )}
+
+                            {/* Qty controls + price + remove */}
+                            <div className="flex items-center justify-between gap-2">
+                                {/* Qty */}
+                                <div className="flex items-center border border-border/60">
+                                    <button
+                                        onClick={() => changeQty(item, -1)}
+                                        disabled={item.quantity <= 1}
+                                        className="w-6 h-6 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 transition-colors"
+                                    >
+                                        <Minus className="h-2.5 w-2.5" />
+                                    </button>
+                                    <span className="w-7 text-center text-xs font-medium text-foreground select-none">
+                                        {item.quantity}
+                                    </span>
+                                    <button
+                                        onClick={() => changeQty(item, 1)}
+                                        disabled={item.quantity >= item.quantityInStock}
+                                        className="w-6 h-6 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 transition-colors"
+                                    >
+                                        <Plus className="h-2.5 w-2.5" />
+                                    </button>
+                                </div>
+
+                                {/* Price */}
+                                <p className="text-xs font-semibold text-foreground flex-1 text-right">
+                                    {fmt(item.price * item.quantity)}
+                                </p>
+
+                                {/* Remove */}
+                                <button
+                                    onClick={() => removeItem(item.cartItemId)}
+                                    className="text-muted-foreground hover:text-destructive transition-colors ml-1"
+                                    aria-label="Remove"
+                                >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                </button>
+                            </div>
+                        </div>
+                    </li>
+                ))}
+            </ul>
+
+            {/* Footer */}
+            <div className="px-4 py-3 border-t border-border/50 bg-muted/20">
+                <div className="flex items-center justify-between mb-3">
+                    <p className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground">Total</p>
+                    <p className="text-sm font-semibold text-foreground">{fmt(totalAmount)}</p>
+                </div>
+                <div className="flex gap-2">
+                    <Link href="/cart" className="flex-1" onClick={() => toast.dismiss("cart-toast")}>
+                        <button className="w-full border border-foreground/20 text-foreground text-[10px] tracking-widest uppercase py-2 hover:bg-muted transition-colors">
+                            View Cart
+                        </button>
+                    </Link>
+                    <Link href="/checkout" className="flex-1" onClick={() => toast.dismiss("cart-toast")}>
+                        <button className="w-full bg-[oklch(0.42_0.02_55)] hover:bg-[oklch(0.35_0.02_55)] text-white text-[10px] tracking-widest uppercase py-2 transition-colors">
+                            Checkout
+                        </button>
+                    </Link>
+                </div>
             </div>
-         </div>
-      </div>
-   );
+        </div>
+    );
 }

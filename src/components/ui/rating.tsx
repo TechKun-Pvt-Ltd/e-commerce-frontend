@@ -90,7 +90,7 @@ export const RatingButton = ({
         size,
         className: cn(
           'transition-colors duration-200',
-          isActive && 'fill-current',
+          isActive ? 'fill-amber-400 text-amber-400' : 'text-amber-300/60',
           !readOnly && 'cursor-pointer'
         ),
         'aria-hidden': 'true',

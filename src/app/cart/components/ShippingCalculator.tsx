@@ -7,42 +7,44 @@ const ShippingCalculator = () => {
 
     const calculateShipping = (e: React.FormEvent) => {
         e.preventDefault();
-        // This would typically make an API call to calculate shipping
-        // For now, we'll simulate a fixed shipping cost
         setShippingCost(9.99);
     };
 
     return (
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">Calculate Shipping</h2>
+        <div className="bg-white border border-border/60 p-6 mt-3">
+            <p className="text-[10px] tracking-[0.2em] uppercase text-[#c9a84c] mb-1">Estimate</p>
+            <h2 className="font-display text-lg tracking-widest text-foreground mb-4">SHIPPING</h2>
 
-            <form onSubmit={calculateShipping}>
-                <div className="mb-4">
-                    <label htmlFor="zipCode" className="block text-sm font-medium text-gray-700 mb-1">
-                        Zip Code
+            <form onSubmit={calculateShipping} className="space-y-3">
+                <div>
+                    <label htmlFor="zipCode" className="block text-xs text-muted-foreground mb-1.5 tracking-wide">
+                        Postal Code
                     </label>
                     <input
                         type="text"
                         id="zipCode"
                         value={zipCode}
                         onChange={(e) => setZipCode(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Enter your zip code"
+                        className="w-full px-3 py-2.5 border border-border/70 bg-muted/30 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
+                        placeholder="e.g. 34000"
                     />
                 </div>
-
                 <button
                     type="submit"
-                    className="w-full bg-gray-100 text-gray-900 py-2 px-4 rounded-md font-medium hover:bg-gray-200 transition-colors"
+                    className="w-full border border-foreground/20 text-foreground text-[11px] tracking-widest uppercase py-2.5 hover:bg-muted transition-colors"
                 >
                     Calculate
                 </button>
             </form>
 
             {shippingCost !== null && (
-                <div className="mt-4 p-3 bg-gray-50 rounded-md">
-                    <p className="text-sm text-gray-600">Estimated Shipping Cost:</p>
-                    <p className="text-lg font-medium text-gray-900">${shippingCost.toFixed(2)}</p>
+                <div className="mt-4 pt-4 border-t border-border/50">
+                    <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Estimated cost</span>
+                        <span className="font-semibold text-foreground">
+                            {shippingCost.toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}
+                        </span>
+                    </div>
                 </div>
             )}
         </div>

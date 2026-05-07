@@ -15,6 +15,7 @@ export interface ReviewDetails {
     productTitle: string;
     rating: number;
     dateOfSubmission: Date;
+    verifiedPurchase?: boolean;
 }
 
 export interface Review {

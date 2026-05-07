@@ -1,8 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-// /components/admin/AddCategoryDialog.tsx
 'use client';
 
-import React, { useEffect } from "react";
+import React, { useEffect, useImperativeHandle } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -60,15 +59,17 @@ const getDefaultValue = (category: CategoryData | null, variations: Variation[],
 
     return {
         name: "",
+        code: "",
         variations: variationItemStates,
         attributes: attributeItemStates
-    }
+    };
 };
 
-export default function AddCategoryForm({
-    parentCategory, variations, attributes, loading,
-    onAdd, manageVariations, manageAttributes
-}: {
+export interface AddCategoryFormRef {
+    setCodeError: () => void;
+}
+
+const AddCategoryForm = React.forwardRef<AddCategoryFormRef, {
     parentCategory?: CategoryData | null;
     variations: Variation[];
     attributes: Attribute[];
@@ -76,16 +77,20 @@ export default function AddCategoryForm({
     onAdd: (data: CategoryData) => void;
     manageVariations: () => void;
     manageAttributes: () => void;
-}) {
+}>(function AddCategoryForm(
+    { parentCategory, variations, attributes, loading, onAdd, manageVariations, manageAttributes },
+    ref
+) {
     const form = useForm<z.infer<typeof categorySchema>>({
         resolver: zodResolver(categorySchema),
-        defaultValues: {
-            name: "",
-            code: "",
-            variations: {},
-            attributes: {}
-        }
+        defaultValues: { name: "", code: "", variations: {}, attributes: {} }
     });
+
+    useImperativeHandle(ref, () => ({
+        setCodeError: () => form.setError("code", {
+            message: "This code is already taken. Please choose a different one."
+        })
+    }), [form]);
 
     useEffect(() => {
         form.reset(getDefaultValue(parentCategory ?? null, variations, attributes));
@@ -114,9 +119,7 @@ export default function AddCategoryForm({
                             <FormItem>
                                 <FormLabel>Name</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Enter category name"
-                                        {...field}
-                                    />
+                                    <Input placeholder="Enter category name" {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -130,9 +133,7 @@ export default function AddCategoryForm({
                             <FormItem>
                                 <FormLabel>Code</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Enter category code"
-                                        {...field}
-                                    />
+                                    <Input placeholder="Enter category code" {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -173,15 +174,13 @@ export default function AddCategoryForm({
                         )}
                     />
                 </div>
-                <Button disabled={loading}
-                    variant="default"
-                    type="submit" size="sm"
-                    className="w-full"
-                >
+                <Button disabled={loading} variant="default" type="submit" size="sm" className="w-full">
                     {loading && <Spinner />}
                     Save
                 </Button>
             </form>
         </Form>
     );
-};
+});
+
+export default AddCategoryForm;

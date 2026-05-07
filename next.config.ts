@@ -8,15 +8,17 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    // `images.domains` is deprecated; use `remotePatterns` instead.
     remotePatterns: [
       { protocol: 'https', hostname: 'img.freepik.com' },
       { protocol: 'https', hostname: 'drive.google.com' },
       { protocol: 'https', hostname: 'i.pinimg.com' },
       { protocol: 'https', hostname: 'res.cloudinary.com' },
-      // Legacy images (older data) may still reference Catbox URLs.
       { protocol: 'https', hostname: 'files.catbox.moe' },
+      { protocol: 'http', hostname: 'localhost', port: '8080' },
     ],
+    // These external hosts block server-side fetches from the Next.js optimizer.
+    // Unoptimized loads the URL directly in the browser instead.
+    unoptimized: true,
   },
   reactStrictMode: false,
 

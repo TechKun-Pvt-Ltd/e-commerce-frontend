@@ -52,7 +52,7 @@ const ShopByCategorySection = ({
 
       <div className="relative z-10 responsive-container">
         <div className="mx-auto mb-12 max-w-2xl text-center md:mb-16 lg:mb-20">
-          <span className="mb-3 inline-block font-semibold text-[10px] sm:text-xs tracking-[0.35em] uppercase text-amber-900 md:mb-4">
+          <span className="mb-3 inline-block font-semibold text-[10px] sm:text-xs tracking-[0.35em] uppercase text-[#c9a84c] md:mb-4">
             Browse Our Archive
           </span>
           <h2 className="text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl md:text-5xl lg:text-[3.25rem] lg:leading-[1.1]">
@@ -60,7 +60,7 @@ const ShopByCategorySection = ({
           </h2>
           <div className="mt-5 flex items-center justify-center gap-3 md:mt-6">
             <span className="h-px w-10 bg-stone-300 sm:w-12" aria-hidden />
-            <div className="h-1 w-20 rounded-full bg-amber-900 sm:w-24" />
+            <div className="h-1 w-20 rounded-full bg-[#c9a84c] sm:w-24" />
             <span className="h-px w-10 bg-stone-300 sm:w-12" aria-hidden />
           </div>
           <p className="mt-6 text-sm leading-relaxed text-stone-600 sm:text-base md:mt-7">
@@ -89,7 +89,7 @@ const ShopByCategorySection = ({
                   key={category.categoryId}
                   onClick={() => onSelectCategory(category.categoryId)}
                   aria-label={`Shop ${category.name} category`}
-                  className="group relative h-[340px] sm:h-[400px] md:h-[480px] lg:h-[540px] overflow-hidden text-left rounded-2xl bg-stone-900 shadow-[0_20px_50px_-20px_rgba(28,25,23,0.35)] ring-1 ring-stone-900/10 transition-all duration-500 ease-out hover:-translate-y-1 hover:shadow-[0_28px_60px_-16px_rgba(28,25,23,0.45)] hover:ring-amber-900/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-800 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-100"
+                  className="group relative h-[340px] sm:h-[400px] md:h-[480px] lg:h-[540px] overflow-hidden text-left rounded-2xl bg-stone-900 shadow-[0_20px_50px_-20px_rgba(28,25,23,0.35)] ring-1 ring-stone-900/10 transition-all duration-500 ease-out hover:-translate-y-1 hover:shadow-[0_28px_60px_-16px_rgba(28,25,23,0.45)] hover:ring-[#c9a84c]/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a84c] focus-visible:ring-offset-2 focus-visible:ring-offset-stone-100"
                 >
                   <img
                     alt={`${category.name} — frame & decor`}

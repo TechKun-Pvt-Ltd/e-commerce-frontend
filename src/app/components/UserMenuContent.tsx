@@ -1,6 +1,6 @@
 "use client";
 import React from 'react';
-import { LogIn, UserPlus2Icon, Package, CircleUserRoundIcon, LogOut, Loader2 } from "lucide-react"
+import { LogIn, UserPlus2Icon, Package, CircleUserRoundIcon, LogOut, Loader2, Settings } from "lucide-react"
 import {
     DropdownMenuItem,
     DropdownMenuLabel,
@@ -10,11 +10,16 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import Link from 'next/link';
 import { logout } from '@/store/slices/authSlice';
 import { toast } from "sonner";
+import { UserRole } from "@/types/domains/user";
 
 export default function UserMenuContent() {
     const dispatch = useAppDispatch();
-    const { authenticated } = useAppSelector(state => state.auth);
+    const { authenticated, user } = useAppSelector(state => state.auth);
     const [isLoggingOut, setIsLoggingOut] = React.useState(false);
+
+    const isAdmin = user?.roleName === UserRole.ADMIN;
+    const isPlatformAdmin = user?.roleName === UserRole.PLATFORM_ADMIN;
+    const canShowAdmin = isAdmin || isPlatformAdmin;
 
     return authenticated ? (
         <>
@@ -31,6 +36,17 @@ export default function UserMenuContent() {
                     Orders
                 </Link>
             </DropdownMenuItem>
+            {canShowAdmin && (
+                <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                        <Link href="/admin/dashboard" className="flex items-center gap-2">
+                            <Settings />
+                            Admin Dashboard
+                        </Link>
+                    </DropdownMenuItem>
+                </>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem
                 disabled={isLoggingOut}

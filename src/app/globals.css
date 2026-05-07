@@ -7,6 +7,30 @@
   animation: fadeIn 0.3s ease-out forwards;
 }
 
+@keyframes shimmer {
+  100% { transform: translateX(200%); }
+}
+
+/* Luxury scrollbar — used on filter sidebar */
+.scrollbar-luxury {
+  scrollbar-width: thin;
+  scrollbar-color: oklch(0.72 0.08 75) transparent;
+}
+.scrollbar-luxury::-webkit-scrollbar {
+  width: 4px;
+}
+.scrollbar-luxury::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-luxury::-webkit-scrollbar-thumb {
+  background: oklch(0.72 0.08 75 / 0.5);
+  border-radius: 99px;
+  transition: background 0.2s;
+}
+.scrollbar-luxury::-webkit-scrollbar-thumb:hover {
+  background: #c9a84c;
+}
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -70,9 +94,9 @@
   --card-foreground: oklch(0.13 0.028 261.692);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.13 0.028 261.692);
-  /* Neutral black primary — default theme */
-  --primary: oklch(0.12 0 0);
-  --primary-foreground: oklch(0.99 0 0);
+  /* Warm near-black — dark espresso, suits wall art theme */
+  --primary: oklch(0.16 0.02 55);
+  --primary-foreground: oklch(0.97 0 0);
   --secondary: oklch(0.967 0.003 264.542);
   --secondary-foreground: oklch(0.21 0.034 264.665);
   --muted: oklch(0.967 0.003 264.542);
@@ -80,9 +104,9 @@
   --accent: oklch(0.967 0.003 264.542);
   --accent-foreground: oklch(0.21 0.034 264.665);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.928 0.006 264.531);
-  --input: oklch(0.928 0.006 264.531);
-  --ring: oklch(0.12 0 0);
+  --border: oklch(0.82 0.008 60);
+  --input: oklch(0.82 0.008 60);
+  --ring: oklch(0.14 0.018 55);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -96,7 +120,7 @@
   --sidebar-accent-foreground: oklch(0.21 0.034 264.665);
   --sidebar-border: oklch(0.928 0.006 264.531);
   --sidebar-ring: oklch(0.707 0.022 261.325);
-  --background: oklch(1 0 0);
+  --background: oklch(0.98 0.008 80);
   --foreground: oklch(0.13 0.028 261.692);
 }
 
@@ -138,9 +162,31 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: oklch(0.72 0.012 65) transparent;
+  }
+  html::-webkit-scrollbar {
+    width: 8px;
+  }
+  html::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  html::-webkit-scrollbar-thumb {
+    background: oklch(0.72 0.012 65);
+    border-radius: 99px;
+    border: 2px solid oklch(0.98 0.008 80);
+  }
+  html::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.55 0.015 60);
+  }
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.font-display {
+  font-family: var(--font-display), Georgia, serif;
 } 
 
 .thin-scrollbar::-webkit-scrollbar {
