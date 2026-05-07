@@ -1,155 +1,86 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
-import React, { useState } from 'react';
-import Sidebar from '../components/Sidebar';
-import Header from '../components/Header';
-import { 
-    FaSearch, 
-    FaFilter, 
-    FaEllipsisV, 
-    FaEnvelope, 
-    FaPhone, 
-    FaMapMarkerAlt 
-} from 'react-icons/fa';
+import { useState } from "react";
+import { Search, Filter, MoreVertical, MapPin } from "lucide-react";
 
-const CustomersPage = () => {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-    const [searchQuery, setSearchQuery] = useState('');
+const customers = [
+    { id: "CUST001", name: "John Doe",   email: "john@example.com",  phone: "+1 234 567 8900", location: "New York, USA",       orders: 12, totalSpent: "$1,299.99", status: "active" },
+    { id: "CUST002", name: "Jane Smith", email: "jane@example.com",  phone: "+1 234 567 8901", location: "Los Angeles, USA",    orders: 8,  totalSpent: "$899.99",   status: "active" },
+];
 
-    // Mock data - replace with actual data from your API
-    const customers = [
-        {
-            id: 'CUST001',
-            name: 'John Doe',
-            email: 'john@example.com',
-            phone: '+1 234 567 8900',
-            location: 'New York, USA',
-            orders: 12,
-            totalSpent: '$1,299.99',
-            status: 'active'
-        },
-        {
-            id: 'CUST002',
-            name: 'Jane Smith',
-            email: 'jane@example.com',
-            phone: '+1 234 567 8901',
-            location: 'Los Angeles, USA',
-            orders: 8,
-            totalSpent: '$899.99',
-            status: 'active'
-        },
-        // Add more mock customers as needed
-    ];
+export default function CustomersPage() {
+    const [search, setSearch] = useState("");
 
     return (
-        <div className="flex min-h-screen bg-gray-100">
-            <Sidebar isSidebarOpen={isSidebarOpen} onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
-            
-            <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-20'}`}>
-                <div className="p-8">
-                    <Header title="Customers" />
+        <>
+            <h1 className="text-2xl font-semibold text-gray-900 mb-6">Customers</h1>
 
-                    {/* Search and Filter */}
-                    <div className="mt-6 flex gap-4">
-                        <div className="relative flex-1">
-                            <input
-                                type="text"
-                                placeholder="Search customers..."
-                                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                        </div>
-                        <button className="px-4 py-2 border rounded-lg hover:bg-gray-50 flex items-center gap-2">
-                            <FaFilter className="w-4 h-4" />
-                            Filter
-                        </button>
-                    </div>
-
-                    {/* Customers Table */}
-                    <div className="mt-6 bg-white rounded-lg shadow overflow-hidden">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Customer
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Contact
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Location
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Orders
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Total Spent
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Status
-                                    </th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Actions
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                                {customers.map((customer) => (
-                                    <tr key={customer.id} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center">
-                                                <div className="h-10 w-10 flex-shrink-0">
-                                                    <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                                                        <span className="text-lg font-semibold text-gray-600">
-                                                            {customer.name.charAt(0)}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <div className="ml-4">
-                                                    <div className="text-sm font-medium text-gray-900">
-                                                        {customer.name}
-                                                    </div>
-                                                    <div className="text-sm text-gray-500">
-                                                        ID: {customer.id}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900">{customer.email}</div>
-                                            <div className="text-sm text-gray-500">{customer.phone}</div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center text-sm text-gray-500">
-                                                <FaMapMarkerAlt className="w-4 h-4 mr-1" />
-                                                {customer.location}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {customer.orders}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {customer.totalSpent}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                                {customer.status}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <button className="text-gray-400 hover:text-gray-500">
-                                                <FaEllipsisV className="w-5 h-5" />
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+            <div className="flex gap-3 mb-6">
+                <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <input
+                        type="text"
+                        placeholder="Search customers..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10"
+                    />
                 </div>
-            </main>
-        </div>
-    );
-};
+                <button className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center gap-2 text-sm text-gray-600">
+                    <Filter className="h-4 w-4" /> Filter
+                </button>
+            </div>
 
-export default CustomersPage; 
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+                <table className="min-w-full divide-y divide-gray-100">
+                    <thead className="bg-gray-50">
+                        <tr>
+                            {["Customer", "Contact", "Location", "Orders", "Total Spent", "Status", ""].map((h) => (
+                                <th key={h} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    {h}
+                                </th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                        {customers.map((c) => (
+                            <tr key={c.id} className="hover:bg-gray-50 transition-colors">
+                                <td className="px-6 py-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="h-9 w-9 rounded-full bg-gray-200 flex items-center justify-center shrink-0">
+                                            <span className="text-sm font-semibold text-gray-600">{c.name.charAt(0)}</span>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-gray-900">{c.name}</p>
+                                            <p className="text-xs text-gray-400">ID: {c.id}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td className="px-6 py-4">
+                                    <p className="text-sm text-gray-900">{c.email}</p>
+                                    <p className="text-xs text-gray-500">{c.phone}</p>
+                                </td>
+                                <td className="px-6 py-4">
+                                    <div className="flex items-center gap-1 text-sm text-gray-600">
+                                        <MapPin className="h-3.5 w-3.5 shrink-0" /> {c.location}
+                                    </div>
+                                </td>
+                                <td className="px-6 py-4 text-sm text-gray-600">{c.orders}</td>
+                                <td className="px-6 py-4 text-sm font-medium text-gray-900">{c.totalSpent}</td>
+                                <td className="px-6 py-4">
+                                    <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                                        {c.status}
+                                    </span>
+                                </td>
+                                <td className="px-6 py-4 text-right">
+                                    <button className="text-gray-400 hover:text-gray-600">
+                                        <MoreVertical className="h-4 w-4" />
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </>
+    );
+}

@@ -1,104 +1,203 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
-import { FiTrash2 } from 'react-icons/fi';
-import { CartItem, CartItemPreview } from '@/types/domains/cart';
-import placeholderImage from '@/../public/placeholder-image.jpeg';
+import { Trash2, Minus, Plus, FrameIcon, Loader2 } from 'lucide-react';
+import { CartItemPreview } from '@/types/domains/cart';
+import Link from 'next/link';
 
 interface CartItemsProps {
     items: CartItemPreview[];
     onQuantityChange: (cartItemId: number, newQuantity: number) => Promise<void>;
-    onRemoveItem: (variantId: number) => Promise<void>;
+    onRemoveItem: (cartItemId: number) => Promise<void>;
+}
+
+function BrandedPlaceholder() {
+    return (
+        <div className="w-full h-full bg-[oklch(0.42_0.02_55)]/8 flex flex-col items-center justify-center gap-1">
+            <FrameIcon className="h-8 w-8 text-[#c9a84c]/30" strokeWidth={1} />
+            <span className="text-[9px] tracking-widest text-[#c9a84c]/40 uppercase">No Image</span>
+        </div>
+    );
+}
+
+function CartItemCard({ item, onQuantityChange, onRemoveItem }: {
+    item: CartItemPreview;
+    onQuantityChange: (cartItemId: number, newQuantity: number) => Promise<void>;
+    onRemoveItem: (cartItemId: number) => Promise<void>;
+}) {
+    const [imgError, setImgError] = useState(false);
+    const [isRemoving, setIsRemoving] = useState(false);
+    const [updatingDir, setUpdatingDir] = useState<'inc' | 'dec' | null>(null);
+
+    const lineTotal = item.price * item.quantity;
+    const originalLineTotal = item.originalPrice ? item.originalPrice * item.quantity : null;
+    const hasDiscount = !!item.originalPrice && item.originalPrice > item.price;
+
+    const handleQtyChange = async (newQty: number, dir: 'inc' | 'dec') => {
+        if (updatingDir !== null || isRemoving) return;
+        setUpdatingDir(dir);
+        try {
+            await onQuantityChange(item.cartItemId, newQty);
+        } finally {
+            setUpdatingDir(null);
+        }
+    };
+
+    const handleRemove = async () => {
+        if (isRemoving || updatingDir !== null) return;
+        setIsRemoving(true);
+        try {
+            await onRemoveItem(item.cartItemId);
+        } finally {
+            setIsRemoving(false);
+        }
+    };
+
+    return (
+        <div className="flex gap-4 sm:gap-5 p-4 sm:p-5 bg-white border border-border/60 hover:border-[#c9a84c]/30 transition-colors group">
+
+            {/* Product image */}
+            <div className="relative w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0 bg-muted overflow-hidden">
+                {item.imageUrl && !imgError ? (
+                    <Image
+                        src={item.imageUrl}
+                        alt={item.title}
+                        fill
+                        unoptimized
+                        className="object-cover group-hover:scale-[1.03] transition-transform duration-300"
+                        onError={() => setImgError(true)}
+                    />
+                ) : (
+                    <BrandedPlaceholder />
+                )}
+                {hasDiscount && item.promotionType && (
+                    <div className="absolute top-1.5 left-1.5 bg-amber-500 text-white text-[9px] font-semibold tracking-wide px-1.5 py-0.5 leading-tight">
+                        {item.promotionType === "PERCENTAGE"
+                            ? `-${item.discountValue}%`
+                            : `-$${item.discountValue}`}
+                    </div>
+                )}
+            </div>
+
+            {/* Details */}
+            <div className="flex-1 min-w-0">
+                {/* Title */}
+                <h3 className="text-sm sm:text-base font-semibold text-foreground line-clamp-2 leading-snug mb-1.5">
+                    {item.title}
+                </h3>
+
+                {/* Variation chips + Remove button on right edge */}
+                <div className="flex items-start justify-between gap-2 mb-1.5">
+                    <div className="flex flex-wrap gap-1.5">
+                        {item.variationOptions && item.variationOptions.length > 0
+                            ? item.variationOptions.map((vo) => (
+                                <span
+                                    key={vo.variationOptionId}
+                                    className="inline-block border border-border/60 text-[10px] text-foreground/70 tracking-wide px-2 py-0.5 bg-muted/40"
+                                >
+                                    {vo.optionName}
+                                </span>
+                            ))
+                            : null
+                        }
+                    </div>
+
+                    {/* Remove button */}
+                    <button
+                        onClick={handleRemove}
+                        disabled={isRemoving}
+                        className="flex-shrink-0 flex items-center gap-1.5 text-xs text-muted-foreground hover:text-destructive disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        aria-label="Remove item"
+                    >
+                        {isRemoving
+                            ? <Loader2 className="h-4 w-4 animate-spin" />
+                            : <Trash2 className="h-4 w-4" />
+                        }
+                        <span className="hidden sm:inline">Remove</span>
+                    </button>
+                </div>
+
+                {/* SKU */}
+                <p className="text-[10px] tracking-widest text-muted-foreground/60 uppercase mb-3 truncate">
+                    SKU: {item.sku}
+                </p>
+
+                {/* Quantity + price row */}
+                <div className="flex items-center justify-between gap-3">
+                    {/* Quantity controls */}
+                    <div className="flex items-center border border-border/70">
+                        <button
+                            onClick={() => handleQtyChange(item.quantity - 1, 'dec')}
+                            disabled={item.quantity <= 1 || updatingDir !== null || isRemoving}
+                            className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                            aria-label="Decrease quantity"
+                        >
+                            {updatingDir === 'dec'
+                                ? <Loader2 className="h-3 w-3 animate-spin" />
+                                : <Minus className="h-3 w-3" />
+                            }
+                        </button>
+                        <span className="w-8 sm:w-10 text-center text-sm font-medium text-foreground select-none">
+                            {item.quantity}
+                        </span>
+                        <button
+                            onClick={() => handleQtyChange(item.quantity + 1, 'inc')}
+                            disabled={item.quantity >= item.quantityInStock || updatingDir !== null || isRemoving}
+                            className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                            aria-label="Increase quantity"
+                        >
+                            {updatingDir === 'inc'
+                                ? <Loader2 className="h-3 w-3 animate-spin" />
+                                : <Plus className="h-3 w-3" />
+                            }
+                        </button>
+                    </div>
+
+                    {/* Price */}
+                    <div className="text-right">
+                        <p className="text-sm sm:text-base font-semibold text-foreground leading-tight">
+                            ${lineTotal.toFixed(2)}
+                        </p>
+                        {hasDiscount && originalLineTotal && (
+                            <p className="text-xs text-muted-foreground line-through leading-tight">
+                                ${originalLineTotal.toFixed(2)}
+                            </p>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 }
 
 const CartItems: React.FC<CartItemsProps> = ({ items, onQuantityChange, onRemoveItem }) => {
-    console.log("CartItems rendered with items:", items);
     if (items.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-16 px-4">
-                <div className="w-24 h-24 mb-6">
-                    <Image
-                        src="/empty-cart.svg"
-                        alt="Empty Cart"
-                        width={96}
-                        height={96}
-                        className="opacity-50"
-                    />
-                </div>
-                <h2 className="text-2xl font-semibold text-gray-900 mb-2">Your cart is empty</h2>
-                <p className="text-gray-500 text-center mb-6">Add some items to your cart to continue shopping</p>
-                <button 
-                    onClick={() => window.history.back()}
-                    className="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition-colors"
-                >
-                    Continue Shopping
-                </button>
+            <div className="flex flex-col items-center justify-center py-24 px-4 text-center">
+                <div className="w-16 h-px bg-[#c9a84c]/40 mb-8" />
+                <p className="text-[10px] tracking-[0.2em] uppercase text-[#c9a84c] mb-3">Cart</p>
+                <h2 className="font-display text-2xl tracking-widest text-foreground mb-2">Your cart is empty</h2>
+                <p className="text-sm text-muted-foreground mb-8 max-w-xs">
+                    Discover our curated collection of premium wall art and frames.
+                </p>
+                <Link href="/products">
+                    <button className="bg-[oklch(0.42_0.02_55)] hover:bg-[oklch(0.35_0.02_55)] text-white text-[11px] tracking-widest uppercase px-8 py-3 transition-colors">
+                        Explore Collection
+                    </button>
+                </Link>
             </div>
         );
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-3">
             {items.map((item) => (
-                <div 
-                    key={item.cartItemId} 
-                    className="flex items-center gap-6 p-6 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow"
-                >
-                    <div className="relative w-32 h-32 flex-shrink-0">
-                        <Image
-                            src={item.imageUrl || placeholderImage}
-                            alt={item.title}
-                            fill
-                            sizes="128px"
-                            quality={90}
-                            className="object-cover rounded-lg"
-                        />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                                    {item.title}
-                                </h3>
-                                <div className="text-sm text-gray-500 space-y-1">
-                                    {/* <p>Size: {item.productVariant.sizeOption.value}</p> */}
-                                    {/* <p>Frame: {item.productVariant.frameOption.value}</p> */}
-                                </div>
-                            </div>
-                            <p className="text-xl font-semibold text-gray-900">
-                                ${(item.price * item.quantity).toFixed(2)}
-                            </p>
-                        </div>
-                        <div className="flex items-center justify-between mt-4">
-                            <div className="flex items-center gap-3">
-                                <button
-                                    onClick={() => onQuantityChange(item.cartItemId, item.quantity - 1)}
-                                    disabled={item.quantity <= 1}
-                                    className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full 
-                                             hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    -
-                                </button>
-                                <span className="w-12 text-center font-medium">{item.quantity}</span>
-                                <button
-                                    onClick={() => onQuantityChange(item.cartItemId, item.quantity + 1)}
-                                    className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full 
-                                             hover:bg-gray-100"
-                                >
-                                    +
-                                </button>
-                            </div>
-                            <button
-                                onClick={() => onRemoveItem(item.cartItemId)}
-                                className="flex items-center gap-2 text-red-500 hover:text-red-700 transition-colors"
-                            >
-                                <FiTrash2 className="w-5 h-5" />
-                                <span>Remove</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <CartItemCard
+                    key={item.cartItemId}
+                    item={item}
+                    onQuantityChange={onQuantityChange}
+                    onRemoveItem={onRemoveItem}
+                />
             ))}
         </div>
     );

@@ -61,7 +61,7 @@ const ProductsPage = () => {
 
     return (
         <div className="flex min-h-screen bg-gray-100">
-            <Sidebar isSidebarOpen={isSidebarOpen} onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+            <Sidebar collapsed={!isSidebarOpen} mobileOpen={false} onMobileClose={() => {}} />
 
             <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-20'}`}>
                 <div className="p-8">

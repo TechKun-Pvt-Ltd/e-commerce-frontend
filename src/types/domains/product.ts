@@ -57,6 +57,8 @@ export interface ProductDetails {
     attributes: ProductAttribute[];
     starred: boolean;
     status: boolean;
+    averageRating: number;
+    reviewCount: number;
 }
 
 export interface ProductPatchPayload {
@@ -102,6 +104,7 @@ export interface ProductPreview {
     dateAdded: Date;
     quantityInStock: number;
     imageUrl: string;
+    images: string[];
     price: number;
     title: string;
     code: string;
@@ -118,6 +121,14 @@ export interface ProductQueryOptions {
     sortOption?: SortOption;
     /** When true, only products visible in the shop. Omit for admin. */
     status?: boolean;
+    /** Maximum number of results to return. */
+    limit?: number;
+    /** Number of results to skip (for pagination). */
+    offset?: number;
+    priceRangeMin?: number;
+    priceRangeMax?: number;
+    /** Exclude a specific product ID from results (used for related products). */
+    excludeProductId?: number;
 }
 
 export enum SortOption {

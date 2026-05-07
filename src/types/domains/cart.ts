@@ -11,10 +11,14 @@ export type CartItemPreview = {
     productId?: number;
     categoryId?: number;
     sku: string;
-    price: number;
+    price: number;           // final price after discount
+    originalPrice?: number;  // base price before discount; undefined = no promotion
+    promotionType?: string;  // "PERCENTAGE" | "FLAT"
+    discountValue?: number;  // e.g. 20 for 20% off
     quantityInStock: number;
     quantity: number;
     personalization?: Personalization;
+    variationOptions?: { variationOptionId: number; optionName: string; variationName: string }[];
 };
 
 export type CartItemDTO = {

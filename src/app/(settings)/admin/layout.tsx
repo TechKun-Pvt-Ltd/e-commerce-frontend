@@ -9,6 +9,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { Tags, LogOut, MoreVerticalIcon, Shapes, SlidersHorizontal, Package, LayoutDashboard, Percent, ShipWheelIcon, Truck, CreditCard, TableIcon } from "lucide-react"
 import { Tags, LogOut, MoreVerticalIcon, Shapes, SlidersHorizontal, Package, LayoutDashboard, Percent, ShipWheelIcon, Truck, CreditCardIcon, TableIcon, BotMessageSquare } from "lucide-react"
 import Link from "next/link";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -21,7 +22,7 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbP
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { NAVBAR_HEIGHT } from "@/lib/constants";
+import { NAV_TOP_HEIGHT } from "@/lib/constants";
 import { UserRole } from "@/types/domains/user";
 import Spinner from "@/components/ui/spinner";
 
@@ -86,6 +87,11 @@ const items = [
         url: "/admin/agent",
         icon: BotMessageSquare
     },
+    {
+        title: "Payments",
+        url: "/admin/payments",
+        icon: CreditCard
+    }
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -133,6 +139,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     return <SidebarProvider className="" style={{ height: `calc(100vh - ${NAVBAR_HEIGHT})`, minHeight: 0, overflow: 'hidden' }}>
         <Sidebar collapsible="icon" style={{height: `calc(100vh - ${NAVBAR_HEIGHT})`, insetBlock: NAVBAR_HEIGHT} as any}>
+    return <SidebarProvider className="" style={{ minHeight: 0, paddingTop: NAV_TOP_HEIGHT }}>
+        <Sidebar collapsible="icon" style={{height: `calc(100vh - ${NAV_TOP_HEIGHT})`, insetBlock: NAV_TOP_HEIGHT} as any}>
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>

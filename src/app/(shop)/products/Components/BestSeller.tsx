@@ -18,58 +18,49 @@ const BestSeller = ({ products: productsProp = [], selectedCategoryId }: BestSel
     const productsData = useDataFetch(productServices.getAllProducts);
     const promotions = useAppSelector((state) => state.promotions.items);
 
-    // Fetch products with categoryId filter
     useEffect(() => {
-        const filters: ProductQueryOptions = {
-            sortOption: SortOption.POPULAR, // Use POPULAR for best sellers (sorted by rating)
-            status: true,
-        };
-        if (selectedCategoryId !== null) {
-            filters.categoryId = selectedCategoryId;
-        }
+        const filters: ProductQueryOptions = { sortOption: SortOption.POPULAR, status: true };
+        if (selectedCategoryId !== null) filters.categoryId = selectedCategoryId;
         productsData.request(filters);
     }, [selectedCategoryId]);
 
-    // Use products from API (already sorted by rating) or fallback to prop
-    // Extra safety: if backend doesn't filter by status yet, hide inactive products in UI.
     const products = (productsData.data || productsProp || []).filter((p) => p.status !== false);
 
     const bestSellerProducts = useMemo(() => {
-        if (!products || products.length === 0) return [];
-        // Products are already sorted by rating from API (POPULAR sort), just take top 5
+        if (!products?.length) return [];
         return products.slice(0, 5);
     }, [products]);
 
     return (
-        <section className="bg-gray-50 py-12">
-            <div className="container mx-auto px-4">
+        <section className="border-t border-border py-14">
+            <div className="max-w-[1600px] mx-auto w-full px-6 md:px-10">
 
-                <div className="mb-8 text-center">
-                    <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 sm:mb-16">
+                <div className="mb-8">
+                    <p className="text-[11px] font-semibold tracking-[0.25em] uppercase text-[#c9a84c] mb-2">
+                        Top Picks
+                    </p>
+                    <h2 className="font-display text-3xl font-medium text-foreground">
                         {selectedCategoryId !== null ? "Category Best Sellers" : "Best Sellers"}
                     </h2>
                 </div>
 
                 {productsData.isLoading ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                            <ProductCardSkeleton key={i} />
-                        ))}
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-5 gap-y-10">
+                        {Array.from({ length: 5 }).map((_, i) => <ProductCardSkeleton key={i} />)}
                     </div>
                 ) : bestSellerProducts.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-5 gap-y-10">
                         {bestSellerProducts.map((product) => {
                             const promo = getPromotionForProduct(product, promotions);
-                            return (
-                                <ProductCard key={product.productId} product={product} promo={promo} />
-                            );
+                            return <ProductCard key={product.productId} product={product} promo={promo} />;
                         })}
                     </div>
                 ) : (
-                    <div className="text-center text-gray-500 py-8">
-                        No products found
+                    <div className="text-center text-muted-foreground py-10">
+                        <p className="font-display text-2xl font-light">No featured works yet</p>
                     </div>
                 )}
+
             </div>
         </section>
     );

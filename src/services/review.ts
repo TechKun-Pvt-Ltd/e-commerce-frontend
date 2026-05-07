@@ -4,11 +4,11 @@ import { Review, ReviewDetails, ReviewDTO } from "@/types/domains/review";
 
 export const getReviews: ServiceFunction<[
     productId?: number, customerId?: number,
-    page?: number, size?: number
-], ReviewDetails[]> = (productId, customerId, page, size) => {
+    page?: number, size?: number, sort?: string
+], ReviewDetails[]> = (productId, customerId, page, size, sort) => {
     return servicesApiClient.get(
         `/reviews`,
-        { params: { productId, customerId, page, size } }
+        { params: { productId, customerId, page, size, sort } }
     );
 };
 

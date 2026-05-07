@@ -47,6 +47,7 @@ function CategoryHierarchyItem({
         <>
             <div
                 className={`flex items-center gap-2 h-8 ${hasSubcategories ? 'px-2' : 'px-2.5' } hover:bg-accent rounded-sm cursor-pointer`}
+                onClick={() => onToggle(categoryNode)}
             >
                 {hasSubcategories && (
                     <Button
@@ -68,13 +69,11 @@ function CategoryHierarchyItem({
 
                 <Checkbox
                     checked={isSelected}
-                    onChange={() => onToggle(categoryNode)}
+                    onClick={(e) => e.stopPropagation()}
+                    onCheckedChange={() => onToggle(categoryNode)}
                 />
 
-                <span
-                    className="text-sm flex-1"
-                    onClick={() => onToggle(categoryNode)}
-                >
+                <span className="text-sm flex-1">
                     {category.name}
                 </span>
             </div>
