@@ -25,7 +25,7 @@ import Image from "next/image";
 import { getPromotionForProduct, cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { PromotionDetails } from "@/types/domains/promotion";
-import { ChevronRight, ChevronLeft, Home, Heart, ZoomIn, Truck, ChevronDown } from "lucide-react";
+import { ChevronRight, ChevronLeft, Home, Heart, ZoomIn, Truck, ChevronDown, Loader2 } from "lucide-react";
 import { Rating, RatingButton } from "@/components/ui/rating";
 import { CategoryDetails } from "@/types/domains/category";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -79,6 +79,8 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
     const [quantity, setQuantity] = useState(1);
     const [attemptedSubmit, setAttemptedSubmit] = useState(false);
     const [attrsExpanded, setAttrsExpanded] = useState(false);
+    const [isAddingToCart, setIsAddingToCart] = useState(false);
+    const [isBuyingNow, setIsBuyingNow] = useState(false);
     const swipeTouchStartX = useRef<number | null>(null);
     const swipeTouchStartY = useRef<number | null>(null);
 
@@ -382,10 +384,15 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
             toast.error("Please select all product options");
             return;
         }
-        const imageId = activeImage?.productImageId ?? product?.productImages?.[0]?.productImageId;
-        await dispatch(addToCart({ productVariantId: variant.productVariantId, quantity, productImageId: imageId }));
-        if (!toast.getToasts().find((t) => t.id === "cart-toast")) {
-            toast(CartToast, cartToastConfig);
+        setIsAddingToCart(true);
+        try {
+            const imageId = activeImage?.productImageId ?? product?.productImages?.[0]?.productImageId;
+            await dispatch(addToCart({ productVariantId: variant.productVariantId, quantity, productImageId: imageId }));
+            if (!toast.getToasts().find((t) => t.id === "cart-toast")) {
+                toast(CartToast, cartToastConfig);
+            }
+        } finally {
+            setIsAddingToCart(false);
         }
     }, [authenticated, getSelectedVariant, dispatch, router, cartToastConfig, productId, activeImage, product, quantity]);
 
@@ -401,6 +408,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
             toast.error("Please select all product options");
             return;
         }
+        setIsBuyingNow(true);
         dispatch(setBuyNowItem({
             cartItemId: -1,
             productVariantId: variant.productVariantId,
@@ -950,17 +958,21 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
                         <Button
                             className="w-full h-11 rounded-none tracking-widest text-sm font-medium"
                             onClick={handleAddToCart}
-                            disabled={isOutOfStock}
+                            disabled={isOutOfStock || isAddingToCart || isBuyingNow}
                         >
-                            {isOutOfStock ? "OUT OF STOCK" : "ADD TO CART"}
+                            {isAddingToCart ? (
+                                <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Adding to Cart...</>
+                            ) : isOutOfStock ? "OUT OF STOCK" : "ADD TO CART"}
                         </Button>
                         <Button
                             variant="outline"
                             className="w-full h-11 rounded-none tracking-widest text-sm font-medium"
                             onClick={handleBuyNow}
-                            disabled={isOutOfStock}
+                            disabled={isOutOfStock || isBuyingNow || isAddingToCart}
                         >
-                            BUY NOW
+                            {isBuyingNow ? (
+                                <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Processing...</>
+                            ) : "BUY NOW"}
                         </Button>
                     </div>
 
@@ -1114,17 +1126,21 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
             <Button
                 className="flex-1 h-10 rounded-none tracking-widest text-xs font-medium"
                 onClick={handleAddToCart}
-                disabled={isOutOfStock}
+                disabled={isOutOfStock || isAddingToCart || isBuyingNow}
             >
-                {isOutOfStock ? "OUT OF STOCK" : "ADD TO CART"}
+                {isAddingToCart ? (
+                    <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />Adding...</>
+                ) : isOutOfStock ? "OUT OF STOCK" : "ADD TO CART"}
             </Button>
             <Button
                 variant="outline"
                 className="flex-1 h-10 rounded-none tracking-widest text-xs font-medium"
                 onClick={handleBuyNow}
-                disabled={isOutOfStock}
+                disabled={isOutOfStock || isBuyingNow || isAddingToCart}
             >
-                BUY NOW
+                {isBuyingNow ? (
+                    <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />Processing...</>
+                ) : "BUY NOW"}
             </Button>
         </div>
 

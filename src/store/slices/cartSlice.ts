@@ -152,25 +152,30 @@ const cartSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload as string;
             })
-            .addCase(updateCartItemAsync.pending, (state) => {
-                state.loading = true;
+            .addCase(updateCartItemAsync.pending, (state, action) => {
+                // Optimistic update — reflect new quantity immediately so UI responds instantly
+                const { cartItemId, payload } = action.meta.arg;
+                if (payload.quantity !== undefined) {
+                    const item = state.items.find(i => i.cartItemId === cartItemId);
+                    if (item) {
+                        item.quantity = payload.quantity;
+                        calculateTotals(state);
+                    }
+                }
                 state.error = null;
             })
             .addCase(updateCartItemAsync.fulfilled, (state, action) => {
-                state.loading = false;
-                state.items = state.items.map(item => {
-                    if (item.cartItemId !== action.payload.cartItemId)
-                        return item;
-
+                // Confirm with server response
+                const item = state.items.find(i => i.cartItemId === action.payload.cartItemId);
+                if (item) {
                     item.quantity = action.payload.quantity;
                     item.personalization = action.payload.personalization;
-                    return item;
-                });
-                calculateTotals(state);
+                    calculateTotals(state);
+                }
             })
             .addCase(updateCartItemAsync.rejected, (state, action) => {
-                state.loading = false;
                 state.error = action.payload as string;
+                // Optimistic value will be reverted by re-fetching in the component
             })
             .addCase(removeFromCartAsync.pending, (state) => {
                 state.loading = true;

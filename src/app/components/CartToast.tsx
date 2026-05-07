@@ -1,35 +1,40 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { toast } from "sonner";
-import { X, ShoppingCart, FrameIcon, Minus, Plus, Trash2 } from "lucide-react";
+import { X, ShoppingCart, FrameIcon, Minus, Plus, Trash2, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { updateCart } from "@/store/slices/cartSlice";
-import { CartItemPreview } from "@/types/domains/cart";
+import { updateCartItemAsync, removeFromCartAsync } from "@/store/slices/cartSlice";
 import Link from "next/link";
 
 export default function CartToast() {
     const dispatch = useAppDispatch();
     const { items: cartItems, totalAmount } = useAppSelector((state) => state.cart);
+    const [loadingItemId, setLoadingItemId] = useState<number | null>(null);
 
     // Newest first
     const sorted = [...cartItems].sort((a, b) => b.cartItemId - a.cartItemId);
 
     const fmt = (n: number) => `$${n.toFixed(2)}`;
 
-    function changeQty(item: CartItemPreview, delta: number) {
-        const newQty = item.quantity + delta;
-        if (newQty < 1 || newQty > item.quantityInStock) return;
-        const updated = cartItems.map(i =>
-            i.cartItemId === item.cartItemId ? { ...i, quantity: newQty } : i
-        );
-        dispatch(updateCart(updated));
+    async function changeQty(cartItemId: number, currentQty: number, delta: number, maxQty: number) {
+        const newQty = currentQty + delta;
+        if (newQty < 1 || newQty > maxQty || loadingItemId !== null) return;
+        setLoadingItemId(cartItemId);
+        await dispatch(updateCartItemAsync({ cartItemId, payload: { quantity: newQty } }));
+        setLoadingItemId(null);
     }
 
-    function removeItem(cartItemId: number) {
-        const updated = cartItems.filter(i => i.cartItemId !== cartItemId);
-        if (updated.length === 0) toast.dismiss("cart-toast");
-        dispatch(updateCart(updated));
+    async function removeItem(cartItemId: number) {
+        if (loadingItemId !== null) return;
+        setLoadingItemId(cartItemId);
+        const result = await dispatch(removeFromCartAsync(cartItemId));
+        if (removeFromCartAsync.fulfilled.match(result)) {
+            // dismiss toast if cart becomes empty after this removal
+            const remaining = cartItems.filter(i => i.cartItemId !== cartItemId);
+            if (remaining.length === 0) toast.dismiss("cart-toast");
+        }
+        setLoadingItemId(null);
     }
 
     return (
@@ -106,18 +111,21 @@ export default function CartToast() {
                                 {/* Qty */}
                                 <div className="flex items-center border border-border/60">
                                     <button
-                                        onClick={() => changeQty(item, -1)}
-                                        disabled={item.quantity <= 1}
+                                        onClick={() => changeQty(item.cartItemId, item.quantity, -1, item.quantityInStock)}
+                                        disabled={item.quantity <= 1 || loadingItemId === item.cartItemId}
                                         className="w-6 h-6 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 transition-colors"
                                     >
                                         <Minus className="h-2.5 w-2.5" />
                                     </button>
                                     <span className="w-7 text-center text-xs font-medium text-foreground select-none">
-                                        {item.quantity}
+                                        {loadingItemId === item.cartItemId
+                                            ? <Loader2 className="h-2.5 w-2.5 animate-spin mx-auto" />
+                                            : item.quantity
+                                        }
                                     </span>
                                     <button
-                                        onClick={() => changeQty(item, 1)}
-                                        disabled={item.quantity >= item.quantityInStock}
+                                        onClick={() => changeQty(item.cartItemId, item.quantity, 1, item.quantityInStock)}
+                                        disabled={item.quantity >= item.quantityInStock || loadingItemId === item.cartItemId}
                                         className="w-6 h-6 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 transition-colors"
                                     >
                                         <Plus className="h-2.5 w-2.5" />
@@ -132,10 +140,14 @@ export default function CartToast() {
                                 {/* Remove */}
                                 <button
                                     onClick={() => removeItem(item.cartItemId)}
-                                    className="text-muted-foreground hover:text-destructive transition-colors ml-1"
+                                    disabled={loadingItemId === item.cartItemId}
+                                    className="text-muted-foreground hover:text-destructive disabled:opacity-40 transition-colors ml-1"
                                     aria-label="Remove"
                                 >
-                                    <Trash2 className="h-3.5 w-3.5" />
+                                    {loadingItemId === item.cartItemId
+                                        ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                        : <Trash2 className="h-3.5 w-3.5" />
+                                    }
                                 </button>
                             </div>
                         </div>
