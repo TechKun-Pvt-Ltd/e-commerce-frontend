@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Trash2, Minus, Plus, FrameIcon } from 'lucide-react';
+import { Trash2, Minus, Plus, FrameIcon, Loader2 } from 'lucide-react';
 import { CartItemPreview } from '@/types/domains/cart';
 import Link from 'next/link';
 
@@ -26,10 +26,32 @@ function CartItemCard({ item, onQuantityChange, onRemoveItem }: {
     onRemoveItem: (cartItemId: number) => Promise<void>;
 }) {
     const [imgError, setImgError] = useState(false);
+    const [isRemoving, setIsRemoving] = useState(false);
+    const [updatingDir, setUpdatingDir] = useState<'inc' | 'dec' | null>(null);
 
     const lineTotal = item.price * item.quantity;
     const originalLineTotal = item.originalPrice ? item.originalPrice * item.quantity : null;
     const hasDiscount = !!item.originalPrice && item.originalPrice > item.price;
+
+    const handleQtyChange = async (newQty: number, dir: 'inc' | 'dec') => {
+        if (updatingDir !== null || isRemoving) return;
+        setUpdatingDir(dir);
+        try {
+            await onQuantityChange(item.cartItemId, newQty);
+        } finally {
+            setUpdatingDir(null);
+        }
+    };
+
+    const handleRemove = async () => {
+        if (isRemoving || updatingDir !== null) return;
+        setIsRemoving(true);
+        try {
+            await onRemoveItem(item.cartItemId);
+        } finally {
+            setIsRemoving(false);
+        }
+    };
 
     return (
         <div className="flex gap-4 sm:gap-5 p-4 sm:p-5 bg-white border border-border/60 hover:border-[#c9a84c]/30 transition-colors group">
@@ -64,19 +86,36 @@ function CartItemCard({ item, onQuantityChange, onRemoveItem }: {
                     {item.title}
                 </h3>
 
-                {/* Variation option chips */}
-                {item.variationOptions && item.variationOptions.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mb-1.5">
-                        {item.variationOptions.map((vo) => (
-                            <span
-                                key={vo.variationOptionId}
-                                className="inline-block border border-border/60 text-[10px] text-foreground/70 tracking-wide px-2 py-0.5 bg-muted/40"
-                            >
-                                {vo.optionName}
-                            </span>
-                        ))}
+                {/* Variation chips + Remove button on right edge */}
+                <div className="flex items-start justify-between gap-2 mb-1.5">
+                    <div className="flex flex-wrap gap-1.5">
+                        {item.variationOptions && item.variationOptions.length > 0
+                            ? item.variationOptions.map((vo) => (
+                                <span
+                                    key={vo.variationOptionId}
+                                    className="inline-block border border-border/60 text-[10px] text-foreground/70 tracking-wide px-2 py-0.5 bg-muted/40"
+                                >
+                                    {vo.optionName}
+                                </span>
+                            ))
+                            : null
+                        }
                     </div>
-                )}
+
+                    {/* Remove button */}
+                    <button
+                        onClick={handleRemove}
+                        disabled={isRemoving}
+                        className="flex-shrink-0 flex items-center gap-1.5 text-xs text-muted-foreground hover:text-destructive disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        aria-label="Remove item"
+                    >
+                        {isRemoving
+                            ? <Loader2 className="h-4 w-4 animate-spin" />
+                            : <Trash2 className="h-4 w-4" />
+                        }
+                        <span className="hidden sm:inline">Remove</span>
+                    </button>
+                </div>
 
                 {/* SKU */}
                 <p className="text-[10px] tracking-widest text-muted-foreground/60 uppercase mb-3 truncate">
@@ -88,23 +127,29 @@ function CartItemCard({ item, onQuantityChange, onRemoveItem }: {
                     {/* Quantity controls */}
                     <div className="flex items-center border border-border/70">
                         <button
-                            onClick={() => onQuantityChange(item.cartItemId, item.quantity - 1)}
-                            disabled={item.quantity <= 1}
+                            onClick={() => handleQtyChange(item.quantity - 1, 'dec')}
+                            disabled={item.quantity <= 1 || updatingDir !== null || isRemoving}
                             className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                             aria-label="Decrease quantity"
                         >
-                            <Minus className="h-3 w-3" />
+                            {updatingDir === 'dec'
+                                ? <Loader2 className="h-3 w-3 animate-spin" />
+                                : <Minus className="h-3 w-3" />
+                            }
                         </button>
                         <span className="w-8 sm:w-10 text-center text-sm font-medium text-foreground select-none">
                             {item.quantity}
                         </span>
                         <button
-                            onClick={() => onQuantityChange(item.cartItemId, item.quantity + 1)}
-                            disabled={item.quantity >= item.quantityInStock}
+                            onClick={() => handleQtyChange(item.quantity + 1, 'inc')}
+                            disabled={item.quantity >= item.quantityInStock || updatingDir !== null || isRemoving}
                             className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                             aria-label="Increase quantity"
                         >
-                            <Plus className="h-3 w-3" />
+                            {updatingDir === 'inc'
+                                ? <Loader2 className="h-3 w-3 animate-spin" />
+                                : <Plus className="h-3 w-3" />
+                            }
                         </button>
                     </div>
 
@@ -120,15 +165,6 @@ function CartItemCard({ item, onQuantityChange, onRemoveItem }: {
                         )}
                     </div>
                 </div>
-
-                {/* Remove */}
-                <button
-                    onClick={() => onRemoveItem(item.cartItemId)}
-                    className="mt-2.5 flex items-center gap-1 text-[11px] text-muted-foreground hover:text-destructive transition-colors"
-                >
-                    <Trash2 className="h-3 w-3" />
-                    Remove
-                </button>
             </div>
         </div>
     );

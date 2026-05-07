@@ -28,7 +28,11 @@ const CartPage = () => {
     }, [dispatch]);
 
     const handleQuantityChange = async (cartItemId: number, newQuantity: number) => {
-        await dispatch(updateCartItemAsync({ cartItemId, payload: { quantity: newQuantity } }));
+        const result = await dispatch(updateCartItemAsync({ cartItemId, payload: { quantity: newQuantity } }));
+        if (updateCartItemAsync.rejected.match(result)) {
+            // Revert optimistic update by re-syncing from server
+            dispatch(fetchCartItems());
+        }
     };
 
     const handleRemoveItem = async (cartItemId: number) => {
