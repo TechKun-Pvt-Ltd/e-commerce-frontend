@@ -22,7 +22,7 @@ import CartToast from "@/app/components/CartToast";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { getPromotionForProduct, cn } from "@/lib/utils";
+import { getPromotionForProduct, cn, proxyImageUrl } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { PromotionDetails } from "@/types/domains/promotion";
 import { ChevronRight, ChevronLeft, Home, Heart, ZoomIn, Truck, ChevronDown, Loader2 } from "lucide-react";
@@ -236,8 +236,9 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
                     const defaultImg = transformedProduct.productImages?.find((img: ProductImage) => img.isDefault) ?? transformedProduct.productImages?.[0];
                     if (defaultImg) setActiveImage(defaultImg);
 
-                    // Fire variations, related products, and category breadcrumb in parallel
-                    getAllVariationsFetch.request(data.categoryId)
+                    // Fire variations (fetch ALL so names always resolve regardless of category links),
+                    // related products, and category breadcrumb in parallel
+                    getAllVariationsFetch.request()
                         .onSuccess((variationsData: Variation[]) => {
                             const variationMap = variationsData.reduce((acc, variation) => {
                                 acc[variation.variationId] = {
@@ -619,7 +620,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
                                     }`}
                                 >
                                     <Image
-                                        src={img.imageUrl}
+                                        src={proxyImageUrl(img.imageUrl)}
                                         alt={`${product.title} — image ${index + 1}`}
                                         fill
                                         sizes="60px"
@@ -657,7 +658,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
                                 product.productImages.map((img, index) => (
                                     <Image
                                         key={img.productImageId}
-                                        src={img.imageUrl}
+                                        src={proxyImageUrl(img.imageUrl)}
                                         alt={product.title}
                                         fill
                                         sizes="(max-width: 1024px) 100vw, 50vw"
@@ -737,7 +738,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
                                 {activeImage && (
                                     // eslint-disable-next-line @next/next/no-img-element
                                     <img
-                                        src={activeImage.imageUrl}
+                                        src={proxyImageUrl(activeImage.imageUrl)}
                                         alt={product.title}
                                         className="max-w-full max-h-full object-contain"
                                     />
@@ -757,7 +758,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
                                             }`}
                                         >
                                             <Image
-                                                src={img.imageUrl}
+                                                src={proxyImageUrl(img.imageUrl)}
                                                 alt={`${product.title} — image ${index + 1}`}
                                                 fill
                                                 sizes="56px"
@@ -783,7 +784,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
                                 }`}
                             >
                                 <Image
-                                    src={img.imageUrl}
+                                    src={proxyImageUrl(img.imageUrl)}
                                     alt={`${product.title} — image ${index + 1}`}
                                     fill
                                     sizes="56px"
@@ -1033,6 +1034,21 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
                             </button>
                         )}
                     </div>
+
+                    {/* Product Options — actual attributes from the database */}
+                    {product?.attributes?.length > 0 && (
+                        <div>
+                            <p className="text-base font-semibold text-foreground mb-3">Product Options</p>
+                            <dl className="divide-y divide-border border rounded-sm overflow-hidden text-sm">
+                                {product.attributes.map((attr) => (
+                                    <div key={attr.productAttributeId} className="flex px-3 py-2">
+                                        <dt className="w-2/5 font-medium text-foreground shrink-0">{attr.attribute?.name ?? "—"}</dt>
+                                        <dd className="text-muted-foreground">{attr.value}</dd>
+                                    </div>
+                                ))}
+                            </dl>
+                        </div>
+                    )}
 
                     {/* Description */}
                     <div>

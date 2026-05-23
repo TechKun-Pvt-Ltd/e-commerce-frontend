@@ -1,15 +1,11 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Spinner from "@/components/ui/spinner";
 import { toast } from "sonner";
-import { Image as ImageIcon, Plus, RefreshCw, Trash2, Upload } from "lucide-react";
+import { Check, FolderOpen, Image as ImageIcon, RefreshCw, Star, Trash2, Upload } from "lucide-react";
 import useDrivePicker from "react-google-drive-picker";
 
 import { BannerImage } from "@/types/domains/bannerImage";
@@ -28,77 +24,50 @@ export default function BannerImagesAdminPage() {
 
   const previewUrl = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
   useEffect(() => {
-    return () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-    };
+    return () => { if (previewUrl) URL.revokeObjectURL(previewUrl); };
   }, [previewUrl]);
 
   const refresh = async () => {
     setIsLoading(true);
     try {
       const res = await bannerImagesService.getAllBannerImages();
-      if (!res.success) {
-        toast.error(res.error, { richColors: true });
-        return;
-      }
+      if (!res.success) { toast.error(res.error, { richColors: true }); return; }
       setRows(res.data ?? []);
     } finally {
       setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    void refresh();
-  }, []);
+  useEffect(() => { void refresh(); }, []);
 
-  const createFromUploadedUrl = useCallback(
-    async (uploadedUrl: string) => {
-      const createRes = await bannerImagesService.createBannerImage({
-        imageUrl: uploadedUrl,
-        isDefault: makeDefault,
-      });
-      if (!createRes.success) {
-        toast.error(createRes.error, { richColors: true });
-        return;
-      }
-      toast.success("Banner image created", { richColors: true });
-      await refresh();
-    },
-    [makeDefault]
-  );
+  const createFromUploadedUrl = useCallback(async (uploadedUrl: string) => {
+    const res = await bannerImagesService.createBannerImage({ imageUrl: uploadedUrl, isDefault: makeDefault });
+    if (!res.success) { toast.error(res.error, { richColors: true }); return; }
+    toast.success("Banner added", { richColors: true });
+    await refresh();
+  }, [makeDefault]);
 
-  const handleDeviceUpload = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const f = e.target.files?.[0];
-      if (!f) return;
-      // Reset so same file can be re-selected
-      e.target.value = "";
-
-      setFile(f);
-      setIsUploading(true);
-      try {
-        const fd = new FormData();
-        fd.append("file", f);
-        fd.append("folder", "banners");
-        const res = await fetch("/api/upload", { method: "POST", body: fd });
-        const json = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          toast.error((json && typeof json.error === "string" && json.error) || "Cloudinary upload failed", { richColors: true });
-          return;
-        }
-        const uploadedUrl = json && typeof json.url === "string" ? json.url : null;
-        if (!uploadedUrl?.startsWith("http")) {
-          toast.error("Upload succeeded but invalid url returned.", { richColors: true });
-          return;
-        }
-        setPreviewSrc(uploadedUrl);
-        await createFromUploadedUrl(uploadedUrl);
-      } finally {
-        setIsUploading(false);
-      }
-    },
-    [createFromUploadedUrl]
-  );
+  const handleDeviceUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    e.target.value = "";
+    setFile(f);
+    setIsUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", f);
+      fd.append("folder", "banners");
+      const res = await fetch("/api/upload", { method: "POST", body: fd });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) { toast.error(json?.error || "Upload failed", { richColors: true }); return; }
+      const url = typeof json?.url === "string" ? json.url : null;
+      if (!url?.startsWith("http")) { toast.error("Invalid URL returned", { richColors: true }); return; }
+      setPreviewSrc(url);
+      await createFromUploadedUrl(url);
+    } finally {
+      setIsUploading(false);
+    }
+  }, [createFromUploadedUrl]);
 
   const handleOpenPicker = useCallback(() => {
     try {
@@ -111,252 +80,211 @@ export default function BannerImagesAdminPage() {
         supportDrives: true,
         viewMimeTypes: "image/png,image/jpeg,image/jpg,image/gif,image/webp",
         callbackFunction: async (data) => {
-          if (!(data.action === "picked" && data.docs && data.docs.length > 0)) return;
-          const picked = data.docs[0];
-          const fileId = picked.id;
+          if (!(data.action === "picked" && data.docs?.length)) return;
+          const fileId = data.docs[0].id;
           if (!fileId) return;
-
-          const driveViewUrl = `https://drive.google.com/uc?id=${fileId}&export=view`;
-
           setIsUploading(true);
           try {
             const res = await fetch("/api/upload", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ imageUrl: driveViewUrl, folder: "banners" }),
+              body: JSON.stringify({ imageUrl: `https://drive.google.com/uc?id=${fileId}&export=view`, folder: "banners" }),
             });
             const json = await res.json().catch(() => ({}));
-            if (!res.ok) {
-              toast.error((json && typeof json.error === "string" && json.error) || "Cloudinary upload failed", { richColors: true });
-              return;
-            }
-            const uploadedUrl = json && typeof json.url === "string" ? json.url : null;
-            if (!uploadedUrl?.startsWith("http")) {
-              toast.error("Upload succeeded but invalid url returned.", { richColors: true });
-              return;
-            }
-            setPreviewSrc(uploadedUrl);
-            await createFromUploadedUrl(uploadedUrl);
+            if (!res.ok) { toast.error(json?.error || "Upload failed", { richColors: true }); return; }
+            const url = typeof json?.url === "string" ? json.url : null;
+            if (!url?.startsWith("http")) { toast.error("Invalid URL returned", { richColors: true }); return; }
+            setPreviewSrc(url);
+            await createFromUploadedUrl(url);
           } finally {
             setIsUploading(false);
           }
         },
       });
     } catch {
-      toast.error("Failed to open Google Drive picker. Please try again.");
+      toast.error("Could not open Google Drive picker");
     }
   }, [openPicker, authResponse, createFromUploadedUrl]);
 
   const setAsDefault = async (bannerImageId: number) => {
     const res = await bannerImagesService.updateBannerImage(bannerImageId, { isDefault: true });
-    if (!res.success) {
-      toast.error(res.error, { richColors: true });
-      return;
-    }
-    toast.success("Default updated", { richColors: true });
+    if (!res.success) { toast.error(res.error, { richColors: true }); return; }
+    toast.success("Set as default", { richColors: true });
     await refresh();
   };
 
   const remove = async (bannerImageId: number) => {
     const res = await bannerImagesService.deleteBannerImage(bannerImageId);
-    if (!res.success) {
-      toast.error(res.error, { richColors: true });
-      return;
-    }
+    if (!res.success) { toast.error(res.error, { richColors: true }); return; }
     toast.success("Deleted", { richColors: true });
     await refresh();
   };
 
+  const displaySrc = previewSrc ?? previewUrl;
+
   return (
     <div className="space-y-6">
+
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="size-10 rounded-lg bg-white border flex items-center justify-center">
-            <ImageIcon className="size-5 text-gray-700" />
+          <div className="size-9 rounded-lg bg-white border flex items-center justify-center shrink-0">
+            <ImageIcon className="size-4 text-gray-600" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Banner Images</h1>
-            <p className="text-sm text-muted-foreground">Upload to storage, then create banner records.</p>
+            <h1 className="text-2xl font-bold text-gray-900 leading-tight">Banner Images</h1>
+            <p className="text-xs text-muted-foreground">Manage homepage hero banners</p>
           </div>
         </div>
-
-        <Button onClick={refresh} variant="outline" className="gap-2" disabled={isLoading}>
-          {isLoading ? <Spinner className="size-4" /> : <RefreshCw className="size-4" />}
+        <Button onClick={refresh} variant="outline" size="sm" className="gap-2" disabled={isLoading}>
+          {isLoading ? <Spinner className="size-3.5" /> : <RefreshCw className="size-3.5" />}
           Refresh
         </Button>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Upload + create banner</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-5">
-            <div className="flex items-center justify-between rounded-lg border p-3">
-              <div>
-                <p className="text-sm font-medium">Make default</p>
-                <p className="text-xs text-muted-foreground">Create ke time default set.</p>
-              </div>
+      {/* Upload panel */}
+      <div className="rounded-xl border bg-white p-4 space-y-4">
+        <p className="text-sm font-semibold text-gray-800">Add new banner</p>
+
+        <div className="flex flex-col sm:flex-row gap-4">
+          {/* Upload buttons */}
+          <div className="flex flex-col gap-3 flex-1">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
+              className="hidden"
+              onChange={handleDeviceUpload}
+            />
+            <button
+              type="button"
+              disabled={isUploading}
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center gap-3 rounded-lg border bg-gray-50 hover:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none px-4 py-3 text-sm font-medium text-gray-700 transition-colors"
+            >
+              <Upload className="size-4 text-gray-500 shrink-0" />
+              Upload from device
+            </button>
+            <button
+              type="button"
+              disabled={isUploading}
+              onClick={handleOpenPicker}
+              className="flex items-center gap-3 rounded-lg border bg-gray-50 hover:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none px-4 py-3 text-sm font-medium text-gray-700 transition-colors"
+            >
+              <FolderOpen className="size-4 text-gray-500 shrink-0" />
+              Select from Google Drive
+            </button>
+
+            {/* Make default toggle */}
+            <div className="flex items-center justify-between rounded-lg border px-4 py-2.5">
+              <span className="text-sm text-gray-700">Set as default on upload</span>
               <Switch checked={makeDefault} onCheckedChange={setMakeDefault} />
             </div>
+          </div>
 
-            <div className="space-y-3">
-              <Label>Upload Source</Label>
-
-              {/* Hidden file input */}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
-                className="hidden"
-                onChange={handleDeviceUpload}
-              />
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                {/* Upload from Device tile */}
-                <div
-                  className={`border bg-accent rounded-md h-32 flex flex-col justify-center items-center gap-2 cursor-pointer transition-opacity ${
-                    isUploading ? "opacity-50 pointer-events-none" : "hover:bg-accent/80"
-                  }`}
-                  onClick={() => !isUploading && fileInputRef.current?.click()}
-                >
-                  {isUploading ? (
-                    <>
-                      <Spinner />
-                      <p className="text-sm text-muted-foreground">Uploading...</p>
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="size-8 text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground">Upload from Device</p>
-                    </>
-                  )}
+          {/* Preview */}
+          <div className="flex-1 min-w-0">
+            <div className="relative w-full aspect-video rounded-lg border overflow-hidden bg-gray-100 flex items-center justify-center">
+              {isUploading ? (
+                <div className="flex flex-col items-center gap-2">
+                  <Spinner />
+                  <p className="text-xs text-muted-foreground">Uploading…</p>
                 </div>
-
-                {/* Google Drive tile */}
-                <div
-                  className={`border bg-accent rounded-md h-32 flex flex-col justify-center items-center gap-2 cursor-pointer transition-opacity ${
-                    isUploading ? "opacity-50 pointer-events-none" : "hover:bg-accent/80"
-                  }`}
-                  onClick={isUploading ? undefined : handleOpenPicker}
-                >
-                  <Plus className="size-8 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">Select from Google Drive</p>
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Selected image uploads to Cloudinary and then creates a record in <span className="font-mono">/banner-images</span>.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Preview</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {!previewSrc && !previewUrl ? (
-              <div className="rounded-lg border bg-muted/40 h-60 flex items-center justify-center text-sm text-muted-foreground">
-                Upload/select an image to preview
-              </div>
-            ) : (
-              <div className="relative w-full h-60 rounded-lg border overflow-hidden bg-muted/20">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
+              ) : displaySrc ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
                 <img
-                  src={previewSrc ?? previewUrl ?? ""}
-                  alt="Banner preview"
-                  className="absolute inset-0 h-full w-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = "/placeholder-image.jpeg";
-                  }}
+                  src={displaySrc}
+                  alt="Preview"
+                  className="absolute inset-0 w-full h-full object-cover"
+                  onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder-image.jpeg"; }}
                 />
-                <div className="absolute inset-0 bg-black/10" aria-hidden />
-              </div>
-            )}
-            <Separator />
-            <div className="text-xs text-muted-foreground">
-              Preview matches the shop hero <span className="font-mono">HERO_RIGHT</span> (object-cover + overlay).
+              ) : (
+                <div className="flex flex-col items-center gap-1.5 text-muted-foreground">
+                  <ImageIcon className="size-8 opacity-30" />
+                  <p className="text-xs">Preview will appear here</p>
+                </div>
+              )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">All banner images</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-16">ID</TableHead>
-                  <TableHead className="w-28">Image</TableHead>
-                  <TableHead>URL</TableHead>
-                  <TableHead className="w-28">Default</TableHead>
-                  <TableHead className="w-52 text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-10">
-                      {isLoading ? "Loading…" : "No banner images found."}
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  rows.map((r) => (
-                    <TableRow key={r.bannerImageId}>
-                      <TableCell className="font-mono text-xs">{r.bannerImageId}</TableCell>
-                      <TableCell>
-                        <div className="h-14 w-24 rounded-md overflow-hidden border bg-muted/30">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={r.imageUrl}
-                            alt={`Banner ${r.bannerImageId}`}
-                            className="h-full w-full object-cover"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = "/placeholder-image.jpeg";
-                            }}
-                          />
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-xs break-all text-muted-foreground">{r.imageUrl}</TableCell>
-                      <TableCell>
-                        {r.isDefault ? (
-                          <span className="text-xs font-medium text-green-700">Yes</span>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">No</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          {!r.isDefault && (
-                            <Button size="sm" variant="outline" onClick={() => void setAsDefault(r.bannerImageId)}>
-                              Set default
-                            </Button>
-                          )}
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            className="gap-2"
-                            onClick={() => void remove(r.bannerImageId)}
-                          >
-                            <Trash2 className="size-4" />
-                            Delete
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+      {/* Banner grid */}
+      <div>
+        <p className="text-sm font-semibold text-gray-800 mb-3">
+          All banners
+          {rows.length > 0 && <span className="ml-2 text-xs font-normal text-muted-foreground">({rows.length})</span>}
+        </p>
+
+        {isLoading && rows.length === 0 ? (
+          <div className="flex items-center justify-center py-16 text-muted-foreground text-sm gap-2">
+            <Spinner className="size-4" /> Loading…
           </div>
-        </CardContent>
-      </Card>
+        ) : rows.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-muted-foreground text-sm gap-2 rounded-xl border border-dashed bg-white">
+            <ImageIcon className="size-8 opacity-25" />
+            No banner images yet. Upload one above.
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {rows.map((r) => (
+              <div key={r.bannerImageId} className="group relative rounded-xl border bg-white overflow-hidden">
+                {/* Image */}
+                <div className="relative w-full aspect-video bg-gray-100">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={r.imageUrl}
+                    alt={`Banner ${r.bannerImageId}`}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder-image.jpeg"; }}
+                  />
+                  {/* Default badge */}
+                  {r.isDefault && (
+                    <div className="absolute top-2 left-2 flex items-center gap-1 bg-amber-500 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                      <Star className="size-2.5 fill-white" />
+                      Default
+                    </div>
+                  )}
+                  {/* ID chip */}
+                  <div className="absolute top-2 right-2 bg-black/50 text-white text-[10px] font-mono px-1.5 py-0.5 rounded">
+                    #{r.bannerImageId}
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-2 px-3 py-2.5">
+                  {!r.isDefault && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 h-8 text-xs gap-1.5"
+                      onClick={() => void setAsDefault(r.bannerImageId)}
+                    >
+                      <Check className="size-3" />
+                      Set default
+                    </Button>
+                  )}
+                  {r.isDefault && (
+                    <div className="flex-1 flex items-center gap-1.5 text-xs text-amber-600 font-medium px-1">
+                      <Star className="size-3 fill-amber-500 text-amber-500" />
+                      Current default
+                    </div>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 w-8 p-0 text-gray-400 hover:text-red-600 hover:bg-red-50 shrink-0"
+                    onClick={() => void remove(r.bannerImageId)}
+                  >
+                    <Trash2 className="size-3.5" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
     </div>
   );
 }
-

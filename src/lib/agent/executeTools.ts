@@ -48,6 +48,7 @@ export async function executeTool(
         priceRangeMin: input.priceRangeMin ?? null,
         priceRangeMax: input.priceRangeMax ?? null,
         sortOption: input.sortOption ?? null,
+        status: input.status !== undefined ? input.status : null,
       });
 
     case "get_product":
@@ -201,11 +202,40 @@ export async function executeTool(
     case "list_promotions":
       return call("GET", "/promotions", token);
 
-    case "create_promotion":
-      return call("POST", "/promotions", token, input);
+    case "create_promotion": {
+      const optionalField = (val: unknown) =>
+        val !== undefined && val !== null
+          ? { value: val, present: true }
+          : { value: null, present: false };
+      return call("POST", "/promotions", token, {
+        description: input.description,
+        promotionType: input.promotionType,
+        discountValue: input.discountValue,
+        categoryIds: input.categoryIds ?? [],
+        validFrom: optionalField(input.validFrom),
+        validTill: optionalField(input.validTill),
+        minimumOrderValue: optionalField(input.minimumOrderValue),
+        maxUses: optionalField(input.maxUses),
+        usagePerCustomer: optionalField(input.usagePerCustomer),
+      });
+    }
 
     case "update_promotion": {
-      const { promotionId, ...body } = input;
+      const { promotionId, ...rest } = input;
+      const optionalField = (val: unknown) =>
+        val !== undefined
+          ? val !== null ? { value: val, present: true } : { value: null, present: false }
+          : undefined;
+      const body: Record<string, unknown> = {};
+      if (rest.description !== undefined) body.description = rest.description;
+      if (rest.promotionType !== undefined) body.promotionType = rest.promotionType;
+      if (rest.discountValue !== undefined) body.discountValue = rest.discountValue;
+      if (rest.categoryIds !== undefined) body.categoryIds = rest.categoryIds;
+      const vf = optionalField(rest.validFrom); if (vf !== undefined) body.validFrom = vf;
+      const vt = optionalField(rest.validTill); if (vt !== undefined) body.validTill = vt;
+      const mo = optionalField(rest.minimumOrderValue); if (mo !== undefined) body.minimumOrderValue = mo;
+      const mu = optionalField(rest.maxUses); if (mu !== undefined) body.maxUses = mu;
+      const uc = optionalField(rest.usagePerCustomer); if (uc !== undefined) body.usagePerCustomer = uc;
       return call("PUT", `/promotions/${promotionId}`, token, body);
     }
 
@@ -219,7 +249,13 @@ export async function executeTool(
         size: (input.size as number) ?? 10,
       };
       if (input.customerId) params.customerId = input.customerId as number;
-      return call("GET", "/shop-orders", token, input.status ? { status: input.status } : undefined, params);
+      const body: Record<string, unknown> = {};
+      if (input.statuses && (input.statuses as unknown[]).length) body.statuses = input.statuses;
+      if (input.fromDate) body.fromDate = input.fromDate;
+      if (input.toDate) body.toDate = input.toDate;
+      if (input.customerName) body.customerName = input.customerName;
+      if (input.trackingNumber) body.trackingNumber = input.trackingNumber;
+      return call("GET", "/shop-orders", token, Object.keys(body).length ? body : undefined, params);
     }
 
     case "get_order":
@@ -236,8 +272,113 @@ export async function executeTool(
       if (input.fullName) body.fullName = input.fullName;
       if (input.email) body.email = input.email;
       if (input.phoneNo) body.phoneNo = input.phoneNo;
+      if (input.city) body.city = input.city;
+      if (input.country) body.country = input.country;
       return call("GET", "/users", token, Object.keys(body).length ? body : undefined);
     }
+
+    case "remove_user":
+      return call("PUT", `/users/${input.userId}`, token);
+
+    // ─── Banner Images ───────────────────────────────────────────────────────────
+    case "list_banner_images":
+      return call("GET", "/banner-images", token);
+
+    case "create_banner_image": {
+      const optField = (val: unknown) =>
+        val !== undefined && val !== null
+          ? { value: val, present: true }
+          : { value: null, present: false };
+      return call("POST", "/banner-images", token, {
+        imageUrl: optField(input.imageUrl),
+        isDefault: optField(input.isDefault),
+      });
+    }
+
+    case "update_banner_image": {
+      const { bannerImageId, ...rest } = input;
+      const optField = (val: unknown) =>
+        val !== undefined && val !== null
+          ? { value: val, present: true }
+          : { value: null, present: false };
+      const body: Record<string, unknown> = {};
+      if (rest.imageUrl !== undefined) body.imageUrl = optField(rest.imageUrl);
+      if (rest.isDefault !== undefined) body.isDefault = optField(rest.isDefault);
+      return call("PUT", `/banner-images/${bannerImageId}`, token, body);
+    }
+
+    case "delete_banner_image":
+      return call("DELETE", `/banner-images/${input.bannerImageId}`, token);
+
+    // ─── Reports ────────────────────────────────────────────────────────────────
+    case "get_report": {
+      const endpointMap: Record<string, string> = {
+        sales: "/reports/sales",
+        orders: "/reports/orders",
+        products_performance: "/reports/products-performance",
+        categories_performance: "/reports/categories-performance",
+        customers: "/reports/customers",
+        discounts_performance: "/reports/discounts-performance",
+      };
+      const endpoint = endpointMap[input.reportType as string];
+      if (!endpoint) throw new Error(`Unknown reportType: ${input.reportType}`);
+      return call("GET", endpoint, token, undefined, {
+        startDate: input.startDate as string,
+        endDate: input.endDate as string,
+      });
+    }
+
+    // ─── Reviews ────────────────────────────────────────────────────────────────
+    case "list_reviews": {
+      const params: Record<string, string | number | boolean> = {};
+      if (input.productId) params.productId = input.productId as number;
+      if (input.customerId) params.customerId = input.customerId as number;
+      if (input.page !== undefined) params.page = input.page as number;
+      if (input.size !== undefined) params.size = input.size as number;
+      if (input.sort) params.sort = input.sort as string;
+      return call("GET", "/reviews", token, undefined, params);
+    }
+
+    case "delete_review":
+      return call("DELETE", `/reviews/${input.reviewId}`, token);
+
+    // ─── Q&A ────────────────────────────────────────────────────────────────────
+    case "list_questions": {
+      const params: Record<string, string | number | boolean> = {
+        productId: input.productId as number,
+      };
+      if (input.page !== undefined) params.page = input.page as number;
+      if (input.size !== undefined) params.size = input.size as number;
+      return call("GET", "/questions", token, undefined, params);
+    }
+
+    case "answer_question":
+      return call("POST", `/questions/${input.questionId}/answers`, token, {
+        answerText: input.answerText,
+      });
+
+    case "delete_question":
+      return call("DELETE", `/questions/${input.questionId}`, token);
+
+    case "delete_answer":
+      return call("DELETE", `/questions/answers/${input.answerId}`, token);
+
+    // ─── Support Tickets ─────────────────────────────────────────────────────────
+    case "list_support_tickets": {
+      const params: Record<string, string | number | boolean> = {};
+      if (input.customerId) params.customerId = input.customerId as number;
+      const body: Record<string, unknown> = {};
+      if (input.status) body.status = input.status;
+      if (input.customerName) body.customerName = input.customerName;
+      if (input.fromDate) body.fromDate = input.fromDate;
+      if (input.toDate) body.toDate = input.toDate;
+      return call("GET", "/support-tickets", token, Object.keys(body).length ? body : undefined, params);
+    }
+
+    case "update_support_ticket":
+      return call("PUT", `/support-tickets/${input.supportTicketId}`, token, {
+        status: input.status,
+      });
 
     default:
       throw new Error(`Unknown tool: ${name}`);

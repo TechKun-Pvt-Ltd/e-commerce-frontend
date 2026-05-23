@@ -1,11 +1,62 @@
-import Anthropic from "@anthropic-ai/sdk";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { cookies } from "next/headers";
 import { NextRequest } from "next/server";
-import tools from "@/lib/agent/tools";
+import rawTools from "@/lib/agent/tools";
 import { executeTool } from "@/lib/agent/executeTools";
 import SYSTEM_PROMPT from "@/lib/agent/systemPrompt";
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+
+// Gemini requires uppercase type values in schema (STRING, OBJECT, ARRAY, etc.)
+function toGeminiSchema(schema: any): any {
+  if (!schema || typeof schema !== "object") return schema;
+  if (Array.isArray(schema)) return schema.map(toGeminiSchema);
+  const out: any = {};
+  for (const [k, v] of Object.entries(schema)) {
+    if (k === "type" && typeof v === "string") {
+      out[k] = v.toUpperCase();
+    } else if (typeof v === "object") {
+      out[k] = toGeminiSchema(v);
+    } else {
+      out[k] = v;
+    }
+  }
+  return out;
+}
+
+const geminiModel = genAI.getGenerativeModel({
+  model: "gemini-2.5-flash",
+  systemInstruction: SYSTEM_PROMPT,
+  tools: [{
+    functionDeclarations: rawTools.map(t => ({
+      name: t.name,
+      description: t.description,
+      parameters: toGeminiSchema(t.input_schema),
+    })),
+  }],
+});
+
+function is503(e: unknown): boolean {
+  if (!(e instanceof Error)) return false;
+  const m = e.message.toLowerCase();
+  return m.includes("503") || m.includes("service unavailable") || m.includes("high demand");
+}
+
+async function sendWithRetry<T>(fn: () => Promise<T>, maxAttempts = 4): Promise<T> {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (e) {
+      if (is503(e) && attempt < maxAttempts) {
+        await new Promise(r => setTimeout(r, Math.min(2000 * 2 ** (attempt - 1), 16000)));
+        continue;
+      }
+      throw e;
+    }
+  }
+  throw new Error("Gemini service unavailable after retries.");
+}
 
 export type AgentEvent =
   | { type: "text_delta"; delta: string }
@@ -16,7 +67,7 @@ export type AgentEvent =
 
 export async function POST(req: NextRequest) {
   const { messages } = (await req.json()) as {
-    messages: Anthropic.MessageParam[];
+    messages: { role: "user" | "assistant"; content: string }[];
   };
   const token = (await cookies()).get("token")?.value;
 
@@ -30,121 +81,70 @@ export async function POST(req: NextRequest) {
 
   (async () => {
     try {
-      let currentMessages: Anthropic.MessageParam[] = [...messages];
+      // Convert prior messages to Gemini history format
+      const history = messages.slice(0, -1).map(m => ({
+        role: m.role === "user" ? "user" as const : "model" as const,
+        parts: [{ text: m.content }],
+      }));
+      const lastMessage = messages[messages.length - 1]?.content ?? "";
 
-      // Agentic loop — runs until stop_reason is "end_turn"
+      const chat = geminiModel.startChat({ history });
+
+      // Agentic loop — first call uses lastMessage, subsequent calls use tool results
+      let nextParts: any = lastMessage;
+
       while (true) {
-        // Collect tool results for this iteration
-        const toolResults: Array<{ id: string; result: unknown; isError: boolean }> = [];
+        const result = await sendWithRetry(() => chat.sendMessageStream(nextParts));
 
-        // Use streaming for text so the UI feels responsive
-        const stream = client.messages.stream({
-          model: "claude-sonnet-4-6",
-          max_tokens: 8096,
-          system: SYSTEM_PROMPT,
-          tools,
-          messages: currentMessages,
-        });
+        let accText = "";
+        const functionCalls: { name: string; args: Record<string, unknown> }[] = [];
 
-        // Collect the full content blocks this turn (as ContentBlockParam for reuse in next turn)
-        type AsstContentBlock =
-          | { type: "text"; text: string }
-          | { type: "tool_use"; id: string; name: string; input: Record<string, unknown> };
-        const contentBlocks: AsstContentBlock[] = [];
-        let currentToolUseBlock: { id: string; name: string; input: string } | null = null;
-
-        for await (const event of stream) {
-          if (event.type === "content_block_start") {
-            if (event.content_block.type === "text") {
-              contentBlocks.push({ type: "text", text: "" });
-            } else if (event.content_block.type === "tool_use") {
-              currentToolUseBlock = {
-                id: event.content_block.id,
-                name: event.content_block.name,
-                input: "",
-              };
-              contentBlocks.push({
-                type: "tool_use",
-                id: event.content_block.id,
-                name: event.content_block.name,
-                input: {},
-              });
+        for await (const chunk of result.stream) {
+          for (const part of chunk.candidates?.[0]?.content?.parts ?? []) {
+            if ("text" in part && part.text) {
+              accText += part.text;
+              await send({ type: "text_delta", delta: part.text });
             }
-          } else if (event.type === "content_block_delta") {
-            const lastBlock = contentBlocks[contentBlocks.length - 1];
-            if (event.delta.type === "text_delta") {
-              if (lastBlock?.type === "text") {
-                lastBlock.text += event.delta.text;
-                await send({ type: "text_delta", delta: event.delta.text });
-              }
-            } else if (event.delta.type === "input_json_delta" && currentToolUseBlock) {
-              currentToolUseBlock.input += event.delta.partial_json;
-            }
-          } else if (event.type === "content_block_stop") {
-            if (currentToolUseBlock) {
-              // Parse the accumulated input JSON
-              let parsedInput: Record<string, unknown> = {};
-              try {
-                parsedInput = JSON.parse(currentToolUseBlock.input || "{}");
-              } catch {
-                parsedInput = {};
-              }
-              // Update the content block with parsed input
-              const toolBlock = contentBlocks.find(
-                (b) => b.type === "tool_use" && b.id === currentToolUseBlock!.id
-              );
-              if (toolBlock && toolBlock.type === "tool_use") {
-                toolBlock.input = parsedInput;
-              }
-              // Notify client a tool is starting
-              await send({
-                type: "tool_start",
-                id: currentToolUseBlock.id,
-                name: currentToolUseBlock.name,
-                input: parsedInput,
+            if ("functionCall" in part && part.functionCall) {
+              functionCalls.push({
+                name: part.functionCall.name,
+                args: (part.functionCall.args ?? {}) as Record<string, unknown>,
               });
-              // Execute the tool
-              const toolId = currentToolUseBlock.id;
-              const toolName = currentToolUseBlock.name;
-              let result: unknown;
-              let isError = false;
-              try {
-                result = await executeTool(toolName, parsedInput, token);
-              } catch (e) {
-                result = e instanceof Error ? e.message : String(e);
-                isError = true;
-              }
-              toolResults.push({ id: toolId, result, isError });
-              await send({ type: "tool_done", id: toolId, result, isError });
-              currentToolUseBlock = null;
             }
           }
         }
 
-        const finalMessage = await stream.finalMessage();
+        if (functionCalls.length === 0) break;
 
-        if (finalMessage.stop_reason === "end_turn") {
-          break;
+        // Execute tool calls
+        const responseParts: any[] = [];
+
+        for (const fc of functionCalls) {
+          const id = `${fc.name}_${Date.now()}`;
+          await send({ type: "tool_start", id, name: fc.name, input: fc.args });
+
+          let toolResult: unknown;
+          let isError = false;
+          try {
+            toolResult = await executeTool(fc.name, fc.args, token);
+          } catch (e) {
+            toolResult = e instanceof Error ? e.message : String(e);
+            isError = true;
+          }
+
+          await send({ type: "tool_done", id, result: toolResult, isError });
+
+          responseParts.push({
+            functionResponse: {
+              name: fc.name,
+              response: isError
+                ? { error: String(toolResult) }
+                : { result: toolResult },
+            },
+          });
         }
 
-        if (finalMessage.stop_reason !== "tool_use") {
-          break;
-        }
-
-        // Build tool_result blocks for the next turn
-        const toolResultContents: Anthropic.ToolResultBlockParam[] = toolResults.map(({ id, result, isError }) => ({
-          type: "tool_result",
-          tool_use_id: id,
-          content: typeof result === "string" ? result : JSON.stringify(result),
-          is_error: isError,
-        }));
-
-        // Append this turn's assistant message and tool results to history
-        currentMessages = [
-          ...currentMessages,
-          { role: "assistant" as const, content: contentBlocks as Anthropic.MessageParam["content"] },
-          { role: "user" as const, content: toolResultContents },
-        ];
+        nextParts = responseParts;
       }
 
       await send({ type: "done" });

@@ -17,6 +17,18 @@ export function debounce<F extends (...args: any[]) => any>(func: F, timeout = 3
   } as F;
 }
 
+/**
+ * Returns a proxied URL for any external image that isn't already on Cloudinary.
+ * Routes through /api/image-proxy so the browser never hits external servers directly,
+ * bypassing hotlink protection and the deprecated Google Drive uc?id= format.
+ */
+export function proxyImageUrl(url: string | undefined | null): string {
+  if (!url) return "";
+  // Local paths and Cloudinary are served directly — no proxy needed
+  if (url.startsWith("/") || url.includes("res.cloudinary.com")) return url;
+  return `/api/image-proxy?url=${encodeURIComponent(url)}`;
+}
+
 export function extractConsonants(text: string): string {
   const vowels = 'aeiouAEIOU';
   const consonants = [...text].filter(char =>

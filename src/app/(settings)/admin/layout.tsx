@@ -9,8 +9,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Tags, LogOut, MoreVerticalIcon, Shapes, SlidersHorizontal, Package, LayoutDashboard, Percent, ShipWheelIcon, Truck, CreditCard, TableIcon } from "lucide-react"
-import { Tags, LogOut, MoreVerticalIcon, Shapes, SlidersHorizontal, Package, LayoutDashboard, Percent, ShipWheelIcon, Truck, CreditCardIcon, TableIcon, BotMessageSquare } from "lucide-react"
+import { Tags, LogOut, MoreVerticalIcon, Shapes, SlidersHorizontal, Package, LayoutDashboard, Percent, ShipWheelIcon, Truck, CreditCard, TableIcon, BotMessageSquare, Image as ImageIcon, Users, HeadphonesIcon } from "lucide-react"
 import Link from "next/link";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -73,6 +72,11 @@ const items = [
         icon: Percent  // Sliders icon represents adjustable promotion/properties
     },
     {
+        title: "Banner Images",
+        url: "/admin/banner-images",
+        icon: ImageIcon
+    },
+    {
         title: "Shipping Methods",
         url: "/admin/shipping-methods",
         icon: Truck  // Sliders icon represents adjustable Shipping-Method/properties
@@ -81,6 +85,16 @@ const items = [
         title: "Order Shipping",
         url: "/admin/orders-shipping",
         icon: ShipWheelIcon
+    },
+    {
+        title: "Community",
+        url: "/admin/community",
+        icon: Users
+    },
+    {
+        title: "Support Tickets",
+        url: "/admin/support-tickets",
+        icon: HeadphonesIcon
     },
     {
         title: "AI Assistant",
@@ -137,9 +151,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         }
     }, [loading, authenticated]);
 
-    return <SidebarProvider className="" style={{ height: `calc(100vh - ${NAVBAR_HEIGHT})`, minHeight: 0, overflow: 'hidden' }}>
-        <Sidebar collapsible="icon" style={{height: `calc(100vh - ${NAVBAR_HEIGHT})`, insetBlock: NAVBAR_HEIGHT} as any}>
-    return <SidebarProvider className="" style={{ minHeight: 0, paddingTop: NAV_TOP_HEIGHT }}>
+    return <SidebarProvider className="" style={{ height: `calc(100vh - ${NAV_TOP_HEIGHT})`, marginTop: NAV_TOP_HEIGHT, minHeight: 0, overflow: 'hidden' }}>
         <Sidebar collapsible="icon" style={{height: `calc(100vh - ${NAV_TOP_HEIGHT})`, insetBlock: NAV_TOP_HEIGHT} as any}>
             <SidebarHeader>
                 <SidebarMenu>

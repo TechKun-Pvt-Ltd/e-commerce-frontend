@@ -1,7 +1,32 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextRequest, NextResponse } from "next/server";
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+function is503(error: unknown): boolean {
+  if (error instanceof Error) {
+    return error.message.includes("503") || error.message.toLowerCase().includes("service unavailable") || error.message.toLowerCase().includes("high demand");
+  }
+  return false;
+}
+
+async function generateWithRetry(parts: Parameters<typeof model.generateContent>[0], maxAttempts = 4): Promise<string> {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const response = await model.generateContent(parts);
+      return response.response.text();
+    } catch (err) {
+      if (is503(err) && attempt < maxAttempts) {
+        const delay = Math.min(2000 * 2 ** (attempt - 1), 16000); // 2s, 4s, 8s, 16s
+        await new Promise(r => setTimeout(r, delay));
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw new Error("Gemini service unavailable after retries. Please try again in a moment.");
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,29 +38,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No images provided" }, { status: 400 });
     }
 
-    const response = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 1024,
-      messages: [
-        {
-          role: "user",
-          content: [
-            // Send up to 5 images for analysis
-            ...images.slice(0, 5).map((img) => ({
-              type: "image" as const,
-              source: {
-                type: "base64" as const,
-                media_type: img.mimeType as
-                  | "image/jpeg"
-                  | "image/png"
-                  | "image/gif"
-                  | "image/webp",
-                data: img.data,
-              },
-            })),
-            {
-              type: "text" as const,
-              text: `You are analyzing product images for an e-commerce store listing.
+    const imageParts = images.slice(0, 5).map((img) => ({
+      inlineData: { data: img.data, mimeType: img.mimeType },
+    }));
+
+    const prompt = `You are analyzing product images for an e-commerce store listing.
 Study the images carefully and return ONLY a valid JSON object — no markdown, no explanation, just JSON.
 
 {
@@ -46,17 +53,10 @@ Study the images carefully and return ONLY a valid JSON object — no markdown, 
   "material": "primary material if identifiable, else null",
   "style": "aesthetic style such as Rustic, Modern, Abstract, Minimalist — or null if not clear",
   "additionalDetails": "any other relevant details visible: dimensions, finish, technique, care instructions, etc. — or null"
-}`,
-            },
-          ],
-        },
-      ],
-    });
+}`;
 
-    const raw =
-      response.content[0].type === "text" ? response.content[0].text : "";
+    const raw = await generateWithRetry([...imageParts, { text: prompt }]);
 
-    // Strip markdown code blocks if the model wraps its response
     const cleaned = raw
       .replace(/^```json\s*/i, "")
       .replace(/^```\s*/i, "")

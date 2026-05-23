@@ -11,6 +11,7 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { Badge } from "@/components/ui/badge";
 import { addToCart } from "@/store/slices/cartSlice";
 import { addToWishlistAsync, removeFromWishlistAsync } from "@/store/slices/wishlistSlice";
+import { proxyImageUrl } from "@/lib/utils";
 
 function NoImagePlaceholder() {
    return (
@@ -105,7 +106,7 @@ export default function ProductCard({ product, promo }: { product: ProductPrevie
 
             {hasImages ? (
                <Image
-                  src={images[imgIndex]}
+                  src={proxyImageUrl(images[imgIndex])}
                   alt={product.title}
                   fill
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"

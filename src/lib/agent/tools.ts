@@ -1,11 +1,20 @@
-import type Anthropic from "@anthropic-ai/sdk";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+type ToolDefinition = {
+  name: string;
+  description: string;
+  input_schema: {
+    type: string;
+    properties: Record<string, any>;
+    required: string[];
+  };
+};
 
-const tools: Anthropic.Tool[] = [
+const tools: ToolDefinition[] = [
   // ─── Products ────────────────────────────────────────────────────────────────
   {
     name: "list_products",
     description:
-      "Get a list of products. Supports filtering by search term, category, and price range.",
+      "Get a list of products. Supports filtering by search term, category, price range, and active/inactive status.",
     input_schema: {
       type: "object" as const,
       properties: {
@@ -13,6 +22,7 @@ const tools: Anthropic.Tool[] = [
         categoryId: { type: "number", description: "Filter by category ID" },
         priceRangeMin: { type: "number", description: "Minimum price filter" },
         priceRangeMax: { type: "number", description: "Maximum price filter" },
+        status: { type: "boolean", description: "true = active products only, false = inactive only, omit = all products" },
         sortOption: {
           type: "string",
           enum: ["NEWEST", "POPULAR", "PRICE_HIGH_TO_LOW", "PRICE_LOW_TO_HIGH"],
@@ -572,33 +582,43 @@ const tools: Anthropic.Tool[] = [
   },
   {
     name: "create_promotion",
-    description: "Create a promotion/discount.",
+    description: "Create a promotion/discount. Always ask for start date, end date, minimum order value, max uses, and per-customer limit before creating — do not skip these.",
     input_schema: {
       type: "object" as const,
       properties: {
         description: { type: "string" },
-        promotionType: { type: "string", description: "Promotion type (e.g. PERCENTAGE, FIXED_AMOUNT)" },
-        discountValue: { type: "number", description: "Discount value (must be > 0)" },
+        promotionType: { type: "string", enum: ["PERCENTAGE", "FIXED_AMOUNT"], description: "PERCENTAGE = percent off, FIXED_AMOUNT = flat dollar amount off" },
+        discountValue: { type: "number", description: "Discount value (must be > 0). For PERCENTAGE: 0–100. For FIXED_AMOUNT: dollar amount." },
         categoryIds: {
           type: "array",
           items: { type: "number" },
-          description: "Apply to specific categories (leave empty for all)",
+          description: "Apply to specific category IDs (omit or empty array for store-wide)",
         },
+        validFrom: { type: "string", description: "Start date in ISO format YYYY-MM-DD. Promotion is inactive before this date. Omit for no start restriction." },
+        validTill: { type: "string", description: "End date in ISO format YYYY-MM-DD (inclusive). Promotion expires after this date. Omit for no expiry." },
+        minimumOrderValue: { type: "number", description: "Minimum cart total required for the promotion to apply. Omit for no minimum." },
+        maxUses: { type: "number", description: "Maximum total number of times this promotion can be redeemed across all customers. Omit for unlimited." },
+        usagePerCustomer: { type: "number", description: "Maximum number of times a single customer can redeem this promotion. Omit for unlimited." },
       },
       required: ["description", "promotionType", "discountValue"],
     },
   },
   {
     name: "update_promotion",
-    description: "Update a promotion.",
+    description: "Update a promotion. Any field omitted is left unchanged.",
     input_schema: {
       type: "object" as const,
       properties: {
         promotionId: { type: "number" },
         description: { type: "string" },
-        promotionType: { type: "string" },
+        promotionType: { type: "string", enum: ["PERCENTAGE", "FIXED_AMOUNT"] },
         discountValue: { type: "number" },
-        categoryIds: { type: "array", items: { type: "number" } },
+        categoryIds: { type: "array", items: { type: "number" }, description: "Full replacement list of category IDs (empty array = store-wide)" },
+        validFrom: { type: "string", description: "Start date YYYY-MM-DD. Pass null to remove the restriction." },
+        validTill: { type: "string", description: "End date YYYY-MM-DD. Pass null to remove expiry." },
+        minimumOrderValue: { type: "number", description: "Minimum cart total. Pass null to remove minimum." },
+        maxUses: { type: "number", description: "Total redemption cap. Pass null to make unlimited." },
+        usagePerCustomer: { type: "number", description: "Per-customer redemption cap. Pass null to make unlimited." },
       },
       required: ["promotionId"],
     },
@@ -618,14 +638,25 @@ const tools: Anthropic.Tool[] = [
   // ─── Orders ──────────────────────────────────────────────────────────────────
   {
     name: "list_orders",
-    description: "Get paginated list of orders. Admins can see all orders.",
+    description: "Get paginated list of orders. Admins can see all orders. Supports rich filtering by status, date range, customer, and tracking number.",
     input_schema: {
       type: "object" as const,
       properties: {
         page: { type: "number", description: "Page number (0-based, default 0)" },
         size: { type: "number", description: "Page size (default 10)" },
         customerId: { type: "number", description: "Filter by customer ID" },
-        status: { type: "string", description: "Filter by order status" },
+        statuses: {
+          type: "array",
+          items: {
+            type: "string",
+            enum: ["PENDING", "CONFIRMED", "PROCESSING", "SHIPPED", "OUT_FOR_DELIVERY", "DELIVERED", "CANCELLED", "RETURNED", "REFUNDED", "FAILED"],
+          },
+          description: "Filter by one or more order statuses (e.g. [\"SHIPPED\",\"OUT_FOR_DELIVERY\"])",
+        },
+        fromDate: { type: "string", description: "Start of date range, ISO format YYYY-MM-DD (order placed on or after)" },
+        toDate: { type: "string", description: "End of date range, ISO format YYYY-MM-DD (order placed on or before)" },
+        customerName: { type: "string", description: "Search by customer's full name (partial match)" },
+        trackingNumber: { type: "string", description: "Filter by shipment tracking number" },
       },
       required: [],
     },
@@ -669,15 +700,196 @@ const tools: Anthropic.Tool[] = [
   // ─── Users ────────────────────────────────────────────────────────────────────
   {
     name: "list_users",
-    description: "Get all users. Supports filtering by name, email, or phone.",
+    description: "Get all users. Supports filtering by name, email, phone, city, or country.",
     input_schema: {
       type: "object" as const,
       properties: {
-        fullName: { type: "string" },
-        email: { type: "string" },
-        phoneNo: { type: "string" },
+        fullName: { type: "string", description: "Filter by full name (partial match)" },
+        email: { type: "string", description: "Filter by email address" },
+        phoneNo: { type: "string", description: "Filter by phone number" },
+        city: { type: "string", description: "Filter by city" },
+        country: { type: "string", description: "Filter by country" },
       },
       required: [],
+    },
+  },
+  {
+    name: "remove_user",
+    description: "Deactivate/remove a user account by their user ID. This is a soft delete — the user is disabled but their order history is preserved. Use with caution and confirm with the admin first.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        userId: { type: "number", description: "The user ID to remove" },
+      },
+      required: ["userId"],
+    },
+  },
+
+  // ─── Banner Images ────────────────────────────────────────────────────────────
+  {
+    name: "list_banner_images",
+    description: "Get all homepage banner/hero images.",
+    input_schema: { type: "object" as const, properties: {}, required: [] },
+  },
+  {
+    name: "create_banner_image",
+    description: "Add a new banner/hero image to the homepage. Pass isDefault: true to make it the primary banner.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        imageUrl: { type: "string", description: "The image URL (e.g. Cloudinary URL)" },
+        isDefault: { type: "boolean", description: "Set as the default/primary banner (default false)" },
+      },
+      required: ["imageUrl"],
+    },
+  },
+  {
+    name: "update_banner_image",
+    description: "Update a banner image's URL or default status.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        bannerImageId: { type: "number", description: "The banner image ID to update" },
+        imageUrl: { type: "string", description: "New image URL" },
+        isDefault: { type: "boolean", description: "Set as the default/primary banner" },
+      },
+      required: ["bannerImageId"],
+    },
+  },
+  {
+    name: "delete_banner_image",
+    description: "Delete a banner image by its ID.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        bannerImageId: { type: "number", description: "The banner image ID to delete" },
+      },
+      required: ["bannerImageId"],
+    },
+  },
+
+  // ─── Reports ──────────────────────────────────────────────────────────────────
+  {
+    name: "get_report",
+    description: "Fetch a business report for a date range. Reports available: sales (revenue & order totals), orders (orders grouped by status), products_performance (top/bottom selling products), categories_performance (revenue by category), customers (new vs returning, top spenders), discounts_performance (promotion usage & savings).",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        reportType: {
+          type: "string",
+          enum: ["sales", "orders", "products_performance", "categories_performance", "customers", "discounts_performance"],
+          description: "Which report to fetch",
+        },
+        startDate: { type: "string", description: "Start date YYYY-MM-DD (inclusive)" },
+        endDate: { type: "string", description: "End date YYYY-MM-DD (inclusive)" },
+      },
+      required: ["reportType", "startDate", "endDate"],
+    },
+  },
+
+  // ─── Reviews ──────────────────────────────────────────────────────────────────
+  {
+    name: "list_reviews",
+    description: "List product reviews. Filter by product or customer. Admins can see all reviews and delete inappropriate ones.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        productId: { type: "number", description: "Filter reviews for a specific product" },
+        customerId: { type: "number", description: "Filter reviews by a specific customer" },
+        page: { type: "number", description: "Page number (0-based)" },
+        size: { type: "number", description: "Page size (default 10)" },
+        sort: { type: "string", description: "Sort order, e.g. 'newest', 'highest_rating', 'lowest_rating'" },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "delete_review",
+    description: "Delete a review (e.g. inappropriate or spam). Confirm with the admin before deleting.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        reviewId: { type: "number", description: "The review ID to delete" },
+      },
+      required: ["reviewId"],
+    },
+  },
+
+  // ─── Q&A ──────────────────────────────────────────────────────────────────────
+  {
+    name: "list_questions",
+    description: "List customer questions for a product. Use this to find unanswered questions that need a reply.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        productId: { type: "number", description: "Product ID to fetch questions for" },
+        page: { type: "number", description: "Page number (0-based, default 0)" },
+        size: { type: "number", description: "Page size (default 5)" },
+      },
+      required: ["productId"],
+    },
+  },
+  {
+    name: "answer_question",
+    description: "Post an answer to a customer's product question (as the admin/store).",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        questionId: { type: "number", description: "The question ID to answer" },
+        answerText: { type: "string", description: "The answer text" },
+      },
+      required: ["questionId", "answerText"],
+    },
+  },
+  {
+    name: "delete_question",
+    description: "Delete a customer question (e.g. spam or inappropriate). Confirm before deleting.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        questionId: { type: "number", description: "The question ID to delete" },
+      },
+      required: ["questionId"],
+    },
+  },
+  {
+    name: "delete_answer",
+    description: "Delete a specific answer on a product question. Confirm before deleting.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        answerId: { type: "number", description: "The answer ID to delete" },
+      },
+      required: ["answerId"],
+    },
+  },
+
+  // ─── Support Tickets ──────────────────────────────────────────────────────────
+  {
+    name: "list_support_tickets",
+    description: "List customer support tickets. Admins see all tickets; filter by status, customer name, or date range.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        customerId: { type: "number", description: "Filter tickets by a specific customer ID" },
+        status: { type: "string", description: "Filter by ticket status (e.g. OPEN, IN_PROGRESS, RESOLVED, CLOSED)" },
+        customerName: { type: "string", description: "Search by customer name (partial match)" },
+        fromDate: { type: "string", description: "Start date YYYY-MM-DD" },
+        toDate: { type: "string", description: "End date YYYY-MM-DD" },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "update_support_ticket",
+    description: "Update the status of a support ticket (e.g. mark as resolved, close it).",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        supportTicketId: { type: "number", description: "The support ticket ID" },
+        status: { type: "string", description: "New status: OPEN, IN_PROGRESS, RESOLVED, or CLOSED" },
+      },
+      required: ["supportTicketId", "status"],
     },
   },
 ];

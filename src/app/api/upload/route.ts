@@ -3,15 +3,17 @@ import { v2 as cloudinary } from "cloudinary";
 
 export const runtime = "nodejs";
 
-if (process.env.CLOUDINARY_URL) {
-   cloudinary.config({ secure: true, cloudinary_url: process.env.CLOUDINARY_URL });
-} else {
-   cloudinary.config({
-      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-      api_key: process.env.CLOUDINARY_API_KEY,
-      api_secret: process.env.CLOUDINARY_API_SECRET,
-   });
-}
+const cloudinaryUrl = process.env.CLOUDINARY_URL ?? "";
+const urlMatch = cloudinaryUrl.match(/^cloudinary:\/\/([^:]+):([^@]+)@(.+)$/);
+cloudinary.config(
+  urlMatch
+    ? { api_key: urlMatch[1], api_secret: urlMatch[2], cloud_name: urlMatch[3], secure: true }
+    : {
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET,
+      }
+);
 
 type CloudinaryUploadResult = { secure_url?: string };
 

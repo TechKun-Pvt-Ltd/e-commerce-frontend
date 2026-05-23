@@ -958,7 +958,7 @@ export default function ProductForm({
                         Add Variant
                      </Button>
                   </div>
-                  {categoryVariationIds.length ? (
+                  {categoryVariationIds.length && !categoriesLoading ? (
                      <div data-slot="table-container" className="relative w-full overflow-x-auto">
                         <Table className="border-separate border-spacing-0 border rounded-md overflow-hidden">
                            <TableHeader>
@@ -966,7 +966,7 @@ export default function ProductForm({
                                  <TableHead className="border-b">Sr. No.</TableHead>
                                  {categoryVariationIds.map((vId) => (
                                     <TableHead key={vId} className="border-b w-[15%]">
-                                       {indexedVariations[vId].name}
+                                       {indexedVariations[vId]?.name}
                                     </TableHead>
                                  ))}
                                  <TableHead className="border-b min-w-36 w-[20%]">SKU</TableHead>
