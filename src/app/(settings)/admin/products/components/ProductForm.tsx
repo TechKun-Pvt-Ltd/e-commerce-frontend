@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,7 +26,8 @@ import CategoriesDropdown from "@/app/components/CategoriesDropdown";
 import { ProductDetails } from "@/types/domains/product";
 import useDrivePicker from "react-google-drive-picker";
 import Image from "next/image";
-import { ClipboardPaste, Plus, Trash2, Upload, X } from "lucide-react";
+import { ClipboardPaste, ChevronsDown, Plus, Trash2, Upload, X } from "lucide-react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import AddCategoryForm from "@/app/(settings)/admin/categories/components/AddCategoryForm";
@@ -143,6 +144,23 @@ export default function ProductForm({
          attributes: [],
       },
    });
+   const {
+      fields: productVariants,
+      replace: replaceVariants,
+      remove: removeVariantAt,
+      append: appendVariant,
+      update: updateVariant,
+   } = useFieldArray({ control: productForm.control, name: "variants" });
+
+   const variantTableRef = useRef<HTMLDivElement>(null);
+   const rowVirtualizer = useVirtualizer({
+      count: productVariants.length,
+      getScrollElement: () => variantTableRef.current,
+      estimateSize: () => 57,
+      overscan: 5,
+   });
+   const prevVariantCountRef = useRef(productVariants.length);
+
    const firstRender = useRef(true);
    const [pasteApplied, setPasteApplied] = useState(false);
    // In update mode the form is empty until product + category details both load.
@@ -244,6 +262,14 @@ export default function ProductForm({
       firstRender.current = false;
    }, [product]);
 
+   useEffect(() => {
+      const prev = prevVariantCountRef.current;
+      prevVariantCountRef.current = productVariants.length;
+      if (productVariants.length === prev + 1) {
+         rowVirtualizer.scrollToIndex(productVariants.length - 1, { behavior: "smooth" });
+      }
+   }, [productVariants.length]);
+
    const indexedVariations = useMemo(
       () =>
          variations.reduce((acc, variation) => {
@@ -279,13 +305,13 @@ export default function ProductForm({
       }
       return Array.from(categoryVariationIdSet).sort();
    }, [selectedCategoryDetails]);
-   const productVariants = productForm.watch("variants");
    const productAttributes = productForm.watch("attributes");
    const productImages = productForm.watch("images");
 
    const updateSkus = useCallback(
-      (productCode: string) =>
-         productVariants.forEach((v, i) =>
+      (productCode: string) => {
+         const currentVariants = productForm.getValues("variants");
+         currentVariants.forEach((v, i) =>
             productForm.setValue(
                `variants.${i}.sku`,
                `${selectedCategoryDetails?.code || ""}-${productCode}-${v.variationOptionIds
@@ -294,8 +320,9 @@ export default function ProductForm({
                   .filter(Boolean)
                   .join("-")}`
             )
-         ),
-      [productVariants, productForm, selectedCategoryDetails, indexedVariationOptions]
+         );
+      },
+      [productForm, selectedCategoryDetails, indexedVariationOptions]
    );
 
    const computeSku = useCallback(
@@ -313,15 +340,16 @@ export default function ProductForm({
    const updateVariantsAndAttributes = useCallback(
       (categoryDetails: CategoryData) => {
          const variants = getVariantsFromVariations(getCategoryVariations(categoryDetails).map((vId) => indexedVariations[vId]));
+         const productCode = productForm.getValues("code");
          variants.forEach(
             (v) =>
-            (v.sku = `${categoryDetails.code}-${productForm.watch("code")}-${v.variationOptionIds
+            (v.sku = `${categoryDetails.code}-${productCode}-${v.variationOptionIds
                .filter((optId) => optId > 0)
                .map((optId) => indexedVariationOptions[optId]?.code)
                .filter(Boolean)
                .join("-")}`)
          );
-         productForm.setValue("variants", variants);
+         replaceVariants(variants);
          productForm.setValue(
             "attributes",
             getCategoryAttributes(categoryDetails).map((aId) => ({
@@ -330,7 +358,7 @@ export default function ProductForm({
             }))
          );
       },
-      [productForm, indexedVariations, indexedVariationOptions]
+      [productForm, replaceVariants, indexedVariations, indexedVariationOptions]
    );
 
    const addAttributeRow = useCallback(() => {
@@ -360,27 +388,27 @@ export default function ProductForm({
          toast.error("Selected category has no variations.");
          return;
       }
-      const next = [
-         ...productForm.getValues("variants"),
-         {
-            sku: computeSku(variationIds.map(() => 0)),
-            price: 0,
-            quantityInStock: 0,
-            disabled: false,
-            variationOptionIds: variationIds.map(() => 0),
-         },
-      ];
-      productForm.setValue("variants", next, { shouldDirty: true });
-   }, [computeSku, productForm, selectedCategoryDetails]);
+      appendVariant({
+         sku: computeSku(variationIds.map(() => 0)),
+         price: 0,
+         quantityInStock: 0,
+         disabled: false,
+         variationOptionIds: variationIds.map(() => 0),
+      });
+   }, [computeSku, appendVariant, selectedCategoryDetails]);
 
    const removeVariantRow = useCallback(
       (index: number) => {
-         const next = [...productForm.getValues("variants")];
-         next.splice(index, 1);
-         productForm.setValue("variants", next, { shouldDirty: true });
+         removeVariantAt(index);
       },
-      [productForm]
+      [removeVariantAt]
    );
+
+   const scrollToVariantBottom = useCallback(() => {
+      if (productVariants.length > 0) {
+         rowVirtualizer.scrollToIndex(productVariants.length - 1, { behavior: "smooth" });
+      }
+   }, [rowVirtualizer, productVariants.length]);
 
    const handleOpenPicker = useCallback(() => {
       try {
@@ -841,12 +869,6 @@ export default function ProductForm({
                                        addCategoryDialogRef.current?.open();
                                     }}
                                     onAddSubcategory={(parentNode) => {
-                                       const cached = categoryDetailsMap.get(parentNode.categoryId);
-                                       if (cached) {
-                                          setCategoryDialogParent(cached);
-                                          addCategoryDialogRef.current?.open();
-                                          return;
-                                       }
                                        fetchCategoryDetails(parentNode.categoryId).onSuccess((res) => {
                                           const details = registerCategoryDetails(res);
                                           setCategoryDialogParent(details);
@@ -854,15 +876,10 @@ export default function ProductForm({
                                        });
                                     }}
                                     onSelect={(node) => {
-                                       if (categoryDetailsMap.has(node.categoryId)) {
+                                       fetchCategoryDetails(node.categoryId).onSuccess((res) => {
                                           field.onChange(node.categoryId);
-                                          updateVariantsAndAttributes(categoryDetailsMap.get(node.categoryId)!);
-                                       } else {
-                                          fetchCategoryDetails(node.categoryId).onSuccess((res) => {
-                                             field.onChange(node.categoryId);
-                                             updateVariantsAndAttributes(registerCategoryDetails(res));
-                                          });
-                                       }
+                                          updateVariantsAndAttributes(registerCategoryDetails(res));
+                                       });
                                     }}
                                  />
                               </FormControl>
@@ -951,167 +968,220 @@ export default function ProductForm({
                <Separator />
 
                <div className="space-y-4">
-                  <div className="flex items-center justify-between gap-3">
-                     <Label>Product Variants</Label>
-                     <Button type="button" variant="outline" size="sm" disabled={loading || !categoryVariationIds.length} onClick={addEmptyVariantRow}>
-                        <Plus className="h-4 w-4" />
-                        Add Variant
-                     </Button>
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
+                     <div className="flex items-center gap-2">
+                        <Label>Product Variants</Label>
+                        {productVariants.length > 0 && (
+                           <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs text-muted-foreground">
+                              {productVariants.length.toLocaleString()} total
+                           </span>
+                        )}
+                     </div>
+                     <div className="flex items-center gap-2">
+                        {productVariants.length > 10 && (
+                           <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={scrollToVariantBottom}
+                           >
+                              <ChevronsDown className="h-4 w-4" />
+                              Jump to bottom
+                           </Button>
+                        )}
+                        <Button
+                           type="button"
+                           variant="outline"
+                           size="sm"
+                           disabled={loading || !categoryVariationIds.length}
+                           onClick={addEmptyVariantRow}
+                        >
+                           <Plus className="h-4 w-4" />
+                           Add Variant
+                        </Button>
+                     </div>
                   </div>
-                  {categoryVariationIds.length && !categoriesLoading ? (
-                     <div data-slot="table-container" className="relative w-full overflow-x-auto">
-                        <Table className="border-separate border-spacing-0 border rounded-md overflow-hidden">
-                           <TableHeader>
+                  {categoryVariationIds.length ? (
+                     <div
+                        ref={variantTableRef}
+                        className="relative w-full overflow-auto border rounded-md"
+                        style={{ maxHeight: "560px" }}
+                     >
+                        <Table className="border-separate border-spacing-0">
+                           <TableHeader className="sticky top-0 z-10 bg-background shadow-[inset_0_-1px_0_0_hsl(var(--border))]">
                               <TableRow>
-                                 <TableHead className="border-b">Sr. No.</TableHead>
+                                 <TableHead className="w-12">#</TableHead>
                                  {categoryVariationIds.map((vId) => (
-                                    <TableHead key={vId} className="border-b w-[15%]">
-                                       {indexedVariations[vId]?.name}
+                                    <TableHead key={vId} className="min-w-36">
+                                       {indexedVariations[vId].name}
                                     </TableHead>
                                  ))}
-                                 <TableHead className="border-b min-w-36 w-[20%]">SKU</TableHead>
-                                 <TableHead className="border-b min-w-24 w-[15%]">Price</TableHead>
-                                 <TableHead className="border-b min-w-24 w-[15%]">Stock</TableHead>
-                                 <TableHead className="border-b">Disabled</TableHead>
-                                 <TableHead className="border-b w-[1%]"></TableHead>
+                                 <TableHead className="min-w-44">SKU</TableHead>
+                                 <TableHead className="min-w-28">Price</TableHead>
+                                 <TableHead className="min-w-28">Stock</TableHead>
+                                 <TableHead className="min-w-24">Disabled</TableHead>
+                                 <TableHead className="w-10"></TableHead>
                               </TableRow>
                            </TableHeader>
                            <TableBody>
-                              {productVariants.map((variant, index) => (
-                                 <TableRow key={index}>
-                                    <TableCell>{index + 1}</TableCell>
-                                    {categoryVariationIds.map((variationId, colIndex) => {
-                                       const currentOptId = variant.variationOptionIds?.[colIndex] ?? 0;
-                                       const options = indexedVariations[variationId]?.variationOptions || [];
-                                       return (
-                                          <TableCell key={`${variationId}-${colIndex}`}>
-                                             <Select
-                                                disabled={loading}
-                                                value={currentOptId ? String(currentOptId) : ""}
-                                                onValueChange={(value) => {
-                                                   const nextOptId = Number(value);
-                                                   const nextVariant = { ...productForm.getValues(`variants.${index}`) };
-                                                   const nextOptionIds = [...(nextVariant.variationOptionIds || [])];
-                                                   while (nextOptionIds.length < categoryVariationIds.length) nextOptionIds.push(0);
-                                                   nextOptionIds[colIndex] = nextOptId;
-                                                   nextVariant.variationOptionIds = nextOptionIds;
-                                                   nextVariant.sku = computeSku(nextOptionIds);
-                                                   productForm.setValue(
-                                                      `variants.${index}`,
-                                                      nextVariant as ProductFormData["variants"][number],
-                                                      { shouldDirty: true, shouldValidate: true }
-                                                   );
-                                                }}
-                                             >
-                                                <SelectTrigger className="min-w-36">
-                                                   <SelectValue placeholder="Select" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                   {options.map((o) => (
-                                                      <SelectItem key={o.variationOptionId} value={String(o.variationOptionId)}>
-                                                         {o.name}
-                                                      </SelectItem>
-                                                   ))}
-                                                </SelectContent>
-                                             </Select>
-                                          </TableCell>
-                                       );
-                                    })}
-                                    <TableCell>
-                                       <FormField
-                                          disabled={loading}
-                                          control={productForm.control}
-                                          name={`variants.${index}.sku`}
-                                          render={({ field }) => (
-                                             <FormItem>
-                                                <FormControl>
-                                                   <Input
-                                                      {...field}
-                                                      onBlur={(e) => {
-                                                         field.onBlur();
-                                                         field.onChange(e.target.value.trim());
-                                                      }}
-                                                   />
-                                                </FormControl>
-                                                <FormMessage />
-                                             </FormItem>
-                                          )}
-                                       />
-                                    </TableCell>
-                                    <TableCell>
-                                       <FormField
-                                          disabled={loading}
-                                          control={productForm.control}
-                                          name={`variants.${index}.price`}
-                                          render={({ field }) => (
-                                             <FormItem>
-                                                <FormControl>
-                                                   <Input
-                                                      type="number"
-                                                      {...field}
-                                                      onFocus={(e) => e.target.select()}
-                                                      onChange={(e) => {
-                                                         const value = e.target.value;
-                                                         field.onChange(value === "" ? "" : parseFloat(value));
-                                                      }}
-                                                   />
-                                                </FormControl>
-                                                <FormMessage />
-                                             </FormItem>
-                                          )}
-                                       />
-                                    </TableCell>
-                                    <TableCell>
-                                       <FormField
-                                          disabled={loading}
-                                          control={productForm.control}
-                                          name={`variants.${index}.quantityInStock`}
-                                          render={({ field }) => (
-                                             <FormItem>
-                                                <FormControl>
-                                                   <Input
-                                                      type="number"
-                                                      {...field}
-                                                      onFocus={(e) => e.target.select()}
-                                                      onChange={(e) => {
-                                                         const value = e.target.value;
-                                                         field.onChange(value === "" ? "" : parseFloat(value));
-                                                      }}
-                                                   />
-                                                </FormControl>
-                                                <FormMessage />
-                                             </FormItem>
-                                          )}
-                                       />
-                                    </TableCell>
-                                    <TableCell>
-                                       <FormField
-                                          disabled={loading}
-                                          control={productForm.control}
-                                          name={`variants.${index}.disabled`}
-                                          render={({ field }) => (
-                                             <FormItem>
-                                                <FormControl>
-                                                   <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                                                </FormControl>
-                                             </FormItem>
-                                          )}
-                                       />
-                                    </TableCell>
-                                    <TableCell>
-                                       <Button
-                                          type="button"
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-8 w-8"
-                                          disabled={loading}
-                                          onClick={() => removeVariantRow(index)}
-                                       >
-                                          <Trash2 className="h-4 w-4" />
-                                       </Button>
-                                    </TableCell>
-                                 </TableRow>
-                              ))}
+                              {/* Top spacer — fills the scroll space above the first visible row */}
+                              {(() => {
+                                 const items = rowVirtualizer.getVirtualItems();
+                                 const paddingTop = items.length > 0 ? items[0].start : 0;
+                                 return paddingTop > 0 ? (
+                                    <TableRow style={{ height: paddingTop }}>
+                                       <TableCell colSpan={categoryVariationIds.length + 6} style={{ padding: 0, border: "none" }} />
+                                    </TableRow>
+                                 ) : null;
+                              })()}
+                              {/* Only the ~10 visible rows are rendered */}
+                              {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                                 const variant = productVariants[virtualRow.index];
+                                 const index = virtualRow.index;
+                                 return (
+                                    <TableRow key={variant.id}>
+                                       <TableCell className="text-muted-foreground text-xs tabular-nums w-12">{index + 1}</TableCell>
+                                       {categoryVariationIds.map((variationId, colIndex) => {
+                                          const currentOptId = variant.variationOptionIds?.[colIndex] ?? 0;
+                                          const options = indexedVariations[variationId]?.variationOptions || [];
+                                          return (
+                                             <TableCell key={`${variationId}-${colIndex}`}>
+                                                <Select
+                                                   disabled={loading}
+                                                   value={currentOptId ? String(currentOptId) : ""}
+                                                   onValueChange={(value) => {
+                                                      const nextOptId = Number(value);
+                                                      const nextVariant = { ...productForm.getValues(`variants.${index}`) };
+                                                      const nextOptionIds = [...(nextVariant.variationOptionIds || [])];
+                                                      while (nextOptionIds.length < categoryVariationIds.length) nextOptionIds.push(0);
+                                                      nextOptionIds[colIndex] = nextOptId;
+                                                      nextVariant.variationOptionIds = nextOptionIds;
+                                                      nextVariant.sku = computeSku(nextOptionIds);
+                                                      updateVariant(index, nextVariant as ProductFormData["variants"][number]);
+                                                   }}
+                                                >
+                                                   <SelectTrigger className="min-w-36">
+                                                      <SelectValue placeholder="Select" />
+                                                   </SelectTrigger>
+                                                   <SelectContent>
+                                                      {options.map((o) => (
+                                                         <SelectItem key={o.variationOptionId} value={String(o.variationOptionId)}>
+                                                            {o.name}
+                                                         </SelectItem>
+                                                      ))}
+                                                   </SelectContent>
+                                                </Select>
+                                             </TableCell>
+                                          );
+                                       })}
+                                       <TableCell>
+                                          <FormField
+                                             disabled={loading}
+                                             control={productForm.control}
+                                             name={`variants.${index}.sku`}
+                                             render={({ field }) => (
+                                                <FormItem>
+                                                   <FormControl>
+                                                      <Input
+                                                         {...field}
+                                                         onBlur={(e) => {
+                                                            field.onBlur();
+                                                            field.onChange(e.target.value.trim());
+                                                         }}
+                                                      />
+                                                   </FormControl>
+                                                   <FormMessage />
+                                                </FormItem>
+                                             )}
+                                          />
+                                       </TableCell>
+                                       <TableCell>
+                                          <FormField
+                                             disabled={loading}
+                                             control={productForm.control}
+                                             name={`variants.${index}.price`}
+                                             render={({ field }) => (
+                                                <FormItem>
+                                                   <FormControl>
+                                                      <Input
+                                                         type="number"
+                                                         {...field}
+                                                         onFocus={(e) => e.target.select()}
+                                                         onChange={(e) => {
+                                                            const value = e.target.value;
+                                                            field.onChange(value === "" ? "" : parseFloat(value));
+                                                         }}
+                                                      />
+                                                   </FormControl>
+                                                   <FormMessage />
+                                                </FormItem>
+                                             )}
+                                          />
+                                       </TableCell>
+                                       <TableCell>
+                                          <FormField
+                                             disabled={loading}
+                                             control={productForm.control}
+                                             name={`variants.${index}.quantityInStock`}
+                                             render={({ field }) => (
+                                                <FormItem>
+                                                   <FormControl>
+                                                      <Input
+                                                         type="number"
+                                                         {...field}
+                                                         onFocus={(e) => e.target.select()}
+                                                         onChange={(e) => {
+                                                            const value = e.target.value;
+                                                            field.onChange(value === "" ? "" : parseFloat(value));
+                                                         }}
+                                                      />
+                                                   </FormControl>
+                                                   <FormMessage />
+                                                </FormItem>
+                                             )}
+                                          />
+                                       </TableCell>
+                                       <TableCell>
+                                          <FormField
+                                             disabled={loading}
+                                             control={productForm.control}
+                                             name={`variants.${index}.disabled`}
+                                             render={({ field }) => (
+                                                <FormItem>
+                                                   <FormControl>
+                                                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                                   </FormControl>
+                                                </FormItem>
+                                             )}
+                                          />
+                                       </TableCell>
+                                       <TableCell>
+                                          <Button
+                                             type="button"
+                                             variant="ghost"
+                                             size="icon"
+                                             className="h-8 w-8"
+                                             disabled={loading}
+                                             onClick={() => removeVariantRow(index)}
+                                          >
+                                             <Trash2 className="h-4 w-4" />
+                                          </Button>
+                                       </TableCell>
+                                    </TableRow>
+                                 );
+                              })}
+                              {/* Bottom spacer — fills the scroll space below the last visible row */}
+                              {(() => {
+                                 const items = rowVirtualizer.getVirtualItems();
+                                 const paddingBottom = items.length > 0
+                                    ? rowVirtualizer.getTotalSize() - items[items.length - 1].end
+                                    : 0;
+                                 return paddingBottom > 0 ? (
+                                    <TableRow style={{ height: paddingBottom }}>
+                                       <TableCell colSpan={categoryVariationIds.length + 6} style={{ padding: 0, border: "none" }} />
+                                    </TableRow>
+                                 ) : null;
+                              })()}
                            </TableBody>
                         </Table>
                      </div>
@@ -1320,13 +1390,17 @@ export default function ProductForm({
 
 function registerCategoryDetails(categoryDetails: CategoryDetails): CategoryData {
    const { categoryId } = categoryDetails;
-   if (categoryDetailsMap.has(categoryId)) return categoryDetailsMap.get(categoryId)!;
 
-   const details = {
-      categoryId: categoryId,
+   // Always build fresh CategoryData from the backend response — never return a
+   // stale cache entry.  The recursive SQL already returns the full parent chain
+   // so every call here has the latest variation/attribute assignments.
+   const details: CategoryData = {
+      categoryId,
       name: categoryDetails.name,
       code: categoryDetails.code,
-      parentCategory: categoryDetails.parentCategory ? registerCategoryDetails(categoryDetails.parentCategory) : undefined,
+      parentCategory: categoryDetails.parentCategory
+         ? registerCategoryDetails(categoryDetails.parentCategory)
+         : undefined,
       variationIds: categoryDetails.variations.map((v) => v.variationId),
       attributeIds: categoryDetails.attributes.map((a) => a.attributeId),
    };
