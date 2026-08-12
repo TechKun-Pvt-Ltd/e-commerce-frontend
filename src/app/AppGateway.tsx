@@ -16,6 +16,7 @@ import { fetchPromotions } from "@/store/slices/promotionSlice";
 setAutoFreeze(false);
 
 export function AppGateway({ children }: { children: React.ReactNode }) {
+
    const dispatch = useAppDispatch();
    const { authenticated, user } = useAppSelector(state => state.auth);
    useEffect(() => {
