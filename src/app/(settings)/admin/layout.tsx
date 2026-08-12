@@ -220,8 +220,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </SidebarMenu>
             </SidebarFooter>
         </Sidebar>
-        <main className="flex-1 min-w-0 min-h-0 overflow-hidden bg-gray-50 flex flex-col">
-            <div className="flex items-center gap-2 px-4 py-2 shrink-0">
+        <main className="flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden bg-gray-50">
+            <div className="sticky top-0 z-10 bg-gray-50 border-b flex items-center gap-2 px-4 py-2">
                 <SidebarTrigger />
                 <Separator orientation="vertical" className="mr-2" style={{height: '1rem'}} />
                 <Breadcrumb>
@@ -244,7 +244,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     </BreadcrumbList>
                 </Breadcrumb>
             </div>
-            <div className="px-6 py-4 flex-1 min-h-0 overflow-y-auto relative">{children}</div>
+            <div className="px-6 py-4 relative">{children}</div>
         </main>
     </SidebarProvider>;
 };
