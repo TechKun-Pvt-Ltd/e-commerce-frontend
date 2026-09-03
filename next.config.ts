@@ -12,6 +12,8 @@ const nextConfig = {
       { protocol: 'https', hostname: 'img.freepik.com' },
       { protocol: 'https', hostname: 'drive.google.com' },
       { protocol: 'https', hostname: 'i.pinimg.com' },
+      { protocol: 'https', hostname: 'www.canvasia.com.tr' },
+      { protocol: 'https', hostname: 'canvasia.com.tr' },
       { protocol: 'https', hostname: 'res.cloudinary.com' },
       { protocol: 'https', hostname: 'files.catbox.moe' },
       { protocol: 'http', hostname: 'localhost', port: '8080' },
