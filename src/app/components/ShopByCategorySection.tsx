@@ -37,7 +37,19 @@ const ShopByCategorySection = ({
   isLoading,
   onSelectCategory,
 }: ShopByCategorySectionProps) => {
-  const displayCategories = categories?.slice(0, MAX_CATEGORIES);
+  const displayCategories = (() => {
+    if (!categories || categories.length === 0) return [];
+    if (categories.length >= 4) return categories.slice(0, MAX_CATEGORIES);
+
+    const canvas = categories.find((c) => c.name.toUpperCase().includes("CANVAS")) || categories[0];
+    if (canvas?.subcategories && canvas.subcategories.length > 0) {
+      const pano = canvas.subcategories.find((s) => s.categoryId === 97);
+      const others = canvas.subcategories.filter((s) => s.categoryId !== 97);
+      const curated = pano ? [pano, ...others] : canvas.subcategories;
+      return curated.slice(0, MAX_CATEGORIES);
+    }
+    return categories.slice(0, MAX_CATEGORIES);
+  })();
 
   return (
     <section className="relative py-16 md:py-24 lg:py-28 overflow-hidden bg-gradient-to-b from-stone-100/80 via-stone-50 to-background">

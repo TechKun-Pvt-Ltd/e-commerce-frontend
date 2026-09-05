@@ -18,7 +18,7 @@ setAutoFreeze(false);
 
 export function AppGateway({ children }: { children: React.ReactNode }) {
    const dispatch = useAppDispatch();
-   const { authenticated, user, loading } = useAppSelector(state => state.auth);
+   const { authenticated, user } = useAppSelector(state => state.auth);
    useEffect(() => {
       dispatch(getMyInformation());
       dispatch(fetchCategories());
