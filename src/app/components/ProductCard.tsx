@@ -62,35 +62,54 @@ export default function ProductCard({ product, promo }: { product: ProductPrevie
       touchStartX.current = null;
    };
 
+   // Local optimistic state for instant UI response (0ms delay)
+   const [optimisticLiked, setOptimisticLiked] = useState<boolean | null>(null);
+   const isCurrentlyLiked = optimisticLiked !== null ? optimisticLiked : isInWishlist;
+
    const handleWishlistToggle = async (e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
       if (!authenticated) { toast.error("Please login to add items to wishlist"); return; }
+
+      const nextLiked = !isCurrentlyLiked;
+      setOptimisticLiked(nextLiked);
+      if (nextLiked) {
+         toast.success("Added to wishlist");
+      } else {
+         toast.success("Removed from wishlist");
+      }
+
       try {
-         if (isInWishlist && wishlistItem?.wishlistItemId) {
+         if (!nextLiked && wishlistItem?.wishlistItemId) {
             await dispatch(removeFromWishlistAsync(wishlistItem.wishlistItemId));
-            toast.success("Removed from wishlist");
          } else {
             await dispatch(addToWishlistAsync(product.productVariantId));
-            toast.success("Added to wishlist");
          }
-      } catch { toast.error("Failed to update wishlist"); }
+      } catch {
+         setOptimisticLiked(!nextLiked);
+         toast.error("Failed to update wishlist");
+      }
    };
 
-   const handleAddToCart = async (e: React.MouseEvent) => {
+   const handleAddToCart = (e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
       if (isInactive) return;
-      await dispatch(addToCart({ productVariantId: product.productVariantId, quantity: 1 }));
-      if (toast.getToasts().find((t) => t.id === "cart-toast")) return;
-      toast(CartToast, {
-         id: "cart-toast",
-         position: "bottom-left",
-         closeButton: false,
-         style: { display: "block", padding: "0px", width: "min(500px, calc(100vw - 24px))", maxWidth: "500px", height: "auto" },
-         dismissible: false,
-         duration: Infinity,
-      });
+
+      // Instantly open the cart toast without waiting for server network delay
+      if (!toast.getToasts().find((t) => t.id === "cart-toast")) {
+         toast(CartToast, {
+            id: "cart-toast",
+            position: "bottom-left",
+            closeButton: false,
+            style: { display: "block", padding: "0px", width: "min(500px, calc(100vw - 24px))", maxWidth: "500px", height: "auto" },
+            dismissible: false,
+            duration: Infinity,
+         });
+      }
+
+      // Sync with server in background
+      dispatch(addToCart({ productVariantId: product.productVariantId, quantity: 1 }));
    };
 
    return (
@@ -138,9 +157,9 @@ export default function ProductCard({ product, promo }: { product: ProductPrevie
                   onClick={handleWishlistToggle}
                   disabled={isInactive}
                   className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-white/50 flex items-center justify-center shadow-sm transition-colors hover:bg-white/70"
-                  aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
+                  aria-label={isCurrentlyLiked ? "Remove from wishlist" : "Add to wishlist"}
                >
-                  <Heart className={`h-3 w-3 sm:h-4 sm:w-4 transition-colors ${isInWishlist ? "fill-red-500 text-red-500" : "text-foreground/70"}`} />
+                  <Heart className={`h-3 w-3 sm:h-4 sm:w-4 transition-colors ${isCurrentlyLiked ? "fill-red-500 text-red-500" : "text-foreground/70"}`} />
                </button>
 
                {/* Mobile-only cart icon — always visible since hover doesn't work on touch */}
