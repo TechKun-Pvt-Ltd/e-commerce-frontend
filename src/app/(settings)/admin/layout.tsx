@@ -9,7 +9,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Tags, LogOut, MoreVerticalIcon, Shapes, SlidersHorizontal, Package, LayoutDashboard, Percent, ShipWheelIcon, Truck, CreditCard, TableIcon } from "lucide-react"
+import { Tags, LogOut, MoreVerticalIcon, Shapes, SlidersHorizontal, Package, LayoutDashboard, Percent, ShipWheelIcon, Truck, CreditCard, TableIcon, ExternalLink } from "lucide-react"
 import Link from "next/link";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -21,7 +21,6 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbP
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { NAV_TOP_HEIGHT } from "@/lib/constants";
 import { UserRole } from "@/types/domains/user";
 import Spinner from "@/components/ui/spinner";
 
@@ -135,15 +134,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     if (loading || !isAuthorized) {
         return (
-            <div className="flex h-[calc(100vh-5rem)] w-full flex-col items-center justify-center bg-gray-50 text-center">
+            <div className="flex h-screen w-full flex-col items-center justify-center bg-gray-50 text-center">
                 <Spinner className="size-8 text-primary mb-3" />
                 <p className="text-sm font-medium text-muted-foreground">Verifying administrator credentials...</p>
             </div>
         );
     }
 
-    return <SidebarProvider className="" style={{ minHeight: 0, paddingTop: NAV_TOP_HEIGHT }}>
-        <Sidebar collapsible="icon" style={{height: `calc(100vh - ${NAV_TOP_HEIGHT})`, insetBlock: NAV_TOP_HEIGHT} as any}>
+    return <SidebarProvider className="" style={{ minHeight: "100vh" }}>
+        <Sidebar collapsible="icon" style={{height: "100vh", insetBlock: 0} as any}>
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
@@ -208,28 +207,38 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </SidebarFooter>
         </Sidebar>
         <main className="self-stretch flex-1 min-w-0 overflow-x-hidden bg-gray-50 flex flex-col">
-            <div className="flex items-center gap-2 px-4 py-2">
-                <SidebarTrigger />
-                <Separator orientation="vertical" className="mr-2" style={{height: '1rem'}} />
-                <Breadcrumb>
-                    <BreadcrumbList>
-                        <BreadcrumbItem>
-                            <BreadcrumbLink href="/admin/categories">Admin Settings</BreadcrumbLink>
-                        </BreadcrumbItem>
-                        <BreadcrumbSeparator />
-                        {breadcrumbItems.map((item, i) => i === breadcrumbItems.length - 1 ?
-                            <BreadcrumbItem key={item.url}>
-                                <BreadcrumbPage>{item.title}</BreadcrumbPage>
-                            </BreadcrumbItem>:
-                            <React.Fragment key={item.url}>
-                                <BreadcrumbItem>
-                                    <BreadcrumbLink href={item.url}>{item.title}</BreadcrumbLink>
-                                </BreadcrumbItem>
-                                <BreadcrumbSeparator />
-                            </React.Fragment>
-                        )}
-                    </BreadcrumbList>
-                </Breadcrumb>
+            <div className="flex items-center justify-between px-4 py-2 bg-white border-b border-gray-200">
+                <div className="flex items-center gap-2">
+                    <SidebarTrigger />
+                    <Separator orientation="vertical" className="mr-2" style={{height: '1rem'}} />
+                    <Breadcrumb>
+                        <BreadcrumbList>
+                            <BreadcrumbItem>
+                                <BreadcrumbLink href="/admin/dashboard">Admin</BreadcrumbLink>
+                            </BreadcrumbItem>
+                            <BreadcrumbSeparator />
+                            {breadcrumbItems.map((item, i) => i === breadcrumbItems.length - 1 ?
+                                <BreadcrumbItem key={item.url}>
+                                    <BreadcrumbPage>{item.title}</BreadcrumbPage>
+                                </BreadcrumbItem>:
+                                <React.Fragment key={item.url}>
+                                    <BreadcrumbItem>
+                                        <BreadcrumbLink href={item.url}>{item.title}</BreadcrumbLink>
+                                    </BreadcrumbItem>
+                                    <BreadcrumbSeparator />
+                                </React.Fragment>
+                            )}
+                        </BreadcrumbList>
+                    </Breadcrumb>
+                </div>
+                <Link
+                    href="/"
+                    target="_blank"
+                    className="flex items-center gap-1.5 text-xs font-medium text-gray-600 hover:text-primary transition-colors px-3 py-1.5 rounded-md hover:bg-gray-100"
+                >
+                    <ExternalLink className="size-3.5" />
+                    <span>View Store</span>
+                </Link>
             </div>
             <div className="px-6 py-4 flex-1">{children}</div>
         </main>
