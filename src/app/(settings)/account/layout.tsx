@@ -3,7 +3,7 @@
 import { SidebarFooter, SidebarHeader, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import React, { useEffect, useMemo } from "react";
 import { Sidebar, SidebarContent, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
-import { CreditCardIcon, LifeBuoy, LogOut, MoreVerticalIcon, PackageSearch, Star, User2 } from "lucide-react";
+import { ArrowLeft, CreditCardIcon, LifeBuoy, LogOut, MoreVerticalIcon, PackageSearch, Star, User2 } from "lucide-react";
 import Link from "next/link";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -21,7 +21,6 @@ import {
 } from "@/components/ui/breadcrumb";
 import { useRouter, usePathname } from "next/navigation";
 import { toast } from "sonner";
-import { NAVBAR_HEIGHT } from "@/lib/constants";
 
 const items = [
    {
@@ -67,8 +66,8 @@ export default function MyAccountLayout({ children }: { children: React.ReactNod
    }, [loading, authenticated]);
 
    return (
-      <SidebarProvider className="" style={{ paddingTop: NAVBAR_HEIGHT }}>
-         <Sidebar collapsible="icon" style={{ height: `calc(100vh - ${NAVBAR_HEIGHT})`, insetBlock: NAVBAR_HEIGHT } as any}>
+      <SidebarProvider className="" style={{ minHeight: "100vh" }}>
+         <Sidebar collapsible="icon" style={{ height: "100vh", insetBlock: 0 } as any}>
             <SidebarHeader>
                <SidebarMenu>
                   <SidebarMenuItem>
@@ -125,23 +124,32 @@ export default function MyAccountLayout({ children }: { children: React.ReactNod
                </SidebarMenu>
             </SidebarFooter>
          </Sidebar>
-         <main className="self-stretch flex-1 bg-gray-50">
-            <div className="flex items-center gap-2 px-4 py-2">
-               <SidebarTrigger />
-               <Separator orientation="vertical" className="mr-2" style={{ height: "1rem" }} />
-               <Breadcrumb>
-                  <BreadcrumbList>
-                     <BreadcrumbItem>
-                        <BreadcrumbLink href="/account/settings">My Account</BreadcrumbLink>
-                     </BreadcrumbItem>
-                     <BreadcrumbSeparator />
-                     <BreadcrumbItem>
-                        <BreadcrumbPage>{currentPathTitle}</BreadcrumbPage>
-                     </BreadcrumbItem>
-                  </BreadcrumbList>
-               </Breadcrumb>
+         <main className="self-stretch flex-1 min-w-0 overflow-x-hidden bg-gray-50 flex flex-col">
+            <div className="flex items-center justify-between px-4 py-2 bg-white border-b border-gray-200">
+               <div className="flex items-center gap-2">
+                  <SidebarTrigger />
+                  <Separator orientation="vertical" className="mr-2" style={{ height: "1rem" }} />
+                  <Breadcrumb>
+                     <BreadcrumbList>
+                        <BreadcrumbItem>
+                           <BreadcrumbLink href="/account/settings">My Account</BreadcrumbLink>
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator />
+                        <BreadcrumbItem>
+                           <BreadcrumbPage>{currentPathTitle}</BreadcrumbPage>
+                        </BreadcrumbItem>
+                     </BreadcrumbList>
+                  </Breadcrumb>
+               </div>
+               <Link
+                  href="/"
+                  className="flex items-center gap-1.5 text-xs font-medium text-gray-600 hover:text-primary transition-colors px-3 py-1.5 rounded-md hover:bg-gray-100"
+               >
+                  <ArrowLeft className="size-3.5" />
+                  <span>Back to Store</span>
+               </Link>
             </div>
-            <div className="px-6 py-4">{children}</div>
+            <div className="px-6 py-4 flex-1">{children}</div>
          </main>
       </SidebarProvider>
    );
