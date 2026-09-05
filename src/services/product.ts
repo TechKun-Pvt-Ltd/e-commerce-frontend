@@ -52,3 +52,17 @@ export const deleteProduct: ServiceFunction<[
 ], void> = (productId) => {
     return servicesApiClient.delete(`/products/${productId}`);
 };
+
+export const bulkDeleteProducts: ServiceFunction<
+    [ids: number[]],
+    { deleted: number[]; failed: { productId: number; reason: string }[] }
+> = (ids) => {
+    return servicesApiClient.delete('/products/bulk', { data: ids });
+};
+
+export const bulkUpdateProductStatus: ServiceFunction<
+    [ids: number[], status: boolean],
+    void
+> = (ids, status) => {
+    return servicesApiClient.patch('/products/bulk/status', { data: { productIds: ids, status } });
+};

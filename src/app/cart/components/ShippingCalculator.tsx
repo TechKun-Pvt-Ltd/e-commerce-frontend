@@ -42,7 +42,7 @@ const ShippingCalculator = () => {
                     <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Estimated cost</span>
                         <span className="font-semibold text-foreground">
-                            {shippingCost.toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}
+                            {shippingCost.toLocaleString("en-US", { style: "currency", currency: "USD" })}
                         </span>
                     </div>
                 </div>
