@@ -128,7 +128,7 @@ export default function Footer() {
                 {/* ── Bottom bar ── */}
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8">
                     <p className="text-white/30 text-xs tracking-wide">
-                        © 2025 KAVENGO. All rights reserved.
+                        © {new Date().getFullYear()} KAVENGO. All rights reserved.
                     </p>
                     <div className="flex items-center gap-5">
                         {socialLinks.map(({ icon: Icon, label, href }) => (

@@ -113,11 +113,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         [pathname]
     );
 
+    const isAuthorized = authenticated && (user?.roleName === UserRole.ADMIN || user?.roleName === UserRole.PLATFORM_ADMIN);
+
     useEffect(() => {
         if (loading) return;
-        if (!(authenticated && (user?.roleName === UserRole.ADMIN || user?.roleName === UserRole.PLATFORM_ADMIN))) {
-            toast('You are not authorized!', { icon: null, richColors: true });
-            router.push('/auth/login');
+        if (!isAuthorized) {
+            toast.error('You are not authorized to access the admin area.');
+            router.replace('/auth/login');
         } else {
             const expiresAt = localStorage.getItem("expiresAt");
             if (expiresAt === null)
@@ -126,10 +128,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             setTimeout(() => {
                 toast('Your session has expired!', { icon: null, richColors: true });
                 dispatch(logout());
-                router.push('/auth/login');
+                router.replace('/auth/login');
             }, expiresIn);
         }
-    }, [loading, authenticated]);
+    }, [loading, isAuthorized]);
+
+    if (loading || !isAuthorized) {
+        return (
+            <div className="flex h-[calc(100vh-5rem)] w-full flex-col items-center justify-center bg-gray-50 text-center">
+                <Spinner className="size-8 text-primary mb-3" />
+                <p className="text-sm font-medium text-muted-foreground">Verifying administrator credentials...</p>
+            </div>
+        );
+    }
 
     return <SidebarProvider className="" style={{ minHeight: 0, paddingTop: NAV_TOP_HEIGHT }}>
         <Sidebar collapsible="icon" style={{height: `calc(100vh - ${NAV_TOP_HEIGHT})`, insetBlock: NAV_TOP_HEIGHT} as any}>
