@@ -3,7 +3,6 @@ import { DM_Sans, Plus_Jakarta_Sans, Cormorant_Garamond } from 'next/font/google
 import { Metadata } from "next";
 import ReduxProvider from './ReduxProvider';
 import { AppGateway } from './AppGateway';
-import NextTopLoader from 'nextjs-toploader';
 
 export const metadata: Metadata = {
     title: "E-Commerce Store",

@@ -38,6 +38,7 @@ function CircleImage({ src, alt, size }: { src: string; alt: string; size: numbe
 const PINNED_LINKS = [
     { label: "New Arrivals", href: "/products?sort=NEWEST" },
     { label: "Bestsellers", href: "/products?sort=MOST_REVIEWED" },
+    { label: "Panoramic Canvas", href: "/products?categoryId=97" },
 ];
 
 const VISIBLE_LIMIT = 6;
@@ -233,9 +234,14 @@ function AllCategoriesSheet({ categories }: { categories: CategoryTree[] }) {
 */
 
 export default function CategoriesBar({ categories }: { categories: CategoryTree[] }) {
-    const overflowing = categories.length > VISIBLE_LIMIT + 1;
-    const visible = overflowing ? categories.slice(0, VISIBLE_LIMIT) : categories;
-    const overflow = overflowing ? categories.slice(VISIBLE_LIMIT) : [];
+    const sortedCategories = [...categories].sort((a, b) => {
+        if (a.name.toUpperCase().includes("CANVAS")) return -1;
+        if (b.name.toUpperCase().includes("CANVAS")) return 1;
+        return a.name.localeCompare(b.name);
+    });
+    const overflowing = sortedCategories.length > VISIBLE_LIMIT + 1;
+    const visible = overflowing ? sortedCategories.slice(0, VISIBLE_LIMIT) : sortedCategories;
+    const overflow = overflowing ? sortedCategories.slice(VISIBLE_LIMIT) : [];
 
     return (
         <div
@@ -253,10 +259,10 @@ export default function CategoriesBar({ categories }: { categories: CategoryTree
                         {link.label}
                     </Link>
                 ))}
-                {categories.length > 0 && (
+                {sortedCategories.length > 0 && (
                     <span className="h-3 w-px bg-border/60 shrink-0" />
                 )}
-                {categories.map((cat) => (
+                {sortedCategories.map((cat) => (
                     <Link
                         key={cat.categoryId}
                         href={`/products?categoryId=${cat.categoryId}`}
