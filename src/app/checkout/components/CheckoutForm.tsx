@@ -470,16 +470,16 @@ export default function CheckoutForm({
                             <CardContent className="space-y-4">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-gray-600">Subtotal</span>
-                                    <span>₺{subtotalAmount.toFixed(2)}</span>
+                                    <span>${subtotalAmount.toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
                                     <span className="text-gray-600">Shipping</span>
-                                    <span>₺{shippingAmount.toFixed(2)}</span>
+                                    <span>${shippingAmount.toFixed(2)}</span>
                                 </div>
                                 <Separator />
                                 <div className="flex justify-between text-lg font-semibold">
                                     <span>Total</span>
-                                    <span>₺{billTotal.toFixed(2)}</span>
+                                    <span>${billTotal.toFixed(2)}</span>
                                 </div>
                             </CardContent>
                             <CardFooter>
@@ -496,7 +496,7 @@ export default function CheckoutForm({
                                     ) : (
                                         <>
                                             <ShieldCheck className="mr-2 h-5 w-5" />
-                                            Pay ₺{billTotal.toFixed(2)}
+                                            Pay ${billTotal.toFixed(2)}
                                         </>
                                     )}
                                 </Button>

@@ -60,7 +60,7 @@ function SummaryCards({ summary }: { summary: PaymentSummary | null }) {
     const cards = [
         {
             title: "Total Revenue",
-            value: summary ? `₺${summary.totalRevenue.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}` : "—",
+            value: summary ? `$${summary.totalRevenue.toLocaleString("en-US", { minimumFractionDigits: 2 })}` : "—",
             icon: <TrendingUp className="h-5 w-5 text-green-600" />,
             bg: "bg-green-50",
         },
@@ -120,7 +120,7 @@ function TransactionDetailDialog({
         { label: "Customer", value: tx.customerName },
         { label: "Email", value: tx.customerEmail },
         { label: "Status", value: <StatusBadge status={tx.status} /> },
-        { label: "Amount", value: tx.paidPrice != null ? `₺${tx.paidPrice.toFixed(2)}` : "—" },
+        { label: "Amount", value: tx.paidPrice != null ? `$${tx.paidPrice.toFixed(2)}` : "—" },
         { label: "Currency", value: tx.currency },
         { label: "Installments", value: tx.installment ?? 1 },
         { label: "Card", value: tx.lastFourDigits ? `${tx.cardFamily ?? ""} •••• ${tx.lastFourDigits}` : "—" },
@@ -301,7 +301,7 @@ export default function PaymentsPage() {
                                                 ) : <span className="text-gray-400">—</span>}
                                             </td>
                                             <td className="px-4 py-3 font-semibold">
-                                                {tx.paidPrice != null ? `₺${tx.paidPrice.toFixed(2)}` : "—"}
+                                                {tx.paidPrice != null ? `$${tx.paidPrice.toFixed(2)}` : "—"}
                                             </td>
                                             <td className="px-4 py-3 text-center">
                                                 {tx.installment ?? 1}x
