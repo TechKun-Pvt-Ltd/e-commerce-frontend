@@ -33,16 +33,6 @@ export default function RootLayout({
             <body
                 className={`${dmSans.variable} ${plusJakarta.variable} ${cormorant.variable} ${dmSans.className} overflow-x-hidden`}
             >
-                <NextTopLoader
-                    color="#000"
-                    initialPosition={0.08}
-                    crawlSpeed={200}
-                    height={3}
-                    crawl={true}
-                    showSpinner={true}
-                    easing="ease"
-                    speed={200}
-                />
                 <ReduxProvider>
                     <AppGateway>
                         {children}
