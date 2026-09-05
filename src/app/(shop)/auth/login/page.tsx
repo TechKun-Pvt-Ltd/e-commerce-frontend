@@ -26,7 +26,7 @@ function LoginContent() {
     const searchParams = useSearchParams();
     const { loading, authenticated } = useAppSelector(state => state.auth);
     const dispatch = useAppDispatch();
-    const returnUrl = useMemo(() => searchParams.get('returnUrl') || '/', [searchParams]);
+    const returnUrl = useMemo(() => searchParams.get('returnUrl') || searchParams.get('redirect') || '/', [searchParams]);
 
     useEffect(() => {
         if (!loading && authenticated) {

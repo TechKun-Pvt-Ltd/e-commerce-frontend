@@ -16,15 +16,30 @@ export async function POST(req: NextRequest) {
 
   const data = await response.json();
 
-  (await cookies()).set({
+  const cookieStore = await cookies();
+  const maxAge = (data.expiresAt - Date.now()) / 1000;
+
+  cookieStore.set({
     name: 'token',
     value: data.token,
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: (data.expiresAt - Date.now()) / 1000,
+    sameSite: 'lax',
+    maxAge,
     path: '/',
   });
+
+  if (data.user?.roleName) {
+    cookieStore.set({
+      name: 'user_role',
+      value: data.user.roleName,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge,
+      path: '/',
+    });
+  }
 
   return NextResponse.json(data);
 }
