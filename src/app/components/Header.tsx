@@ -111,6 +111,8 @@ export default function Header() {
     const cartTotalItems = useAppSelector((state) => state.cart.totalItems);
     const { authenticated } = useAppSelector((state) => state.auth);
 
+    if (isAdminPage) return null;
+
     return (<>
         <header
             style={{ paddingRight: 'var(--removed-body-scroll-bar-size, 0px)' }}
