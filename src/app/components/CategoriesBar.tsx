@@ -41,7 +41,7 @@ const PINNED_LINKS = [
     { label: "Panoramic Canvas", href: "/products?categoryId=97" },
 ];
 
-const VISIBLE_LIMIT = 6;
+const VISIBLE_LIMIT = 8;
 
 const linkClass = "text-[0.95rem] md:text-base font-medium text-foreground/80 hover:text-foreground transition-colors whitespace-nowrap";
 
@@ -368,18 +368,6 @@ export default function CategoriesBar({ categories }: { categories: CategoryTree
         >
             {/* ── Mobile: horizontal category scroll ── */}
             <div className="sm:hidden h-full flex items-center gap-5 px-4 overflow-x-auto scrollbar-none">
-                {PINNED_LINKS.map((link) => (
-                    <Link
-                        key={link.href}
-                        href={link.href}
-                        className="text-sm font-semibold text-primary whitespace-nowrap shrink-0"
-                    >
-                        {link.label}
-                    </Link>
-                ))}
-                {sortedCategories.length > 0 && (
-                    <span className="h-3 w-px bg-border/60 shrink-0" />
-                )}
                 {sortedCategories.map((cat) => (
                     <Link
                         key={cat.categoryId}
@@ -392,25 +380,7 @@ export default function CategoriesBar({ categories }: { categories: CategoryTree
             </div>
 
             {/* ── Desktop: categories ── */}
-            <div className="hidden sm:flex h-full items-center justify-center gap-8 max-w-6xl mx-auto w-full px-6 md:px-10">
-
-                {/* AllCategoriesSheet removed — uncomment below to restore the "All" sidebar button */}
-                {/* <AllCategoriesSheet categories={categories} /> */}
-
-                {PINNED_LINKS.map((link) => (
-                    <Link
-                        key={link.href}
-                        href={link.href}
-                        className="text-[0.95rem] md:text-base font-semibold text-primary hover:text-primary/70 transition-colors whitespace-nowrap shrink-0"
-                    >
-                        {link.label}
-                    </Link>
-                ))}
-
-                {categories.length > 0 && (
-                    <span className="h-3.5 w-px bg-border shrink-0" />
-                )}
-
+            <div className="hidden sm:flex h-full items-center justify-center gap-10 max-w-6xl mx-auto w-full px-6 md:px-10">
                 {visible.map((cat) => (
                     <div key={cat.categoryId} className="shrink-0 h-full flex items-center">
                         <CategoryLink category={cat} />
