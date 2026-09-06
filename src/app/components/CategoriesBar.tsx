@@ -2,7 +2,7 @@
 import { useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { CategoryTree } from "@/types/domains/category";
 import { CATEGORY_BAR_HEIGHT } from "@/lib/constants";
 import { cn } from "@/lib/utils";
@@ -44,6 +44,137 @@ const PINNED_LINKS = [
 const VISIBLE_LIMIT = 6;
 
 const linkClass = "text-[0.95rem] md:text-base font-medium text-foreground/80 hover:text-foreground transition-colors whitespace-nowrap";
+
+function SubcategoryItemWithFlyout({
+    sub,
+    onClose,
+}: {
+    sub: CategoryTree;
+    onClose: () => void;
+}) {
+    const hasChildren = sub.subcategories && sub.subcategories.length > 0;
+    const [subOpen, setSubOpen] = useState(false);
+    const [flyoutSide, setFlyoutSide] = useState<'right' | 'left'>('right');
+    const itemRef = useRef<HTMLDivElement>(null);
+    const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const handleMouseEnter = () => {
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        if (itemRef.current) {
+            const rect = itemRef.current.getBoundingClientRect();
+            // 280px flyout width: check if fits on right side of viewport
+            if (rect.right + 280 > window.innerWidth) {
+                setFlyoutSide('left');
+            } else {
+                setFlyoutSide('right');
+            }
+        }
+        if (hasChildren) {
+            setSubOpen(true);
+        }
+    };
+
+    const handleMouseLeave = () => {
+        timeoutRef.current = setTimeout(() => setSubOpen(false), 140);
+    };
+
+    return (
+        <div
+            ref={itemRef}
+            className="relative"
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+        >
+            <div className={cn(
+                "flex items-center justify-between rounded-lg p-1.5 -m-1.5 transition-all group",
+                subOpen ? "bg-black/5" : "hover:bg-black/[0.03]"
+            )}>
+                <Link
+                    href={`/products?categoryId=${sub.categoryId}`}
+                    onClick={onClose}
+                    className="flex items-center gap-3.5 text-[0.95rem] text-foreground/70 hover:text-foreground transition-colors flex-1 min-w-0"
+                >
+                    {/* Circular image */}
+                    {sub.imageUrl ? (
+                        <div className="group-hover:ring-2 group-hover:ring-[#c9a84c] rounded-full transition-all shrink-0">
+                            <CircleImage src={sub.imageUrl} alt={sub.name} size={48} />
+                        </div>
+                    ) : (
+                        <div className="w-12 h-12 rounded-full bg-[oklch(0.92_0.022_75)] border border-border/40 group-hover:border-[#c9a84c] flex items-center justify-center shrink-0 transition-colors">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#c9a84c] opacity-60 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                    )}
+                    <span className="whitespace-nowrap font-medium">{sub.name}</span>
+                </Link>
+
+                {hasChildren && (
+                    <span className="text-muted-foreground/60 group-hover:text-[#c9a84c] transition-colors pl-2 shrink-0">
+                        <ChevronRight className={cn(
+                            "h-4 w-4 transition-transform duration-150",
+                            subOpen && (flyoutSide === 'right' ? "translate-x-0.5 text-[#c9a84c]" : "-translate-x-0.5 text-[#c9a84c]")
+                        )} />
+                    </span>
+                )}
+            </div>
+
+            {/* Açılır Pencere (Flyout Window / Submenu) */}
+            {hasChildren && subOpen && (
+                <div
+                    className={cn(
+                        "absolute top-0 z-[60] bg-white border-t-2 border-[#c9a84c] shadow-2xl rounded-sm p-4 w-[280px]",
+                        "animate-in fade-in-0 zoom-in-95 duration-150",
+                        // Invisible hover bridge to prevent mouse leave gap
+                        flyoutSide === 'right'
+                            ? "left-full ml-2 before:absolute before:top-0 before:bottom-0 before:-left-3 before:w-4 before:content-['']"
+                            : "right-full mr-2 before:absolute before:top-0 before:bottom-0 before:-right-3 before:w-4 before:content-['']"
+                    )}
+                    onMouseEnter={handleMouseEnter}
+                    onMouseLeave={handleMouseLeave}
+                >
+                    {/* Header */}
+                    <div className="pb-2.5 mb-2.5 border-b border-border/30 flex items-center justify-between">
+                        <p className="text-[11px] font-semibold tracking-[0.16em] uppercase text-[#c9a84c] truncate">
+                            {sub.name}
+                        </p>
+                        <span className="text-[10px] text-muted-foreground shrink-0 ml-2">
+                            {sub.subcategories.length} Alt Kategori
+                        </span>
+                    </div>
+
+                    {/* Subcategories list */}
+                    <div className="space-y-1 max-h-[320px] overflow-y-auto pr-1">
+                        {sub.subcategories.map((child) => (
+                            <Link
+                                key={child.categoryId}
+                                href={`/products?categoryId=${child.categoryId}`}
+                                onClick={onClose}
+                                className="flex items-center gap-2.5 px-2.5 py-1.5 text-[0.88rem] text-foreground/75 hover:text-foreground hover:bg-black/5 rounded transition-colors group/child"
+                            >
+                                {child.imageUrl ? (
+                                    <CircleImage src={child.imageUrl} alt={child.name} size={28} />
+                                ) : (
+                                    <span className="w-1.5 h-1.5 rounded-full bg-[#c9a84c]/60 group-hover/child:bg-[#c9a84c] group-hover/child:scale-125 shrink-0 transition-all" />
+                                )}
+                                <span className="truncate">{child.name}</span>
+                            </Link>
+                        ))}
+                    </div>
+
+                    {/* Footer */}
+                    <div className="pt-2.5 mt-2.5 border-t border-border/30">
+                        <Link
+                            href={`/products?categoryId=${sub.categoryId}`}
+                            onClick={onClose}
+                            className="text-[11px] font-semibold tracking-[0.14em] uppercase text-[#c9a84c] hover:text-[#b8960c] transition-colors block text-center"
+                        >
+                            Tümünü Gör ({sub.name}) →
+                        </Link>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
 
 function CategoryLink({ category }: { category: CategoryTree }) {
     const [open, setOpen] = useState(false);
@@ -113,29 +244,16 @@ function CategoryLink({ category }: { category: CategoryTree }) {
                     {/* Subcategory grid */}
                     <div className={cn(
                         "grid px-8 py-5",
-                        cols === 3 && "grid-cols-3 gap-x-6 gap-y-3",
-                        cols === 2 && "grid-cols-2 gap-x-6 gap-y-3",
-                        cols === 1 && "grid-cols-1 gap-y-3"
+                        cols === 3 && "grid-cols-3 gap-x-8 gap-y-4",
+                        cols === 2 && "grid-cols-2 gap-x-8 gap-y-4",
+                        cols === 1 && "grid-cols-1 gap-y-4"
                     )}>
                         {category.subcategories.map((sub) => (
-                            <Link
+                            <SubcategoryItemWithFlyout
                                 key={sub.categoryId}
-                                href={`/products?categoryId=${sub.categoryId}`}
-                                onClick={() => setOpen(false)}
-                                className="flex items-center gap-3.5 text-[0.95rem] text-foreground/70 hover:text-foreground transition-colors group"
-                            >
-                                {/* Circular image */}
-                                {sub.imageUrl ? (
-                                    <div className="group-hover:ring-2 group-hover:ring-[#c9a84c] rounded-full transition-all shrink-0">
-                                        <CircleImage src={sub.imageUrl} alt={sub.name} size={48} />
-                                    </div>
-                                ) : (
-                                    <div className="w-12 h-12 rounded-full bg-[oklch(0.92_0.022_75)] border border-border/40 group-hover:border-[#c9a84c] flex items-center justify-center shrink-0 transition-colors">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-[#c9a84c] opacity-60 group-hover:opacity-100 transition-opacity" />
-                                    </div>
-                                )}
-                                <span className="whitespace-nowrap">{sub.name}</span>
-                            </Link>
+                                sub={sub}
+                                onClose={() => setOpen(false)}
+                            />
                         ))}
                     </div>
 
