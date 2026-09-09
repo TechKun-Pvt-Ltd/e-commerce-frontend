@@ -92,7 +92,13 @@ const ProductGrid = ({ categories, onCategoryChange: onCategoryChangeProp, selec
          if (cancelled) return;
          if (result.success) {
             const data = result.data ?? [];
-            setProducts(data);
+            const seen = new Set<number>();
+            const unique = data.filter(p => {
+               if (seen.has(p.productId)) return false;
+               seen.add(p.productId);
+               return true;
+            });
+            setProducts(unique);
             setOffset(data.length);
             setHasMore(data.length === PAGE_SIZE);
          }
@@ -130,9 +136,17 @@ const ProductGrid = ({ categories, onCategoryChange: onCategoryChangeProp, selec
       const result = await productServices.getAllProducts(buildFilters(offset, selectedCategoryId, sortBy, priceRange));
       if (result.success) {
          const data = result.data ?? [];
-         setProducts(prev => [...prev, ...data]);
-         setOffset(prev => prev + data.length);
-         setHasMore(data.length === PAGE_SIZE);
+         if (data.length === 0) {
+            setHasMore(false);
+         } else {
+            setProducts(prev => {
+               const existingIds = new Set(prev.map(p => p.productId));
+               const uniqueNew = data.filter(p => !existingIds.has(p.productId));
+               return [...prev, ...uniqueNew];
+            });
+            setOffset(prev => prev + data.length);
+            setHasMore(data.length === PAGE_SIZE);
+         }
       }
       setIsLoadingMore(false);
       isFetchingRef.current = false;

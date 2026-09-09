@@ -31,9 +31,17 @@ const infoLinks = [
     { label: "Privacy Policy", href: "/privacy-policy" },
 ];
 
-function MobileCategoryItem({ cat, onClose }: { cat: CategoryTree; onClose: () => void }) {
+function MobileCategoryItem({
+    cat,
+    onClose,
+    level = 0,
+}: {
+    cat: CategoryTree;
+    onClose: () => void;
+    level?: number;
+}) {
     const [expanded, setExpanded] = useState(false);
-    const hasChildren = cat.subcategories.length > 0;
+    const hasChildren = cat.subcategories && cat.subcategories.length > 0;
 
     return (
         <div>
@@ -42,33 +50,34 @@ function MobileCategoryItem({ cat, onClose }: { cat: CategoryTree; onClose: () =
                     <Link
                         href={`/products?categoryId=${cat.categoryId}`}
                         onClick={onClose}
-                        className="flex-1 py-2.5 text-sm font-medium text-foreground hover:text-primary transition-colors"
+                        className={cn(
+                            "flex-1 py-2 text-sm font-medium transition-colors",
+                            level === 0 ? "text-foreground hover:text-primary py-2.5" : "text-muted-foreground hover:text-foreground"
+                        )}
                     >
+                        {level > 0 && <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#c9a84c]/60 mr-2" />}
                         {cat.name}
                     </Link>
                 </SheetClose>
                 {hasChildren && (
                     <button
                         onClick={() => setExpanded(!expanded)}
-                        className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+                        className="p-2 text-muted-foreground hover:text-[#c9a84c] transition-colors"
+                        aria-label="Toggle subcategories"
                     >
-                        <ChevronRight className={cn("h-4 w-4 transition-transform duration-200", expanded && "rotate-90")} />
+                        <ChevronRight className={cn("h-4 w-4 transition-transform duration-200", expanded && "rotate-90 text-[#c9a84c]")} />
                     </button>
                 )}
             </div>
             {hasChildren && expanded && (
-                <div className="pl-4 border-l border-border/50 ml-1 mb-1">
+                <div className="pl-4 border-l border-border/50 ml-2 mb-1 space-y-0.5">
                     {cat.subcategories.map((sub) => (
-                        <SheetClose asChild key={sub.categoryId}>
-                            <Link
-                                href={`/products?categoryId=${sub.categoryId}`}
-                                onClick={onClose}
-                                className="flex items-center gap-2 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                            >
-                                <span className="w-1 h-1 rounded-full bg-border shrink-0" />
-                                {sub.name}
-                            </Link>
-                        </SheetClose>
+                        <MobileCategoryItem
+                            key={sub.categoryId}
+                            cat={sub}
+                            onClose={onClose}
+                            level={level + 1}
+                        />
                     ))}
                 </div>
             )}
