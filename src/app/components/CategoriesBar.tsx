@@ -35,15 +35,7 @@ function CircleImage({ src, alt, size }: { src: string; alt: string; size: numbe
     );
 }
 
-const PINNED_LINKS = [
-    { label: "New Arrivals", href: "/products?sort=NEWEST" },
-    { label: "Bestsellers", href: "/products?sort=MOST_REVIEWED" },
-    { label: "Panoramic Canvas", href: "/products?categoryId=97" },
-];
-
 const VISIBLE_LIMIT = 8;
-
-const linkClass = "text-[0.95rem] md:text-base font-medium text-foreground/80 hover:text-foreground transition-colors whitespace-nowrap";
 
 function SubcategoryItemWithFlyout({
     sub,
