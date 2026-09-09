@@ -19,7 +19,7 @@ const BestSeller = ({ products: productsProp = [], selectedCategoryId }: BestSel
     const promotions = useAppSelector((state) => state.promotions.items);
 
     useEffect(() => {
-        const filters: ProductQueryOptions = { sortOption: SortOption.POPULAR, status: true };
+        const filters: ProductQueryOptions = { sortOption: SortOption.POPULAR, status: true, limit: 5 };
         if (selectedCategoryId !== null) filters.categoryId = selectedCategoryId;
         productsData.request(filters);
     }, [selectedCategoryId]);
@@ -28,7 +28,15 @@ const BestSeller = ({ products: productsProp = [], selectedCategoryId }: BestSel
 
     const bestSellerProducts = useMemo(() => {
         if (!products?.length) return [];
-        return products.slice(0, 5);
+        const seen = new Set<number>();
+        const unique: ProductPreview[] = [];
+        for (const p of products) {
+            if (!seen.has(p.productId)) {
+                seen.add(p.productId);
+                unique.push(p);
+            }
+        }
+        return unique.slice(0, 5);
     }, [products]);
 
     return (

@@ -39,6 +39,7 @@ export const FeatureProducts = ({ products: productsProp = [] }: FeatureProducts
         const filters: ProductQueryOptions = {
             sortOption: getSortOptionForTab(activeTab),
             status: true,
+            limit: 8,
         };
         productsData.request(filters);
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -46,9 +47,18 @@ export const FeatureProducts = ({ products: productsProp = [] }: FeatureProducts
 
     // Use products from API (already sorted on server) or fallback to prop
     // Extra safety: if backend doesn't filter by status yet, hide inactive products in UI.
-    const filteredProducts = (productsData.data || productsProp || [])
-        .filter((p) => p.status !== false)
-        .slice(0, 8);
+    const filteredProducts = useMemo(() => {
+        const raw = (productsData.data || productsProp || []).filter((p) => p.status !== false);
+        const seen = new Set<number>();
+        const unique: ProductPreview[] = [];
+        for (const p of raw) {
+            if (!seen.has(p.productId)) {
+                seen.add(p.productId);
+                unique.push(p);
+            }
+        }
+        return unique.slice(0, 8);
+    }, [productsData.data, productsProp]);
 
     const visibleProducts = useMemo(() => {
         if (activeTab !== "discounted") return filteredProducts;
