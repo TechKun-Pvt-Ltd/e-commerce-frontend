@@ -330,11 +330,12 @@ const ProductGrid = ({ categories, onCategoryChange: onCategoryChangeProp, selec
                      {isInitialLoading ? (
                         Array.from({ length: PAGE_SIZE }).map((_, i) => <ProductCardSkeleton key={i} />)
                      ) : products.length > 0 ? (
-                        products.map((product) => (
+                        products.map((product, index) => (
                            <ProductCard
                               key={product.productId}
                               product={product}
                               promo={getPromotionForProduct(product, promotions)}
+                              priority={index < 4}
                            />
                         ))
                      ) : (

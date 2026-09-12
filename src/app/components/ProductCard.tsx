@@ -32,7 +32,15 @@ function getDiscountedPrice(price: number, promotion: PromotionDetails | null): 
    return Math.max(price - promotion.discountValue, 0);
 }
 
-export default function ProductCard({ product, promo }: { product: ProductPreview; promo: PromotionDetails | null }) {
+export default function ProductCard({
+   product,
+   promo,
+   priority = false,
+}: {
+   product: ProductPreview;
+   promo: PromotionDetails | null;
+   priority?: boolean;
+}) {
    const dispatch = useAppDispatch();
    const wishlistItems = useAppSelector((state) => state.wishlist.items);
    const { authenticated } = useAppSelector((state) => state.auth);
@@ -128,7 +136,8 @@ export default function ProductCard({ product, promo }: { product: ProductPrevie
                   alt={product.title}
                   fill
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                  quality={90}
+                  quality={75}
+                  priority={priority}
                   className={["object-contain transition-transform duration-500", isInactive ? "" : "group-hover:scale-[1.04]"].join(" ")}
                />
             ) : (
