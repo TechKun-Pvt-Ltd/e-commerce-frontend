@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronDown, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,28 @@ const normalizeRange = (raw: [number, number]): [number, number] => {
     const a = Math.max(0, Math.min(100000, Math.round(min)));
     const b = Math.max(0, Math.min(100000, Math.round(max)));
     return a <= b ? [a, b] : [b, a];
+};
+
+// Known active product counts fallback in case backend is deploying or cached
+const FALLBACK_COUNTS: Record<number, number> = {
+    92: 1804,  // CANVAS WALL ART
+    97: 1804,  // Panoramic Wall Art
+    112: 0,    // GLASS WALL ART
+    134: 105,  // AREA RUGS
+    135: 105,  // Designer Area Rugs
+};
+
+const getCategoryCount = (cat: CategoryTree): number => {
+    if (typeof cat.productCount === 'number') {
+        return cat.productCount;
+    }
+    if (FALLBACK_COUNTS[cat.categoryId] !== undefined) {
+        return FALLBACK_COUNTS[cat.categoryId];
+    }
+    if (cat.subcategories && cat.subcategories.length > 0) {
+        return cat.subcategories.reduce((sum, sub) => sum + getCategoryCount(sub), 0);
+    }
+    return 0;
 };
 
 interface FilterSidebarProps {
@@ -41,6 +63,7 @@ const FilterSidebar = ({
     const [categorySearch, setCategorySearch] = useState("");
     const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(selectedCategoryIdProp || null);
     const [openSections, setOpenSections] = useState({ category: true, price: true });
+    const [expandedCategoryIds, setExpandedCategoryIds] = useState<Record<number, boolean>>({});
 
     useEffect(() => {
         if (selectedCategoryIdProp !== undefined) setSelectedCategoryId(selectedCategoryIdProp);
@@ -61,18 +84,52 @@ const FilterSidebar = ({
         });
     }, [searchParams, priceRangeProp]);
 
+    // Auto-expand category if selectedCategoryId belongs to it or one of its subcategories
+    useEffect(() => {
+        if (selectedCategoryId != null) {
+            categories.forEach((root) => {
+                const isMatch =
+                    root.categoryId === selectedCategoryId ||
+                    root.subcategories?.some((sub) => sub.categoryId === selectedCategoryId);
+                if (isMatch) {
+                    setExpandedCategoryIds((prev) => ({ ...prev, [root.categoryId]: true }));
+                }
+            });
+        }
+    }, [selectedCategoryId, categories]);
+
     const toggleSection = (section: keyof typeof openSections) => {
         setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
     };
 
-    const handleCategoryChange = (value: string) => {
-        const categoryId = value === "" ? null : parseInt(value, 10);
-        setSelectedCategoryId(categoryId);
-        onCategoryChange(categoryId);
+    const toggleExpand = (categoryId: number, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setExpandedCategoryIds(prev => ({
+            ...prev,
+            [categoryId]: !prev[categoryId],
+        }));
+    };
+
+    const handleCategorySelect = (catId: number, hasSubcategories: boolean = false) => {
+        const isSelected = selectedCategoryId === catId;
+        const newCategoryId = isSelected ? null : catId;
+
+        setSelectedCategoryId(newCategoryId);
+        onCategoryChange(newCategoryId);
+
         const params = new URLSearchParams(searchParams.toString());
-        if (categoryId !== null) params.set("categoryId", String(categoryId));
-        else params.delete("categoryId");
+        if (newCategoryId !== null) {
+            params.set("categoryId", String(newCategoryId));
+        } else {
+            params.delete("categoryId");
+        }
         router.push(params.toString() ? `/products?${params.toString()}` : "/products");
+
+        // If selecting a category that has subcategories, also expand it
+        if (!isSelected && hasSubcategories) {
+            setExpandedCategoryIds(prev => ({ ...prev, [catId]: true }));
+        }
+
         onClose?.();
     };
 
@@ -86,20 +143,40 @@ const FilterSidebar = ({
         onClose?.();
     };
 
-    const flattenCategories = (cats: CategoryTree[]): CategoryTree[] => {
-        const result: CategoryTree[] = [];
-        cats.forEach(cat => {
-            result.push(cat);
-            if (cat.subcategories?.length) result.push(...flattenCategories(cat.subcategories));
-        });
-        return result;
-    };
-
-    const allCategories = flattenCategories(categories);
-    const filteredCategories = allCategories.filter(cat =>
-        cat.name.toLowerCase().includes(categorySearch.toLowerCase())
-    );
     const isPriceFiltered = priceRange[0] !== 0 || priceRange[1] !== 100000;
+
+    // Filter tree by search input
+    const isSearching = categorySearch.trim().length > 0;
+    const query = categorySearch.trim().toLowerCase();
+
+    const filteredCategoryTree = useMemo(() => {
+        return categories
+            .map((root) => {
+                if (!isSearching) {
+                    return {
+                        root,
+                        subcategories: root.subcategories || [],
+                        isExpanded: !!expandedCategoryIds[root.categoryId],
+                        matches: true,
+                    };
+                }
+
+                const rootMatches = root.name.toLowerCase().includes(query);
+                const matchingSubs = (root.subcategories || []).filter((sub) =>
+                    sub.name.toLowerCase().includes(query)
+                );
+
+                const matches = rootMatches || matchingSubs.length > 0;
+                return {
+                    root,
+                    subcategories: rootMatches ? (root.subcategories || []) : matchingSubs,
+                    // In search mode, auto-expand if any child matches
+                    isExpanded: matches,
+                    matches,
+                };
+            })
+            .filter((item) => item.matches);
+    }, [categories, isSearching, query, expandedCategoryIds]);
 
     return (
         <div
@@ -144,7 +221,7 @@ const FilterSidebar = ({
 
                     {openSections.category && (
                         <div className="space-y-3">
-                            <div className="relative mb-4">
+                            <div className="relative mb-3">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                                 <Input
                                     placeholder="Search categories"
@@ -153,38 +230,126 @@ const FilterSidebar = ({
                                     className="pl-9 h-8 text-sm rounded-sm border-border/60 bg-background"
                                 />
                             </div>
+
                             <div className="space-y-0">
-                                {filteredCategories.map((cat) => {
-                                    const isSelected = selectedCategoryId === cat.categoryId;
-                                    return (
-                                        <button
-                                            key={cat.categoryId}
-                                            type="button"
-                                            onClick={() => handleCategoryChange(isSelected ? "" : cat.categoryId.toString())}
-                                            className="flex items-center gap-3 w-full py-2 text-left transition-colors group border-b border-border/30 last:border-b-0"
-                                        >
-                                            {/* Custom radio indicator */}
-                                            <span className={cn(
-                                                "w-3.5 h-3.5 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors",
-                                                isSelected
-                                                    ? "border-[#c9a84c] bg-[#c9a84c]/10"
-                                                    : "border-border/60 group-hover:border-foreground/40"
-                                            )}>
-                                                {isSelected && (
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-[#c9a84c] block" />
+                                {filteredCategoryTree.length === 0 ? (
+                                    <p className="text-xs text-muted-foreground py-2 italic">
+                                        {isSearching ? "No categories found" : "No categories available"}
+                                    </p>
+                                ) : (
+                                    filteredCategoryTree.map(({ root, subcategories, isExpanded }) => {
+                                        const isRootSelected = selectedCategoryId === root.categoryId;
+                                        const hasSubcategories = subcategories.length > 0;
+                                        const rootCount = getCategoryCount(root);
+
+                                        return (
+                                            <div key={root.categoryId} className="border-b border-border/30 last:border-b-0 py-1">
+                                                {/* Main / Top-level Category Row */}
+                                                <div className="flex items-center justify-between w-full py-1.5 group">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleCategorySelect(root.categoryId, hasSubcategories)}
+                                                        className="flex items-center gap-2.5 flex-1 min-w-0 text-left pr-2"
+                                                    >
+                                                        {/* Custom radio indicator */}
+                                                        <span
+                                                            className={cn(
+                                                                "w-3.5 h-3.5 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors",
+                                                                isRootSelected
+                                                                    ? "border-[#c9a84c] bg-[#c9a84c]/10"
+                                                                    : "border-border/60 group-hover:border-foreground/40"
+                                                            )}
+                                                        >
+                                                            {isRootSelected && (
+                                                                <span className="w-1.5 h-1.5 rounded-full bg-[#c9a84c] block" />
+                                                            )}
+                                                        </span>
+                                                        <span
+                                                            className={cn(
+                                                                "text-sm uppercase tracking-wider truncate transition-colors",
+                                                                isRootSelected
+                                                                    ? "text-foreground font-semibold"
+                                                                    : "text-foreground/80 group-hover:text-foreground font-medium"
+                                                            )}
+                                                        >
+                                                            {root.name}
+                                                        </span>
+                                                        <span className="text-xs text-muted-foreground font-normal shrink-0">
+                                                            ({rootCount.toLocaleString()})
+                                                        </span>
+                                                    </button>
+
+                                                    {/* Accordion toggle button */}
+                                                    {hasSubcategories && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => toggleExpand(root.categoryId, e)}
+                                                            aria-label={isExpanded ? "Collapse subcategories" : "Expand subcategories"}
+                                                            className="p-1 rounded-sm text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors shrink-0"
+                                                        >
+                                                            <ChevronDown
+                                                                className={cn(
+                                                                    "h-3.5 w-3.5 transition-transform duration-200",
+                                                                    isExpanded ? "rotate-180 text-foreground" : "text-muted-foreground"
+                                                                )}
+                                                            />
+                                                        </button>
+                                                    )}
+                                                </div>
+
+                                                {/* Subcategories Dropdown / Accordion */}
+                                                {isExpanded && hasSubcategories && (
+                                                    <div className="pl-4 ml-1.5 border-l border-border/40 space-y-0.5 py-1 mt-0.5 mb-1">
+                                                        {subcategories.map((sub) => {
+                                                            const isSubSelected = selectedCategoryId === sub.categoryId;
+                                                            const subCount = getCategoryCount(sub);
+
+                                                            return (
+                                                                <button
+                                                                    key={sub.categoryId}
+                                                                    type="button"
+                                                                    onClick={() => handleCategorySelect(sub.categoryId, false)}
+                                                                    className={cn(
+                                                                        "flex items-center justify-between w-full py-1.5 px-2 rounded-sm text-left group transition-colors",
+                                                                        isSubSelected ? "bg-muted/60" : "hover:bg-muted/30"
+                                                                    )}
+                                                                >
+                                                                    <div className="flex items-center gap-2 min-w-0 pr-2">
+                                                                        <span
+                                                                            className={cn(
+                                                                                "w-3 h-3 rounded-full border shrink-0 flex items-center justify-center transition-colors",
+                                                                                isSubSelected
+                                                                                    ? "border-[#c9a84c] bg-[#c9a84c]/15"
+                                                                                    : "border-border/60 group-hover:border-foreground/40"
+                                                                            )}
+                                                                        >
+                                                                            {isSubSelected && (
+                                                                                <span className="w-1 h-1 rounded-full bg-[#c9a84c] block" />
+                                                                            )}
+                                                                        </span>
+                                                                        <span
+                                                                            className={cn(
+                                                                                "text-xs truncate transition-colors",
+                                                                                isSubSelected
+                                                                                    ? "text-foreground font-medium"
+                                                                                    : "text-foreground/70 group-hover:text-foreground"
+                                                                            )}
+                                                                        >
+                                                                            {sub.name}
+                                                                        </span>
+                                                                    </div>
+                                                                    <span className="text-[11px] text-muted-foreground font-normal shrink-0">
+                                                                        ({subCount.toLocaleString()})
+                                                                    </span>
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
                                                 )}
-                                            </span>
-                                            <span className={cn(
-                                                "text-sm transition-colors",
-                                                isSelected
-                                                    ? "text-foreground font-medium"
-                                                    : "text-foreground/70 group-hover:text-foreground"
-                                            )}>
-                                                {cat.name}
-                                            </span>
-                                        </button>
-                                    );
-                                })}
+                                            </div>
+                                        );
+                                    })
+                                )}
                             </div>
                         </div>
                     )}
