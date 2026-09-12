@@ -17,6 +17,7 @@ const nextConfig = {
       { protocol: 'https', hostname: 'img.freepik.com' },
       { protocol: 'https', hostname: 'drive.google.com' },
       { protocol: 'https', hostname: 'i.pinimg.com' },
+      { protocol: 'https', hostname: 'pub-c636ad631f4e47d4b7eed2b5fd4f35e6.r2.dev' },
       { protocol: 'http', hostname: 'localhost', port: '8080' },
     ],
     minimumCacheTTL: 2678400, // 31 days CDN cache at Vercel Edge
