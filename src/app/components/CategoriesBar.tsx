@@ -36,6 +36,7 @@ function CircleImage({ src, alt, size }: { src: string; alt: string; size: numbe
 }
 
 const VISIBLE_LIMIT = 8;
+const linkClass = "text-[0.95rem] md:text-base font-medium text-foreground/80 hover:text-foreground transition-colors whitespace-nowrap";
 
 function SubcategoryItemWithFlyout({
     sub,
