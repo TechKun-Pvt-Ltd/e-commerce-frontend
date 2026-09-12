@@ -7,6 +7,13 @@ export async function POST(req: NextRequest) {
   const { path, method = 'GET', body } = await req.json();
   const token = (await cookies()).get('token')?.value;
 
+  if ((path === '/auth/me' || path?.startsWith('/auth/me')) && !token) {
+    return new NextResponse(JSON.stringify({ message: "You're not logged in." }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   const res = await axios({
     method,
     url: `${process.env.SERVER_URL}${path}`,
