@@ -7,26 +7,33 @@ import * as shippingServices from "@/services/shippingMethod";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { PaymentInitiateRequest, PaymentInitiateResponse } from "@/services/iyzico";
 import { ShippingMethod } from "@/types/domains/shipping_method";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState, Suspense } from "react";
 import { toast } from "sonner";
 import CheckoutForm from "./components/CheckoutForm";
 import ThreeDSModal from "./components/ThreeDSModal";
 import { clearBuyNowItem } from "@/store/slices/buyNowSlice";
 
-const shippingMethodsMap: Record<number, ShippingMethod> = {};
-
 function CheckoutPageInner() {
     const dispatch = useAppDispatch();
+    const router = useRouter();
     const searchParams = useSearchParams();
     const isBuyNow = searchParams.get("mode") === "buynow";
     const paymentResult = searchParams.get("payment");
 
     const { items: cartItems, totalAmount } = useAppSelector((state) => state.cart);
     const buyNowItem = useAppSelector((state) => state.buyNow.item);
-    const { user } = useAppSelector((state) => state.auth);
+    const { user, authenticated, loading: authLoading } = useAppSelector((state) => state.auth);
 
+    const [shippingMethods, setShippingMethods] = useState<Record<number, ShippingMethod>>({});
     const [threeDSHtml, setThreeDSHtml] = useState<string | null>(null);
+
+    // Redirect unauthenticated users to login
+    useEffect(() => {
+        if (!authLoading && !authenticated) {
+            router.push(`/auth/login?returnUrl=${encodeURIComponent('/checkout')}`);
+        }
+    }, [authLoading, authenticated, router]);
 
     // Show toast if redirected back from iyzico callback with a failure
     useEffect(() => {
@@ -61,7 +68,10 @@ function CheckoutPageInner() {
         if (effectiveItems.length === 0) return;
         for (const item of effectiveItems) {
             getShippingMethodByVariant.request(item.productVariantId).onSuccess((shippingMethod) => {
-                shippingMethodsMap[item.cartItemId] = shippingMethod;
+                setShippingMethods((prev) => ({
+                    ...prev,
+                    [item.cartItemId]: shippingMethod,
+                }));
             });
         }
     }, [effectiveItems]);
@@ -92,7 +102,7 @@ function CheckoutPageInner() {
                 <CheckoutForm
                     cartItems={effectiveItems}
                     subtotalAmount={effectiveTotal}
-                    shippingMethods={shippingMethodsMap}
+                    shippingMethods={shippingMethods}
                     loading={initiatePaymentData.isLoading}
                     onSubmit={handlePaymentSubmit}
                     currentAddress={user?.address}
