@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import FilterSidebar from "./FilterSidebar";
 import { ProductPreview, ProductQueryOptions, SortOption } from "@/types/domains/product";
 import { CategoryTree } from "@/types/domains/category";
@@ -121,10 +122,20 @@ const ProductGrid = ({ categories, onCategoryChange: onCategoryChangeProp, selec
       }
    }, [selectedCategoryIdProp, categories]);
 
+   const router = useRouter();
+   const searchParams = useSearchParams();
+
    const handleCategoryChange = (categoryId: number | null) => {
       setSelectedCategoryId(categoryId);
       setCurrentCategory(categoryId !== null ? (findCategoryById(categories, categoryId) ?? null) : null);
       onCategoryChangeProp?.(categoryId);
+      const params = new URLSearchParams(searchParams.toString());
+      if (categoryId !== null) {
+         params.set("categoryId", String(categoryId));
+      } else {
+         params.delete("categoryId");
+      }
+      router.push(params.toString() ? `/products?${params.toString()}` : "/products");
    };
 
    // Load next page

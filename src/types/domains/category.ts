@@ -17,6 +17,7 @@ export interface CategoryTree {
    path: string;
    subcategories: CategoryTree[];
    imageUrl?: string;
+   productCount?: number;
 }
 
 export interface CategoryDetails {

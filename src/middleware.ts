@@ -62,6 +62,20 @@ export function middleware(request: NextRequest) {
     }
   }
 
+  // 3. Guard all /checkout routes
+  if (pathname === '/checkout' || pathname.startsWith('/checkout/')) {
+    if (!isAuthenticated) {
+      const loginUrl = new URL('/auth/login', request.url);
+      loginUrl.searchParams.set('redirect', pathname);
+      const response = NextResponse.redirect(loginUrl);
+      if (token) {
+        response.cookies.delete('token');
+        response.cookies.delete('user_role');
+      }
+      return response;
+    }
+  }
+
   return NextResponse.next();
 }
 
@@ -71,5 +85,7 @@ export const config = {
     '/admin/:path*',
     '/account',
     '/account/:path*',
+    '/checkout',
+    '/checkout/:path*',
   ],
 };

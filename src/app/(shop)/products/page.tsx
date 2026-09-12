@@ -9,12 +9,14 @@ import { useAppSelector } from '@/store/hooks';
 function ProductsContent() {
     const searchParams = useSearchParams();
     const categoriesData = useAppSelector((state) => state.categories.items);
-    const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+    const categoryParam = searchParams.get("categoryId");
+    const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
+        categoryParam ? Number(categoryParam) : null
+    );
 
     useEffect(() => {
-        if (!searchParams.get("categoryId")) {
-            setSelectedCategoryId(null);
-        }
+        const catId = searchParams.get("categoryId");
+        setSelectedCategoryId(catId ? Number(catId) : null);
     }, [searchParams]);
 
     return (
