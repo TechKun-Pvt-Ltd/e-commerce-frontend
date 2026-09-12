@@ -36,6 +36,9 @@ export const login = createAsyncThunk<TokenPayload, LoginPayload, { rejectValue:
 export const getMyInformation = createAsyncThunk(
     'auth/getMyInformation',
     async (_, { rejectWithValue }) => {
+        if (typeof document !== 'undefined' && !document.cookie.includes('token=')) {
+            return rejectWithValue('Not logged in');
+        }
         try {
             const response = await authServices.me();
             if (response.success)
