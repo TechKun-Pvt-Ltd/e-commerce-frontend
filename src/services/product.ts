@@ -66,3 +66,10 @@ export const bulkUpdateProductStatus: ServiceFunction<
 > = (ids, status) => {
     return servicesApiClient.patch('/products/bulk/status', { data: { productIds: ids, status } });
 };
+
+export const bulkUpdateProductCategory: ServiceFunction<
+    [ids: number[], categoryId: number],
+    void
+> = (ids, categoryId) => {
+    return servicesApiClient.patch('/products/bulk/category', { data: { productIds: ids, categoryId } });
+};
