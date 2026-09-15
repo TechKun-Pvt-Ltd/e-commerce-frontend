@@ -25,14 +25,22 @@ export function middleware(request: NextRequest) {
   const userRole = request.cookies.get('user_role')?.value;
 
   const isAuthenticated = Boolean(token && !isTokenExpired(token));
+  const isAdmin = userRole === 'ADMIN' || userRole === 'PLATFORM_ADMIN';
 
-  // 1. Guard all /admin routes
+  // 1. Dedicated Admin Login handling
+  if (pathname === '/admin/login') {
+    if (isAuthenticated && isAdmin) {
+      return NextResponse.redirect(new URL('/admin/products', request.url));
+    }
+    return NextResponse.next();
+  }
+
+  // 2. Guard all /admin routes
   if (pathname === '/admin' || pathname.startsWith('/admin/')) {
-    // If not authenticated or token expired, immediately redirect to login before page loads
     if (!isAuthenticated) {
-      const loginUrl = new URL('/auth/login', request.url);
-      loginUrl.searchParams.set('redirect', pathname);
-      const response = NextResponse.redirect(loginUrl);
+      const adminLoginUrl = new URL('/admin/login', request.url);
+      adminLoginUrl.searchParams.set('redirect', pathname);
+      const response = NextResponse.redirect(adminLoginUrl);
       if (token) {
         response.cookies.delete('token');
         response.cookies.delete('user_role');
@@ -40,11 +48,10 @@ export function middleware(request: NextRequest) {
       return response;
     }
 
-    // If role is known and is not an administrator, immediately redirect
-    if (userRole && userRole !== 'ADMIN' && userRole !== 'PLATFORM_ADMIN') {
-      const loginUrl = new URL('/auth/login', request.url);
-      loginUrl.searchParams.set('error', 'unauthorized');
-      return NextResponse.redirect(loginUrl);
+    if (!isAdmin) {
+      const adminLoginUrl = new URL('/admin/login', request.url);
+      adminLoginUrl.searchParams.set('error', 'unauthorized');
+      return NextResponse.redirect(adminLoginUrl);
     }
   }
 

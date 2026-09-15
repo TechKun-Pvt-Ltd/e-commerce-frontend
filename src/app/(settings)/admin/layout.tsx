@@ -118,7 +118,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         if (loading) return;
         if (!isAuthorized) {
             toast.error('You are not authorized to access the admin area.');
-            router.replace('/auth/login');
+            router.replace('/admin/login');
         } else {
             const expiresAt = localStorage.getItem("expiresAt");
             if (expiresAt === null)
@@ -127,7 +127,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             setTimeout(() => {
                 toast('Your session has expired!', { icon: null, richColors: true });
                 dispatch(logout());
-                router.replace('/auth/login');
+                router.replace('/admin/login');
             }, expiresIn);
         }
     }, [loading, isAuthorized]);

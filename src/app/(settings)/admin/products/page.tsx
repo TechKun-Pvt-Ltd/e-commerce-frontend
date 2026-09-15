@@ -1,12 +1,14 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import { ProductPreview } from "@/types/domains/product";
-import { Star, MoreVertical, Copy, Pencil, Trash2, ToggleLeft, ToggleRight, X, FolderInput } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import { CategoryTree } from "@/types/domains/category";
+import { Star, MoreVertical, Copy, Pencil, Trash2, ToggleLeft, ToggleRight, X, FolderInput, Search, Check, Folder, ChevronRight } from "lucide-react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -33,12 +35,44 @@ import placeholderImage from '@/../public/placeholder-image.jpeg';
 import { toast } from "sonner";
 import Spinner from "@/components/ui/spinner";
 
+interface FlatCategoryItem {
+    categoryId: number;
+    name: string;
+    path: string;
+    level: number;
+}
+
+function flattenCategoryTree(nodes: CategoryTree[], parentPath = "", level = 0): FlatCategoryItem[] {
+    const result: FlatCategoryItem[] = [];
+    for (const node of nodes) {
+        const fullPath = parentPath ? `${parentPath} > ${node.name}` : node.name;
+        result.push({
+            categoryId: node.categoryId,
+            name: node.name,
+            path: fullPath,
+            level
+        });
+        if (node.subcategories && node.subcategories.length > 0) {
+            result.push(...flattenCategoryTree(node.subcategories, fullPath, level + 1));
+        }
+    }
+    return result;
+}
+
 export default function ProductsPage() {
 
     const router = useRouter();
     const { items: categories, loading: categoriesLoading } = useAppSelector(state => state.categories);
     const [selectedCategory, setSelectedCategory] = useState<CategoryDropdownNode>();
     const productsData = useDataFetch(productServices.getAllProducts);
+
+    const [categorySearch, setCategorySearch] = useState("");
+    const flatCategories = useMemo(() => flattenCategoryTree(categories || []), [categories]);
+    const filteredCategories = useMemo(() => {
+        if (!categorySearch.trim()) return flatCategories;
+        const q = categorySearch.toLowerCase().trim();
+        return flatCategories.filter(c => c.name.toLowerCase().includes(q) || c.path.toLowerCase().includes(q));
+    }, [flatCategories, categorySearch]);
 
     // single-delete state
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -52,7 +86,6 @@ export default function ProductsPage() {
     const [isBulkUpdatingStatus, setIsBulkUpdatingStatus] = useState(false);
     const [bulkCategoryOpen, setBulkCategoryOpen] = useState(false);
     const [bulkTargetCategory, setBulkTargetCategory] = useState<CategoryDropdownNode>();
-    const [isBulkUpdatingCategory, setIsBulkUpdatingCategory] = useState(false);
 
     const refreshProducts = () =>
         productsData.request(selectedCategory?.categoryId !== undefined ? { categoryId: selectedCategory.categoryId } : {});
@@ -132,25 +165,42 @@ export default function ProductsPage() {
             return;
         }
 
-        setIsBulkUpdatingCategory(true);
+        const targetCat = bulkTargetCategory;
+        const targetCatId = targetCat.categoryId;
+        const targetCatName = targetCat.name;
+        const idsToUpdate = new Set(selectedIds);
+        const count = idsToUpdate.size;
+        const currentFilteredCatId = selectedCategory?.categoryId;
+
+        // 1. Instant optimistic update: update client state immediately (0ms delay)
+        productsData.setData(prev => {
+            if (!prev) return prev;
+            if (currentFilteredCatId !== undefined && currentFilteredCatId !== targetCatId) {
+                return prev.filter(p => !idsToUpdate.has(p.productId));
+            }
+            return prev.map(p => idsToUpdate.has(p.productId) ? { ...p, categoryId: targetCatId } : p);
+        });
+
+        // 2. Instant UI feedback & dialog close
+        clearSelection();
+        setBulkCategoryOpen(false);
+        setBulkTargetCategory(undefined);
+        setCategorySearch("");
+        toast.success(`${count} product(s) moved to "${targetCatName}".`);
+
+        // 3. Background API persist
         try {
             const res = await productServices.bulkUpdateProductCategory(
-                [...selectedIds],
-                bulkTargetCategory.categoryId
+                [...idsToUpdate],
+                targetCatId
             );
             if (!res.success) {
-                toast.error(res.error || "Failed to update category.");
-                return;
+                toast.error(res.error || "Failed to update category on server.");
+                refreshProducts();
             }
-            toast.success(`${selectedIds.size} product(s) moved to "${bulkTargetCategory.name}".`);
-            clearSelection();
-            setBulkCategoryOpen(false);
-            setBulkTargetCategory(undefined);
-            refreshProducts();
         } catch {
-            toast.error("Failed to update product category.");
-        } finally {
-            setIsBulkUpdatingCategory(false);
+            toast.error("Failed to update product category. Reverting...");
+            refreshProducts();
         }
     };
 
@@ -215,7 +265,7 @@ export default function ProductsPage() {
         } catch { toast.error("Failed to update product status."); }
     };
 
-    const busyBulk = isBulkDeleting || isBulkUpdatingStatus || isBulkUpdatingCategory;
+    const busyBulk = isBulkDeleting || isBulkUpdatingStatus;
 
     return <div className="space-y-4">
 
@@ -256,54 +306,139 @@ export default function ProductsPage() {
         </Dialog>
 
         {/* ── bulk-category dialog ── */}
-        <Dialog open={bulkCategoryOpen} onOpenChange={(open) => { if (!isBulkUpdatingCategory) { setBulkCategoryOpen(open); if (!open) setBulkTargetCategory(undefined); } }}>
-            <DialogContent closeIcon={!isBulkUpdatingCategory} className="sm:max-w-[480px]">
-                <DialogHeader>
-                    <DialogTitle>Change Category for {selectedIds.size} Product{selectedIds.size !== 1 ? "s" : ""}</DialogTitle>
-                    <DialogDescription>
-                        Select a target category to reassign all selected products.
+        <Dialog open={bulkCategoryOpen} onOpenChange={(open) => { 
+            setBulkCategoryOpen(open); 
+            if (!open) {
+                setBulkTargetCategory(undefined);
+                setCategorySearch("");
+            }
+        }}>
+            <DialogContent className="sm:max-w-[520px] max-h-[85vh] flex flex-col p-0 overflow-hidden">
+                <DialogHeader className="p-6 pb-2">
+                    <DialogTitle className="text-lg font-semibold text-gray-900">
+                        Change Category for {selectedIds.size} Product{selectedIds.size !== 1 ? "s" : ""}
+                    </DialogTitle>
+                    <DialogDescription className="text-xs text-muted-foreground">
+                        Search and select a new target category. Changes will apply instantly.
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="py-4 space-y-4">
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">Target Category</label>
-                        <div className="w-full">
-                            <CategoriesDropdown
-                                disabled={categoriesLoading || isBulkUpdatingCategory}
-                                categories={categories}
-                                selectedCategoryNode={bulkTargetCategory}
-                                onSelect={setBulkTargetCategory}
-                            />
-                        </div>
+                <div className="px-6 py-2 flex flex-col flex-1 overflow-hidden space-y-3">
+                    {/* Instant Search Bar */}
+                    <div className="relative">
+                        <Search className="absolute left-3 top-2.5 size-4 text-muted-foreground pointer-events-none" />
+                        <Input
+                            type="text"
+                            placeholder="Search category name or path..."
+                            value={categorySearch}
+                            onChange={(e) => setCategorySearch(e.target.value)}
+                            className="pl-9 pr-8 h-9 text-sm"
+                            autoFocus
+                        />
+                        {categorySearch && (
+                            <button
+                                type="button"
+                                onClick={() => setCategorySearch("")}
+                                className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground"
+                            >
+                                <X className="size-4" />
+                            </button>
+                        )}
                     </div>
 
-                    {bulkTargetCategory && (
-                        <div className="p-3 bg-muted/50 rounded-md border text-sm flex items-center justify-between">
-                            <div>
-                                <span className="text-muted-foreground">Selected Category: </span>
-                                <span className="font-semibold text-foreground">{bulkTargetCategory.name}</span>
+                    {/* Fast Clickable List */}
+                    <div className="border rounded-md divide-y max-h-[300px] overflow-y-auto bg-white">
+                        {categoriesLoading ? (
+                            <div className="p-8 text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
+                                <Spinner className="size-4" /> Loading categories...
                             </div>
+                        ) : filteredCategories.length === 0 ? (
+                            <div className="p-6 text-center text-sm text-muted-foreground">
+                                No categories found matching &quot;{categorySearch}&quot;
+                            </div>
+                        ) : (
+                            filteredCategories.map((cat) => {
+                                const isSelected = bulkTargetCategory?.categoryId === cat.categoryId;
+                                return (
+                                    <button
+                                        key={cat.categoryId}
+                                        type="button"
+                                        onClick={() => setBulkTargetCategory({
+                                            categoryId: cat.categoryId,
+                                            name: cat.name,
+                                            parentCategory: undefined
+                                        })}
+                                        className={[
+                                            "w-full text-left px-3 py-2.5 transition-colors flex items-center justify-between text-sm group cursor-pointer",
+                                            isSelected
+                                                ? "bg-primary/10 text-primary font-medium"
+                                                : "hover:bg-slate-50 text-gray-700"
+                                        ].join(" ")}
+                                        style={{ paddingLeft: `${Math.max(12, cat.level * 20 + 12)}px` }}
+                                    >
+                                        <div className="flex items-center gap-2 truncate pr-2">
+                                            {cat.level > 0 ? (
+                                                <ChevronRight className="size-3 text-muted-foreground shrink-0 opacity-50" />
+                                            ) : (
+                                                <Folder className="size-3.5 text-muted-foreground shrink-0" />
+                                            )}
+                                            <div className="truncate">
+                                                <div className="truncate text-sm font-medium">{cat.name}</div>
+                                                {cat.level > 0 && (
+                                                    <div className="text-[11px] text-muted-foreground truncate opacity-75">
+                                                        {cat.path}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {isSelected && (
+                                            <div className="size-5 rounded-full bg-primary text-white flex items-center justify-center shrink-0 shadow-xs">
+                                                <Check className="size-3 stroke-[3]" />
+                                            </div>
+                                        )}
+                                    </button>
+                                );
+                            })
+                        )}
+                    </div>
+
+                    {/* Selected Badge */}
+                    {bulkTargetCategory ? (
+                        <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-md text-xs flex items-center justify-between">
+                            <div>
+                                <span className="text-emerald-700 font-medium">Target Category: </span>
+                                <span className="font-semibold text-emerald-900">{bulkTargetCategory.name}</span>
+                            </div>
+                            <span className="text-[11px] text-emerald-600 bg-emerald-100/80 px-1.5 py-0.5 rounded font-mono">
+                                ID: #{bulkTargetCategory.categoryId}
+                            </span>
+                        </div>
+                    ) : (
+                        <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-md text-xs text-muted-foreground">
+                            Click any category above to select it.
                         </div>
                     )}
                 </div>
 
-                <DialogFooter className="gap-2 sm:gap-2">
-                    <Button variant="outline" onClick={() => { setBulkCategoryOpen(false); setBulkTargetCategory(undefined); }} disabled={isBulkUpdatingCategory}>
+                <DialogFooter className="p-4 pt-2 bg-slate-50/50 border-t flex items-center justify-end gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                            setBulkCategoryOpen(false);
+                            setBulkTargetCategory(undefined);
+                            setCategorySearch("");
+                        }}
+                    >
                         Cancel
                     </Button>
                     <Button
+                        size="sm"
                         onClick={handleBulkCategory}
-                        disabled={isBulkUpdatingCategory || !bulkTargetCategory}
+                        disabled={!bulkTargetCategory}
                     >
-                        {isBulkUpdatingCategory ? (
-                            <>
-                                <Spinner className="mr-2 size-4" />
-                                Updating...
-                            </>
-                        ) : (
-                            "Update Category"
-                        )}
+                        Apply Instantly
                     </Button>
                 </DialogFooter>
             </DialogContent>
