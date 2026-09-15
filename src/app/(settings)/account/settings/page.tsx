@@ -29,7 +29,7 @@ const accountInfoSchema = z.object({
     street: z.string().min(5, "Street address must be at least 5 characters"),
     city: z.string().min(2, "City must be at least 2 characters"),
     country: z.string().min(2, "Country must be at least 2 characters"),
-    pincode: z.string().min(6, "PIN code must be at least 6 characters"),
+    pincode: z.string().min(3, "Please enter a valid postal code"),
 });
 
 const changePasswordSchema = z.object({
@@ -92,7 +92,7 @@ export default function AccountSettings() {
                 street: values.street,
                 city: values.city,
                 country: values.country,
-                pincode: Number(values.pincode),
+                pincode: values.pincode.trim(),
             },
         };
         const res = await dispatch(saveMyInformation(formattedValues));

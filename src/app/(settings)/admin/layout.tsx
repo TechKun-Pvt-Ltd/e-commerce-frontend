@@ -9,7 +9,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Tags, LogOut, MoreVerticalIcon, Shapes, SlidersHorizontal, Package, LayoutDashboard, Percent, ShipWheelIcon, Truck, CreditCard, TableIcon, ExternalLink } from "lucide-react"
+import { Tags, LogOut, MoreVerticalIcon, Shapes, SlidersHorizontal, Package, LayoutDashboard, Percent, ShipWheelIcon, Truck, CreditCard, TableIcon, ExternalLink, Users, Image as ImageIcon } from "lucide-react"
 import Link from "next/link";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -79,6 +79,16 @@ const items = [
         title: "Order Shipping",
         url: "/admin/orders-shipping",
         icon: ShipWheelIcon
+    },
+    {
+        title: "Customers",
+        url: "/admin/customers",
+        icon: Users
+    },
+    {
+        title: "Banner Images",
+        url: "/admin/banner-images",
+        icon: ImageIcon
     },
     {
         title: "Payments",
