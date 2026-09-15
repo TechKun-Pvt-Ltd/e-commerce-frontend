@@ -1,7 +1,9 @@
 /* eslint-disable @next/next/no-img-element */
+import { r2src } from "@/lib/r2-image";
 
+// Canvas panoramic — elegant pastel & earth tones (product cvs-pan-003)
 const MANIFESTO_IMAGE =
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuDXCACdgH-k2u20bUm2JrpfuYIjOVG9SiJe2wGp6w6BVwHRool_2nQweYt45U3Q3JXTqCtD2eLpjp3h7AtLsqLrdgcGAQhjnfHJMhgJz3gvBe_RxFj755eKFW1QgagC7u3jRoi9SCQq5HSAzat8XxErTy6vivdDZic90pZuhuwtyALZp6gwC0ExablPVlHIRcGXJhJBQB3kJH0A30Xpf_0g1mAd-6Culgn6I3jcAC621qrGtyUfJW4U9wPelCauNsuMPNOXNZrw1O0";
+    "https://pub-c636ad631f4e47d4b7eed2b5fd4f35e6.r2.dev/img/products/kanvas-panoramik/cvs-pan-003/cercevesizfon01.webp";
 
 export default function FramesManifestoSection() {
     return (
@@ -10,8 +12,8 @@ export default function FramesManifestoSection() {
                 <div className="flex flex-col items-center gap-16 md:flex-row md:items-center md:gap-24">
                     <div className="w-full md:w-1/2">
                         <img
-                            src={MANIFESTO_IMAGE}
-                            alt="Interior designer placing framed artwork on a gallery wall"
+                            src={r2src(MANIFESTO_IMAGE)}
+                            alt="Pastel and earth tones abstract panoramic canvas wall art — crafted for modern interiors"
                             className="aspect-[3/4] w-full object-cover grayscale"
                         />
                     </div>
@@ -20,28 +22,28 @@ export default function FramesManifestoSection() {
                             Our Philosophy
                         </span>
                         <h2 className="font-display mb-10 text-4xl font-bold leading-tight tracking-tighter text-foreground md:text-5xl">
-                            Frames are the <br />
-                            bones of a room.
+                            Walls tell stories.<br />
+                            We help you write them.
                         </h2>
                         <p className="mb-12 text-lg leading-relaxed text-foreground/80 md:text-xl">
-                            We believe that the boundary between art and architecture should be invisible. Our
-                            frames don&apos;t just hold art; they structure the atmosphere of the space.
+                            From canvas prints to tempered glass art, from removable wallpaper to washable rugs — every
+                            piece is crafted to transform your space with lasting quality and style.
                         </p>
                         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 sm:gap-12">
                             <div>
                                 <h3 className="mb-4 text-sm font-bold uppercase tracking-widest text-foreground">
-                                    Bespoke Sizing
+                                    Canvas & Glass
                                 </h3>
                                 <p className="text-sm text-muted-foreground">
-                                    Custom dimensions carved to your exact specifications.
+                                    HD canvas prints and tempered glass wall art in custom sizes.
                                 </p>
                             </div>
                             <div>
                                 <h3 className="mb-4 text-sm font-bold uppercase tracking-widest text-foreground">
-                                    Lifetime Clarity
+                                    Wallpaper & Rugs
                                 </h3>
                                 <p className="text-sm text-muted-foreground">
-                                    Anti-reflective acrylic that disappears from view.
+                                    Removable wallpaper and machine-washable area rugs for easy refresh.
                                 </p>
                             </div>
                         </div>

@@ -1,11 +1,16 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from 'next/link';
+import { r2src } from '@/lib/r2-image';
 
 const PROMO_IMAGES = [
-    "https://i.pinimg.com/736x/f4/5c/36/f45c3603aaf44bf6c97ea64ae0f64c46.jpg",
-    "https://i.pinimg.com/736x/a2/04/82/a20482c072133079acca7686428e31ae.jpg",
-    "https://i.pinimg.com/736x/98/a5/39/98a539360514ea653e04c55bec6734ee.jpg",
-    "https://i.pinimg.com/736x/ab/ce/81/abce81f2c6534c95e60e7c6aa3a807d1.jpg",
+    // Canvas panoramic — nature breeze on fon (wall art in room)
+    "https://pub-c636ad631f4e47d4b7eed2b5fd4f35e6.r2.dev/img/products/kanvas-panoramik/cvs-pan-001/cercevesizfon01.webp",
+    // Canvas panoramic — pink & turquoise fluid abstract
+    "https://pub-c636ad631f4e47d4b7eed2b5fd4f35e6.r2.dev/img/products/kanvas-panoramik/cvs-pan-006/cercevesizfon01.webp",
+    // Area rug — impressionist wildflower meadow
+    "https://pub-c636ad631f4e47d4b7eed2b5fd4f35e6.r2.dev/img/products/hali/hym105/hal1.webp",
+    // Area rug — warm ochre sunburst expressionist
+    "https://pub-c636ad631f4e47d4b7eed2b5fd4f35e6.r2.dev/img/products/hali/hym04/hal1.webp",
 ] as const;
 
 export default function PromoBannerCard() {
@@ -19,10 +24,10 @@ export default function PromoBannerCard() {
                         Limited Time Offer
                     </p>
                     <h2 className="font-display text-3xl font-bold tracking-tight text-foreground sm:text-4xl md:text-5xl leading-tight">
-                        80% OFF <br className="hidden md:block" />on Figurines
+                        Up to 50% OFF <br className="hidden md:block" />on Wall Art & Rugs
                     </h2>
                     <p className="mt-4 mb-8 text-sm text-muted-foreground max-w-xs">
-                        Handcrafted figurines at an unmissable price — while stocks last.
+                        Premium canvas prints, glass art, and washable rugs at unmissable prices — while stocks last.
                     </p>
                     <Link
                         href="/products"
@@ -35,23 +40,23 @@ export default function PromoBannerCard() {
                 {/* Images side */}
                 <div className="w-full md:flex-1 grid grid-cols-2 gap-3 sm:gap-4">
                     <img
-                        src={PROMO_IMAGES[0]}
-                        alt="Figurine promo 1"
+                        src={r2src(PROMO_IMAGES[0])}
+                        alt="Abstract nature breeze panoramic canvas wall art"
                         className="w-full aspect-[3/4] object-cover"
                     />
                     <img
-                        src={PROMO_IMAGES[1]}
-                        alt="Figurine promo 2"
+                        src={r2src(PROMO_IMAGES[1])}
+                        alt="Pink and turquoise fluid abstract canvas wall art"
                         className="w-full aspect-[3/4] object-cover mt-6 sm:mt-10"
                     />
                     <img
-                        src={PROMO_IMAGES[2]}
-                        alt="Figurine promo 3"
+                        src={r2src(PROMO_IMAGES[2])}
+                        alt="Impressionist wildflower meadow washable area rug"
                         className="w-full aspect-[3/4] object-cover -mt-6 sm:-mt-10"
                     />
                     <img
-                        src={PROMO_IMAGES[3]}
-                        alt="Figurine promo 4"
+                        src={r2src(PROMO_IMAGES[3])}
+                        alt="Warm ochre sunburst expressionist washable area rug"
                         className="w-full aspect-[3/4] object-cover"
                     />
                 </div>

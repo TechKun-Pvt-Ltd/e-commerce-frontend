@@ -24,7 +24,7 @@ export default function EssentialFramesSection({ products, isLoading = false }: 
                     Customer Favourites
                 </p>
                 <h2 className="font-display inline-block border-b-2 border-foreground pb-2 text-3xl tracking-tight text-foreground sm:text-4xl">
-                    Best Seller Frames
+                    Best Sellers
                 </h2>
                 <p className="mt-4 mx-auto max-w-sm text-sm text-muted-foreground">
                     Top-rated picks curated from real stars and reviews.

@@ -173,7 +173,7 @@ export default function Header() {
                                         <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground z-10 pointer-events-none" />
                                         <Input
                                             type="search"
-                                            placeholder="Search products..."
+                                            placeholder="Canvas, glass art, wallpaper, rugs..."
                                             value={searchQuery}
                                             onChange={(e) => {
                                                 setSearchQuery(e.target.value);
@@ -320,7 +320,7 @@ export default function Header() {
                             <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground z-10 pointer-events-none" />
                             <Input
                                 type="search"
-                                placeholder="Search for wall art, canvas prints..."
+                                placeholder="Canvas prints, glass art, wallpaper, rugs..."
                                 value={searchQuery}
                                 onChange={(e) => {
                                     setSearchQuery(e.target.value);

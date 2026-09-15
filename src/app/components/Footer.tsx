@@ -46,7 +46,7 @@ export default function Footer() {
                             KAVENGO
                         </Link>
                         <p className="text-white/45 text-sm leading-relaxed max-w-sm">
-                            Premium wall art curated for discerning interiors. Each piece is crafted with the finest materials to bring lasting elegance to your space.
+                            Canvas prints, glass wall art, removable wallpaper, and washable area rugs — curated for modern interiors. Transform your walls and floors with KAVENGO.
                         </p>
                         <div className="mt-8">
                             <p className="text-[10px] tracking-[0.2em] uppercase text-[#c9a84c]/70 mb-2.5">Secure Payment</p>
