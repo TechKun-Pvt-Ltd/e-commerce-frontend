@@ -8,7 +8,7 @@ import CategoriesBar from "./CategoriesBar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { NAV_TOP_HEIGHT } from "@/lib/constants";
 import WishlistDrawer from "./WishlistDrawer";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAppSelector } from "@/store/hooks";
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -95,6 +95,14 @@ export default function Header() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [searchOpen, setSearchOpen] = useState(false);
+    const mobileSearchInputRef = useRef<HTMLInputElement>(null);
+
+    const handleOpenMobileSearch = () => {
+        setSidebarOpen(true);
+        setTimeout(() => {
+            mobileSearchInputRef.current?.focus();
+        }, 150);
+    };
     const pathname = usePathname();
     const isAdminPage = pathname.startsWith('/admin');
     const isProductDetailPage = /^\/products\/[^/]+/.test(pathname);
@@ -172,6 +180,7 @@ export default function Header() {
                                     <div className="relative w-full">
                                         <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground z-10 pointer-events-none" />
                                         <Input
+                                            ref={mobileSearchInputRef}
                                             type="search"
                                             placeholder="Canvas, glass art, wallpaper, rugs..."
                                             value={searchQuery}
@@ -277,8 +286,19 @@ export default function Header() {
                         KAVENGO
                     </Link>
 
-                    {/* Right: account + cart */}
+                    {/* Right: search + account + cart */}
                     <div className="ml-auto flex items-center gap-0.5">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label="Search"
+                            onClick={handleOpenMobileSearch}
+                            className="hover:bg-white/10 text-white/80 hover:text-white"
+                        >
+                            <Search className="h-5 w-5" />
+                            <span className="sr-only">Search</span>
+                        </Button>
+
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon" aria-label="User menu" className="hover:bg-white/10">
