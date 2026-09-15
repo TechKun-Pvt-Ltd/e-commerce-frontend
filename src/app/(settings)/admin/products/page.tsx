@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import { ProductPreview } from "@/types/domains/product";
-import { Star, MoreVertical, Copy, Pencil, Trash2, ToggleLeft, ToggleRight, X } from "lucide-react";
+import { Star, MoreVertical, Copy, Pencil, Trash2, ToggleLeft, ToggleRight, X, FolderInput } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -50,6 +50,9 @@ export default function ProductsPage() {
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
     const [isBulkDeleting, setIsBulkDeleting] = useState(false);
     const [isBulkUpdatingStatus, setIsBulkUpdatingStatus] = useState(false);
+    const [bulkCategoryOpen, setBulkCategoryOpen] = useState(false);
+    const [bulkTargetCategory, setBulkTargetCategory] = useState<CategoryDropdownNode>();
+    const [isBulkUpdatingCategory, setIsBulkUpdatingCategory] = useState(false);
 
     const refreshProducts = () =>
         productsData.request(selectedCategory?.categoryId !== undefined ? { categoryId: selectedCategory.categoryId } : {});
@@ -123,6 +126,34 @@ export default function ProductsPage() {
         finally { setIsBulkUpdatingStatus(false); }
     };
 
+    const handleBulkCategory = async () => {
+        if (!bulkTargetCategory) {
+            toast.error("Please select a target category.");
+            return;
+        }
+
+        setIsBulkUpdatingCategory(true);
+        try {
+            const res = await productServices.bulkUpdateProductCategory(
+                [...selectedIds],
+                bulkTargetCategory.categoryId
+            );
+            if (!res.success) {
+                toast.error(res.error || "Failed to update category.");
+                return;
+            }
+            toast.success(`${selectedIds.size} product(s) moved to "${bulkTargetCategory.name}".`);
+            clearSelection();
+            setBulkCategoryOpen(false);
+            setBulkTargetCategory(undefined);
+            refreshProducts();
+        } catch {
+            toast.error("Failed to update product category.");
+        } finally {
+            setIsBulkUpdatingCategory(false);
+        }
+    };
+
     // ── single-product actions ─────────────────────────────────────────────────
     const stopNav = (e: Event) => {
         (e as unknown as { preventDefault?: () => void }).preventDefault?.();
@@ -184,7 +215,7 @@ export default function ProductsPage() {
         } catch { toast.error("Failed to update product status."); }
     };
 
-    const busyBulk = isBulkDeleting || isBulkUpdatingStatus;
+    const busyBulk = isBulkDeleting || isBulkUpdatingStatus || isBulkUpdatingCategory;
 
     return <div className="space-y-4">
 
@@ -224,6 +255,60 @@ export default function ProductsPage() {
             </DialogContent>
         </Dialog>
 
+        {/* ── bulk-category dialog ── */}
+        <Dialog open={bulkCategoryOpen} onOpenChange={(open) => { if (!isBulkUpdatingCategory) { setBulkCategoryOpen(open); if (!open) setBulkTargetCategory(undefined); } }}>
+            <DialogContent closeIcon={!isBulkUpdatingCategory} className="sm:max-w-[480px]">
+                <DialogHeader>
+                    <DialogTitle>Change Category for {selectedIds.size} Product{selectedIds.size !== 1 ? "s" : ""}</DialogTitle>
+                    <DialogDescription>
+                        Select a target category to reassign all selected products.
+                    </DialogDescription>
+                </DialogHeader>
+
+                <div className="py-4 space-y-4">
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Target Category</label>
+                        <div className="w-full">
+                            <CategoriesDropdown
+                                disabled={categoriesLoading || isBulkUpdatingCategory}
+                                categories={categories}
+                                selectedCategoryNode={bulkTargetCategory}
+                                onSelect={setBulkTargetCategory}
+                            />
+                        </div>
+                    </div>
+
+                    {bulkTargetCategory && (
+                        <div className="p-3 bg-muted/50 rounded-md border text-sm flex items-center justify-between">
+                            <div>
+                                <span className="text-muted-foreground">Selected Category: </span>
+                                <span className="font-semibold text-foreground">{bulkTargetCategory.name}</span>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                <DialogFooter className="gap-2 sm:gap-2">
+                    <Button variant="outline" onClick={() => { setBulkCategoryOpen(false); setBulkTargetCategory(undefined); }} disabled={isBulkUpdatingCategory}>
+                        Cancel
+                    </Button>
+                    <Button
+                        onClick={handleBulkCategory}
+                        disabled={isBulkUpdatingCategory || !bulkTargetCategory}
+                    >
+                        {isBulkUpdatingCategory ? (
+                            <>
+                                <Spinner className="mr-2 size-4" />
+                                Updating...
+                            </>
+                        ) : (
+                            "Update Category"
+                        )}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+
         {/* ── page header ── */}
         <div className="flex justify-between items-center">
             <h1 className="text-3xl font-bold text-gray-900">Products</h1>
@@ -251,6 +336,14 @@ export default function ProductsPage() {
                 <span className="text-sm font-medium">{selectedIds.size} selected</span>
 
                 <div className="flex items-center gap-2 ml-auto flex-wrap">
+                    <Button
+                        size="sm" variant="outline"
+                        onClick={() => setBulkCategoryOpen(true)}
+                        disabled={busyBulk}
+                    >
+                        <FolderInput className="size-3.5 mr-1" />
+                        Change Category
+                    </Button>
                     <Button
                         size="sm" variant="outline"
                         onClick={() => handleBulkStatus(true)}
