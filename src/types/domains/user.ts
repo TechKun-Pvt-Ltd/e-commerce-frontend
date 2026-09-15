@@ -6,6 +6,7 @@ export interface UserQueryOptions {
     email?: string;
     city?: string;
     country?: string;
+    [key: string]: unknown;
 }
 
 export interface UserUpdatePayload {

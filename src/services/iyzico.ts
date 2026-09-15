@@ -20,7 +20,7 @@ export interface PaymentInitiateRequest {
     shippingAddress?: {
         street: string;
         city: string;
-        pincode: number;
+        pincode: string;
         country: string;
     };
     subtotalAmount: number;

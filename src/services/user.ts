@@ -3,7 +3,7 @@ import { ServiceFunction } from "@/types/api";
 import { ShopUser, UserQueryOptions, UserUpdatePayload } from "@/types/domains/user";
 
 export const getAllUsers: ServiceFunction<UserQueryOptions, ShopUser[]> = (userQueryOptions) => {
-    return servicesApiClient.get('/users', { data: userQueryOptions });
+    return servicesApiClient.get('/users', { params: userQueryOptions });
 };
 
 export const updateUser: ServiceFunction<UserUpdatePayload, ShopUser> = (payload) => {

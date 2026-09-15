@@ -373,44 +373,52 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
     }), []);
 
     const handleAddToCart = useCallback(async () => {
-        if (!authenticated) {
-            toast.error("Please login to add items to cart");
-            router.push(`/auth/login?returnUrl=${encodeURIComponent(`/products/${productId}`)}`);
-            return;
-        }
         const variant = getSelectedVariant();
         if (!variant) {
             setAttemptedSubmit(true);
             toast.error("Please select all product options");
             return;
         }
+        if (variant.quantityInStock !== undefined && variant.quantityInStock <= 0) {
+            toast.error("This product variant is currently out of stock.");
+            return;
+        }
         setIsAddingToCart(true);
         try {
             const imageId = activeImage?.productImageId ?? product?.productImages?.[0]?.productImageId;
-            await dispatch(addToCart({ productVariantId: variant.productVariantId, quantity, productImageId: imageId }));
+            await dispatch(addToCart({
+                productVariantId: variant.productVariantId,
+                quantity,
+                productImageId: imageId,
+                title: product?.title ?? "Canvas Wall Art",
+                sku: variant.sku ?? "",
+                price: variant.price,
+                imageUrl: activeImage?.imageUrl ?? product?.productImages?.[0]?.imageUrl,
+                quantityInStock: variant.quantityInStock ?? 99
+            }));
             if (!toast.getToasts().find((t) => t.id === "cart-toast")) {
                 toast(CartToast, cartToastConfig);
             }
         } finally {
             setIsAddingToCart(false);
         }
-    }, [authenticated, getSelectedVariant, dispatch, router, cartToastConfig, productId, activeImage, product, quantity]);
+    }, [getSelectedVariant, dispatch, cartToastConfig, activeImage, product, quantity]);
 
     const handleBuyNow = useCallback(async () => {
-        if (!authenticated) {
-            toast.error("Please login to place an order");
-            router.push(`/auth/login?returnUrl=${encodeURIComponent(`/products/${productId}`)}`);
-            return;
-        }
         const variant = getSelectedVariant();
         if (!variant) {
             setAttemptedSubmit(true);
             toast.error("Please select all product options");
             return;
         }
+        if (variant.quantityInStock !== undefined && variant.quantityInStock <= 0) {
+            toast.error("This product variant is currently out of stock.");
+            return;
+        }
         setIsBuyingNow(true);
         dispatch(setBuyNowItem({
             cartItemId: -1,
+            addedAt: new Date(),
             productVariantId: variant.productVariantId,
             title: product?.title ?? "",
             sku: variant.sku ?? "",
@@ -418,10 +426,14 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
             quantity,
             quantityInStock: variant.quantityInStock ?? 99,
             imageUrl: activeImage?.imageUrl ?? product?.productImages?.[0]?.imageUrl,
-            addedAt: new Date(),
         }));
-        router.push("/checkout?mode=buynow");
-    }, [authenticated, getSelectedVariant, dispatch, router, productId, product, activeImage]);
+        if (!authenticated) {
+            router.push(`/auth/login?returnUrl=${encodeURIComponent('/checkout?mode=buynow')}`);
+        } else {
+            router.push('/checkout?mode=buynow');
+        }
+        setIsBuyingNow(false);
+    }, [authenticated, getSelectedVariant, dispatch, router, activeImage, product, quantity]);
 
     // Stock status helper
     const stockStatus = useMemo(() => {

@@ -138,7 +138,7 @@ export default function CheckoutForm({
             const missing: string[] = [];
             if (!s?.street?.trim()) missing.push("Street");
             if (!s?.city?.trim()) missing.push("City");
-            if (!s?.pincode?.trim() || isNaN(Number(s.pincode))) missing.push("Pincode");
+            if (!s?.pincode?.trim()) missing.push("Postal Code");
             if (!s?.country?.trim()) missing.push("Country");
             if (missing.length > 0) {
                 toast.error(`Please fill: ${missing.join(", ")}`);
@@ -156,7 +156,7 @@ export default function CheckoutForm({
         }
 
         let shippingAddressId: number | undefined;
-        let shippingAddressObj: { street: string; city: string; pincode: number; country: string } | undefined;
+        let shippingAddressObj: { street: string; city: string; pincode: string; country: string } | undefined;
 
         if (data.addressType === "current" && currentAddress) {
             if (currentAddress.addressId) {
@@ -165,7 +165,7 @@ export default function CheckoutForm({
                 shippingAddressObj = {
                     street: currentAddress.street ?? "",
                     city: currentAddress.city ?? "",
-                    pincode: Number(currentAddress.pincode),
+                    pincode: String(currentAddress.pincode ?? "").trim(),
                     country: currentAddress.country ?? "",
                 };
             }
@@ -173,7 +173,7 @@ export default function CheckoutForm({
             shippingAddressObj = {
                 street: data.shippingAddress.street,
                 city: data.shippingAddress.city,
-                pincode: Number(data.shippingAddress.pincode),
+                pincode: String(data.shippingAddress.pincode ?? "").trim(),
                 country: data.shippingAddress.country,
             };
         }
@@ -289,8 +289,8 @@ export default function CheckoutForm({
                                             name="shippingAddress.pincode"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>Pincode</FormLabel>
-                                                    <FormControl><Input type="number" placeholder="Pincode" {...field} /></FormControl>
+                                                    <FormLabel>Postal Code / ZIP</FormLabel>
+                                                    <FormControl><Input type="text" placeholder="e.g. 34000" {...field} /></FormControl>
                                                     <FormMessage />
                                                 </FormItem>
                                             )}

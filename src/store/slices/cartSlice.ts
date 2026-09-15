@@ -1,6 +1,18 @@
 import { CartItemDTO, CartItemPreview, CartItemUpdatePayload } from '@/types/domains/cart';
+import { Personalization } from '@/types/domains/personalization';
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import * as cartServices from "@/services/cart";
+import { RootState } from '../store';
+
+const GUEST_CART_STORAGE_KEY = 'kavengo_guest_cart';
+
+export type AddToCartPayload = CartItemDTO & {
+    title?: string;
+    sku?: string;
+    price?: number;
+    imageUrl?: string;
+    quantityInStock?: number;
+};
 
 interface CartState {
     items: CartItemPreview[];
@@ -14,19 +26,63 @@ const initialState: CartState = {
     items: [],
     totalItems: 0,
     totalAmount: 0,
-    loading: true,
+    loading: false,
     error: null
 };
 
-type ThunkApiConfig = { rejectValue: string };
+function getLocalGuestCart(): CartItemPreview[] {
+    if (typeof window === 'undefined') return [];
+    try {
+        const raw = localStorage.getItem(GUEST_CART_STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+    } catch {
+        return [];
+    }
+}
+
+function saveLocalGuestCart(items: CartItemPreview[]): void {
+    if (typeof window === 'undefined') return;
+    try {
+        localStorage.setItem(GUEST_CART_STORAGE_KEY, JSON.stringify(items));
+    } catch (e) {
+        console.error('Failed to persist guest cart to localStorage:', e);
+    }
+}
+
+type ThunkApiConfig = { state: RootState; rejectValue: string };
 
 export const fetchCartItems = createAsyncThunk<CartItemPreview[], void, ThunkApiConfig>(
     'cart/fetchCartItems',
-    async (_, { rejectWithValue }) => {
+    async (_, { getState, rejectWithValue }) => {
+        const { authenticated } = getState().auth;
+
+        if (!authenticated) {
+            return getLocalGuestCart();
+        }
+
         try {
+            // First migrate any guest items to backend cart if user just logged in
+            const guestItems = getLocalGuestCart();
+            if (guestItems.length > 0) {
+                for (const item of guestItems) {
+                    try {
+                        await cartServices.addCartItem({
+                            productVariantId: item.productVariantId,
+                            quantity: item.quantity,
+                            productImageId: undefined,
+                            personalization: item.personalization
+                        });
+                    } catch (e) {
+                        console.warn('Failed migrating guest cart item to server:', e);
+                    }
+                }
+                saveLocalGuestCart([]);
+            }
+
             const response = await cartServices.getAllCartItems();
-            if (response.success)
+            if (response.success) {
                 return response.data;
+            }
 
             return rejectWithValue(response.error);
         } catch (error) {
@@ -35,11 +91,35 @@ export const fetchCartItems = createAsyncThunk<CartItemPreview[], void, ThunkApi
     }
 );
 
-export const addToCart = createAsyncThunk<CartItemPreview[], CartItemDTO, ThunkApiConfig>(
+export const addToCart = createAsyncThunk<CartItemPreview[], AddToCartPayload, ThunkApiConfig>(
     'cart/addToCartAsync',
-    async (itemToAdd, { dispatch, rejectWithValue }) => {
+    async (itemToAdd, { getState, dispatch, rejectWithValue }) => {
+        const { authenticated } = getState().auth;
+
+        if (!authenticated) {
+            const current = getLocalGuestCart();
+            const existingIndex = current.findIndex(i => i.productVariantId === itemToAdd.productVariantId);
+            if (existingIndex > -1) {
+                current[existingIndex].quantity += itemToAdd.quantity;
+            } else {
+                current.push({
+                    cartItemId: -Math.abs(Date.now()),
+                    addedAt: new Date(),
+                    imageUrl: itemToAdd.imageUrl || '',
+                    title: itemToAdd.title || 'Product',
+                    productVariantId: itemToAdd.productVariantId,
+                    sku: itemToAdd.sku || '',
+                    price: itemToAdd.price || 0,
+                    quantityInStock: itemToAdd.quantityInStock ?? 99,
+                    quantity: itemToAdd.quantity,
+                    personalization: itemToAdd.personalization
+                });
+            }
+            saveLocalGuestCart(current);
+            return current;
+        }
+
         try {
-            console.log("itemToAdd", itemToAdd);
             const response = await cartServices.addCartItem({
                 productVariantId: itemToAdd.productVariantId,
                 quantity: itemToAdd.quantity,
@@ -48,9 +128,9 @@ export const addToCart = createAsyncThunk<CartItemPreview[], CartItemDTO, ThunkA
             });
             if (response.success) {
                 const fetchAction = await dispatch(fetchCartItems());
-                return fetchAction.meta.requestStatus === "fulfilled" ?
-                    fetchAction.payload as CartItemPreview[] :
-                    rejectWithValue(fetchAction.payload as string);
+                return fetchAction.meta.requestStatus === 'fulfilled'
+                    ? (fetchAction.payload as CartItemPreview[])
+                    : rejectWithValue(fetchAction.payload as string);
             }
 
             return rejectWithValue(response.error);
@@ -60,13 +140,34 @@ export const addToCart = createAsyncThunk<CartItemPreview[], CartItemDTO, ThunkA
     }
 );
 
-export const updateCartItemAsync = createAsyncThunk(
+export const updateCartItemAsync = createAsyncThunk<
+    { cartItemId: number; quantity: number; personalization?: Personalization },
+    { cartItemId: number; payload: CartItemUpdatePayload },
+    ThunkApiConfig
+>(
     'cart/updateCartItemAsync',
-    async ({ cartItemId, payload }: { cartItemId: number, payload: CartItemUpdatePayload }, { rejectWithValue }) => {
+    async ({ cartItemId, payload }, { getState, rejectWithValue }) => {
+        const { authenticated } = getState().auth;
+
+        if (!authenticated) {
+            const current = getLocalGuestCart();
+            const item = current.find(i => i.cartItemId === cartItemId);
+            if (item && payload.quantity !== undefined) {
+                item.quantity = payload.quantity;
+                saveLocalGuestCart(current);
+            }
+            return { cartItemId, quantity: payload.quantity ?? 1, personalization: payload.personalization };
+        }
+
         try {
             const response = await cartServices.updateCartItem(cartItemId, payload);
-            if (response.success)
-                return response.data;
+            if (response.success) {
+                return {
+                    cartItemId: response.data.cartItemId,
+                    quantity: response.data.quantity,
+                    personalization: response.data.personalization
+                };
+            }
 
             return rejectWithValue(response.error);
         } catch (error: unknown) {
@@ -75,9 +176,17 @@ export const updateCartItemAsync = createAsyncThunk(
     }
 );
 
-export const removeFromCartAsync = createAsyncThunk<number, number, { rejectValue: string }>(
+export const removeFromCartAsync = createAsyncThunk<number, number, ThunkApiConfig>(
     'cart/removeFromCartAsync',
-    async (cartItemId, { rejectWithValue }) => {
+    async (cartItemId, { getState, rejectWithValue }) => {
+        const { authenticated } = getState().auth;
+
+        if (!authenticated) {
+            const current = getLocalGuestCart().filter(i => i.cartItemId !== cartItemId);
+            saveLocalGuestCart(current);
+            return cartItemId;
+        }
+
         try {
             const response = await cartServices.deleteCartItem(cartItemId);
             if (response.success)
@@ -95,25 +204,10 @@ const calculateTotals = (state: CartState) => {
     state.totalAmount = state.items.reduce((total, item) => total + (item.price * item.quantity), 0);
 };
 
-
-
 const cartSlice = createSlice({
     name: 'cart',
     initialState,
     reducers: {
-        // addToCart: (state, action: PayloadAction<CartItemDTO>) => {
-        //     state.items = [...state.items, {
-        //         ...action.payload,
-        //         cartItemId: ++cartItemId,
-        //         imageUrl: "https://drive.google.com/uc?export=view&id=1P5LsB3Kl1wb0j_D8BrkhVJetaSRqdTMX",
-        //         addedAt: new Date(),
-        //         quantityInStock: 50,
-        //         price: 300,
-        //         sku: "KHFDJ89873",
-        //         title: "Test"
-        //     }];
-        //     calculateTotals(state);
-        // },
         updateCart: (state, action: PayloadAction<CartItemPreview[]>) => {
             state.items = action.payload;
             calculateTotals(state);
@@ -122,6 +216,9 @@ const cartSlice = createSlice({
             state.items = [];
             state.totalItems = 0;
             state.totalAmount = 0;
+            if (typeof window !== 'undefined') {
+                localStorage.removeItem(GUEST_CART_STORAGE_KEY);
+            }
         },
     },
     extraReducers: (builder) => {
@@ -153,7 +250,6 @@ const cartSlice = createSlice({
                 state.error = action.payload as string;
             })
             .addCase(updateCartItemAsync.pending, (state, action) => {
-                // Optimistic update — reflect new quantity immediately so UI responds instantly
                 const { cartItemId, payload } = action.meta.arg;
                 if (payload.quantity !== undefined) {
                     const item = state.items.find(i => i.cartItemId === cartItemId);
@@ -165,17 +261,17 @@ const cartSlice = createSlice({
                 state.error = null;
             })
             .addCase(updateCartItemAsync.fulfilled, (state, action) => {
-                // Confirm with server response
                 const item = state.items.find(i => i.cartItemId === action.payload.cartItemId);
                 if (item) {
                     item.quantity = action.payload.quantity;
-                    item.personalization = action.payload.personalization;
+                    if (action.payload.personalization !== undefined) {
+                        item.personalization = action.payload.personalization;
+                    }
                     calculateTotals(state);
                 }
             })
             .addCase(updateCartItemAsync.rejected, (state, action) => {
                 state.error = action.payload as string;
-                // Optimistic value will be reverted by re-fetching in the component
             })
             .addCase(removeFromCartAsync.pending, (state) => {
                 state.loading = true;
@@ -194,4 +290,4 @@ const cartSlice = createSlice({
 });
 
 export const { updateCart, clearCart } = cartSlice.actions;
-export default cartSlice.reducer;
+export default cartSlice.reducer;

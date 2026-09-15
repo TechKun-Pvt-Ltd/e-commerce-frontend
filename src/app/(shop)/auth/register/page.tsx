@@ -59,7 +59,7 @@ export default function RegisterPage() {
                 roleId: 3, // Customer role
                 address: {
                     ...values.address,
-                    pincode: Number(values.address.zipCode)
+                    pincode: String(values.address.zipCode).trim()
                 }
             };
             request(payload).onSuccess(() => {
