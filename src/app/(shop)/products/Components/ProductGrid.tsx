@@ -40,9 +40,15 @@ interface ProductGridProps {
    products: ProductPreview[];
    onCategoryChange?: (categoryId: number | null) => void;
    selectedCategoryId?: number | null;
+   searchQuery?: string | null;
 }
 
-const ProductGrid = ({ categories, onCategoryChange: onCategoryChangeProp, selectedCategoryId: selectedCategoryIdProp }: ProductGridProps) => {
+const ProductGrid = ({
+   categories,
+   onCategoryChange: onCategoryChangeProp,
+   selectedCategoryId: selectedCategoryIdProp,
+   searchQuery: searchQueryProp,
+}: ProductGridProps) => {
    const [gridColumns, setGridColumns] = useState(3);
    const userOverrideRef = useRef(false);
    const [sheetOpen, setSheetOpen] = useState(false);
@@ -71,11 +77,18 @@ const ProductGrid = ({ categories, onCategoryChange: onCategoryChangeProp, selec
 
    const promotions = useAppSelector((state) => state.promotions.items);
 
-   const buildFilters = (o: number, cat: number | null, sort: SortOption, price: [number, number]): ProductQueryOptions => {
+   const buildFilters = (
+      o: number,
+      cat: number | null,
+      sort: SortOption,
+      price: [number, number],
+      search?: string | null
+   ): ProductQueryOptions => {
       const f: ProductQueryOptions = { sortOption: sort, status: true, limit: PAGE_SIZE, offset: o };
       if (cat !== null) f.categoryId = cat;
       if (price[0] > 0) f.priceRangeMin = price[0];
       if (price[1] < 100000) f.priceRangeMax = price[1];
+      if (search && search.trim()) f.searchInput = search.trim();
       return f;
    };
 
@@ -89,7 +102,7 @@ const ProductGrid = ({ categories, onCategoryChange: onCategoryChangeProp, selec
       setOffset(0);
       setHasMore(true);
 
-      productServices.getAllProducts(buildFilters(0, selectedCategoryId, sortBy, priceRange)).then((result) => {
+      productServices.getAllProducts(buildFilters(0, selectedCategoryId, sortBy, priceRange, searchQueryProp)).then((result) => {
          if (cancelled) return;
          if (result.success) {
             const data = result.data ?? [];
@@ -109,7 +122,7 @@ const ProductGrid = ({ categories, onCategoryChange: onCategoryChangeProp, selec
 
       return () => { cancelled = true; };
       // eslint-disable-next-line react-hooks/exhaustive-deps
-   }, [sortBy, selectedCategoryId, priceMin, priceMax]);
+   }, [sortBy, selectedCategoryId, priceMin, priceMax, searchQueryProp]);
 
    // Sync selected category from parent (URL navigation)
    useEffect(() => {
@@ -144,7 +157,7 @@ const ProductGrid = ({ categories, onCategoryChange: onCategoryChangeProp, selec
       isFetchingRef.current = true;
       setIsLoadingMore(true);
 
-      const result = await productServices.getAllProducts(buildFilters(offset, selectedCategoryId, sortBy, priceRange));
+      const result = await productServices.getAllProducts(buildFilters(offset, selectedCategoryId, sortBy, priceRange, searchQueryProp));
       if (result.success) {
          const data = result.data ?? [];
          if (data.length === 0) {
@@ -162,7 +175,13 @@ const ProductGrid = ({ categories, onCategoryChange: onCategoryChangeProp, selec
       setIsLoadingMore(false);
       isFetchingRef.current = false;
       // eslint-disable-next-line react-hooks/exhaustive-deps
-   }, [offset, hasMore, selectedCategoryId, sortBy, priceMin, priceMax]);
+   }, [offset, hasMore, selectedCategoryId, sortBy, priceMin, priceMax, searchQueryProp]);
+
+   const clearSearch = () => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("search");
+      router.push(params.toString() ? `/products?${params.toString()}` : "/products");
+   };
 
    // IntersectionObserver watches the sentinel div at the bottom
    useEffect(() => {
@@ -195,11 +214,23 @@ const ProductGrid = ({ categories, onCategoryChange: onCategoryChangeProp, selec
                   <BreadcrumbItem>
                      <BreadcrumbLink href="/" className="text-muted-foreground hover:text-foreground">Home</BreadcrumbLink>
                   </BreadcrumbItem>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                     <BreadcrumbLink href="/products" className="text-muted-foreground hover:text-foreground">Products</BreadcrumbLink>
+                  </BreadcrumbItem>
                   {(currentCategory || selectedCategoryId !== null) && (
                      <>
                         <BreadcrumbSeparator />
                         <BreadcrumbItem>
-                           <BreadcrumbPage>{currentCategory?.name ?? "Products"}</BreadcrumbPage>
+                           <BreadcrumbPage>{currentCategory?.name ?? "Category"}</BreadcrumbPage>
+                        </BreadcrumbItem>
+                     </>
+                  )}
+                  {searchQueryProp && (
+                     <>
+                        <BreadcrumbSeparator />
+                        <BreadcrumbItem>
+                           <BreadcrumbPage>Search: &ldquo;{searchQueryProp}&rdquo;</BreadcrumbPage>
                         </BreadcrumbItem>
                      </>
                   )}
@@ -223,6 +254,21 @@ const ProductGrid = ({ categories, onCategoryChange: onCategoryChangeProp, selec
 
                <main className="flex-1 min-w-0">
 
+                  {/* Active search query banner */}
+                  {searchQueryProp && (
+                     <div className="flex items-center justify-between mb-4 p-3 bg-muted/60 border border-border rounded-lg">
+                        <p className="text-sm text-muted-foreground">
+                           Results for &ldquo;<span className="text-foreground font-semibold">{searchQueryProp}</span>&rdquo;
+                        </p>
+                        <button
+                           onClick={clearSearch}
+                           className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors font-medium"
+                        >
+                           Clear search
+                        </button>
+                     </div>
+                  )}
+
                   {/* Active filter chips */}
                   {(selectedCategoryId !== null || priceRange[0] > 0 || priceRange[1] < 100000) && (
                      <div className="flex flex-wrap items-center gap-2 mb-4">
@@ -243,7 +289,11 @@ const ProductGrid = ({ categories, onCategoryChange: onCategoryChangeProp, selec
                            </span>
                         )}
                         <button
-                           onClick={() => { handleCategoryChange(null); setPriceRange([0, 100000]); }}
+                           onClick={() => {
+                              handleCategoryChange(null);
+                              setPriceRange([0, 100000]);
+                              if (searchQueryProp) clearSearch();
+                           }}
                            className="text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
                         >
                            Clear all
@@ -340,8 +390,22 @@ const ProductGrid = ({ categories, onCategoryChange: onCategoryChangeProp, selec
                         ))
                      ) : (
                         <div className="col-span-full text-center py-20">
-                           <p className="font-display text-2xl font-light text-foreground mb-2">No works found</p>
-                           <p className="text-sm text-muted-foreground">Try adjusting your filters</p>
+                           <p className="font-display text-2xl font-light text-foreground mb-2">
+                              {searchQueryProp ? `No works found for "${searchQueryProp}"` : "No works found"}
+                           </p>
+                           <p className="text-sm text-muted-foreground">
+                              {searchQueryProp ? "Try checking your spelling or adjusting your filters" : "Try adjusting your filters"}
+                           </p>
+                           {searchQueryProp && (
+                              <Button
+                                 variant="outline"
+                                 size="sm"
+                                 onClick={clearSearch}
+                                 className="mt-4 text-xs tracking-wider uppercase rounded-none"
+                              >
+                                 Clear Search
+                              </Button>
+                           )}
                         </div>
                      )}
                   </div>
