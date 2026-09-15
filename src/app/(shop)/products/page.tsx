@@ -10,6 +10,7 @@ function ProductsContent() {
     const searchParams = useSearchParams();
     const categoriesData = useAppSelector((state) => state.categories.items);
     const categoryParam = searchParams.get("categoryId");
+    const searchParam = searchParams.get("search");
     const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
         categoryParam ? Number(categoryParam) : null
     );
@@ -27,6 +28,7 @@ function ProductsContent() {
                 products={[]}
                 onCategoryChange={setSelectedCategoryId}
                 selectedCategoryId={selectedCategoryId}
+                searchQuery={searchParam}
             />
             <BestSeller selectedCategoryId={selectedCategoryId} />
         </>

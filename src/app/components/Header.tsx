@@ -9,11 +9,12 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/compon
 import { NAV_TOP_HEIGHT } from "@/lib/constants";
 import WishlistDrawer from "./WishlistDrawer";
 import { useState, useEffect } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAppSelector } from "@/store/hooks";
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { CategoryTree } from "@/types/domains/category";
+import SearchDropdown from "@/components/search/SearchDropdown";
 
 // Dark espresso top nav — same warm near-black as brand primary
 const NAV_BG = "bg-[oklch(0.42_0.02_55)]";
@@ -86,11 +87,14 @@ function MobileCategoryItem({
 }
 
 export default function Header() {
+    const router = useRouter();
     const [wishlistOpen, setWishlistOpen] = useState(false);
     const [mounted, setMounted] = useState(false);
     const [isVisible, setIsVisible] = useState(true);
     const [categoriesVisible, setCategoriesVisible] = useState(true);
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [searchOpen, setSearchOpen] = useState(false);
     const pathname = usePathname();
     const isAdminPage = pathname.startsWith('/admin');
     const isProductDetailPage = /^\/products\/[^/]+/.test(pathname);
@@ -98,6 +102,10 @@ export default function Header() {
     const categories = useAppSelector((state) => state.categories.items);
 
     useEffect(() => { setMounted(true); }, []);
+
+    useEffect(() => {
+        setSearchOpen(false);
+    }, [pathname]);
 
     useEffect(() => {
         if (isAdminPage) {
@@ -160,6 +168,50 @@ export default function Header() {
                                         </SheetClose>
                                     </SheetTitle>
                                 </SheetHeader>
+                                <div className="p-4 border-b border-border shrink-0">
+                                    <div className="relative w-full">
+                                        <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground z-10 pointer-events-none" />
+                                        <Input
+                                            type="search"
+                                            placeholder="Search products..."
+                                            value={searchQuery}
+                                            onChange={(e) => {
+                                                setSearchQuery(e.target.value);
+                                                setSearchOpen(true);
+                                            }}
+                                            onFocus={() => searchQuery.trim().length >= 2 && setSearchOpen(true)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.preventDefault();
+                                                    if (searchQuery.trim()) {
+                                                        setSidebarOpen(false);
+                                                        setSearchOpen(false);
+                                                        router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+                                                    }
+                                                } else if (e.key === 'Escape') {
+                                                    setSearchOpen(false);
+                                                }
+                                            }}
+                                            className="w-full h-9 pl-9 pr-3 rounded-lg bg-background text-sm"
+                                        />
+                                        <SearchDropdown
+                                            query={searchQuery}
+                                            isOpen={searchOpen && searchQuery.trim().length >= 2}
+                                            onSelect={(id) => {
+                                                setSidebarOpen(false);
+                                                setSearchOpen(false);
+                                                setSearchQuery("");
+                                                router.push(`/products/${id}`);
+                                            }}
+                                            onSearchAll={(q) => {
+                                                setSidebarOpen(false);
+                                                setSearchOpen(false);
+                                                router.push(`/products?search=${encodeURIComponent(q)}`);
+                                            }}
+                                            onClose={() => setSearchOpen(false)}
+                                        />
+                                    </div>
+                                </div>
                                 <div className="flex-1 overflow-y-auto px-5 py-4 space-y-1">
                                     <p className="text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-2">Account</p>
                                     {accountLinks.map((item) => (
@@ -265,11 +317,42 @@ export default function Header() {
                     {/* Search — centered, moderate width */}
                     <div className="flex justify-center">
                         <div className="relative w-full max-w-xl">
-                            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground z-10 pointer-events-none" />
                             <Input
                                 type="search"
                                 placeholder="Search for wall art, canvas prints..."
+                                value={searchQuery}
+                                onChange={(e) => {
+                                    setSearchQuery(e.target.value);
+                                    setSearchOpen(true);
+                                }}
+                                onFocus={() => searchQuery.trim().length >= 2 && setSearchOpen(true)}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter" && !e.defaultPrevented) {
+                                        e.preventDefault();
+                                        if (searchQuery.trim()) {
+                                            router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+                                            setSearchOpen(false);
+                                        }
+                                    } else if (e.key === "Escape") {
+                                        setSearchOpen(false);
+                                    }
+                                }}
                                 className="w-full h-10 pl-10 pr-4 rounded-xl bg-white border-transparent focus-visible:border-border text-sm"
+                            />
+                            <SearchDropdown
+                                query={searchQuery}
+                                isOpen={searchOpen && searchQuery.trim().length >= 2}
+                                onSelect={(id) => {
+                                    router.push(`/products/${id}`);
+                                    setSearchOpen(false);
+                                    setSearchQuery("");
+                                }}
+                                onSearchAll={(q) => {
+                                    router.push(`/products?search=${encodeURIComponent(q)}`);
+                                    setSearchOpen(false);
+                                }}
+                                onClose={() => setSearchOpen(false)}
                             />
                         </div>
                     </div>
