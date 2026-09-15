@@ -22,6 +22,7 @@ const useDataFetch = <T, R>(apiFunc: ServiceFunction<T, R>, options?: {
     defaultValue?: R,
 }): {
     request: RequestFunction<T, R>,
+    setData: (updater: R | ((prev: R | undefined) => R | undefined)) => void,
 } & DataFetchState<R> => {
     const [dataFetchState, setDataFetchState] = useState<DataFetchState<R>>({
         data: options?.defaultValue,
@@ -71,10 +72,17 @@ const useDataFetch = <T, R>(apiFunc: ServiceFunction<T, R>, options?: {
                 responseHandler.onError = callback;
                 return this;
             }
-        }
+        };
     }, [apiFunc, options?.defaultValue]);
 
-    return useMemo(() => ({ request, ...dataFetchState }), [dataFetchState, request]);
+    const setData = useCallback((updater: R | ((prev: R | undefined) => R | undefined)) => {
+        setDataFetchState(prev => ({
+            ...prev,
+            data: typeof updater === 'function' ? (updater as (p: R | undefined) => R | undefined)(prev.data) : updater
+        }));
+    }, []);
+
+    return useMemo(() => ({ request, setData, ...dataFetchState }), [dataFetchState, request, setData]);
 };
 
 export default useDataFetch;
