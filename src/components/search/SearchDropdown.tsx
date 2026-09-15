@@ -130,22 +130,36 @@ export default function SearchDropdown({
         };
     }, [shouldShow, handleKeyDown]);
 
+    // Close dropdown on click outside
+    useEffect(() => {
+        if (!shouldShow) return;
+
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                dropdownRef.current &&
+                !dropdownRef.current.contains(event.target as Node)
+            ) {
+                const target = event.target as HTMLElement;
+                if (!target.closest('input[type="search"]')) {
+                    onClose();
+                }
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [shouldShow, onClose]);
+
     if (!shouldShow) return null;
 
     return (
-        <>
-            {/* Backdrop overlay */}
-            <div
-                className="fixed inset-0 z-40 bg-black/25 backdrop-blur-[1px]"
-                onClick={onClose}
-            />
-
-            {/* Dropdown container */}
-            <div
-                ref={dropdownRef}
-                className="absolute top-full left-0 right-0 mt-2 z-50 bg-background border border-border shadow-2xl rounded-xl overflow-hidden max-h-[440px] flex flex-col animate-in fade-in-0 zoom-in-95 duration-150"
-                onMouseDown={(e) => e.stopPropagation()}
-            >
+        <div
+            ref={dropdownRef}
+            className="absolute top-full left-0 right-0 mt-2 z-50 bg-background border border-border shadow-2xl rounded-xl overflow-hidden max-h-[440px] flex flex-col animate-in fade-in-0 zoom-in-95 duration-150"
+            onMouseDown={(e) => e.stopPropagation()}
+        >
                 {/* Result list */}
                 <div className="overflow-y-auto flex-1 divide-y divide-border/40 py-1">
                     {isLoading && products.length === 0 ? (
@@ -250,6 +264,5 @@ export default function SearchDropdown({
                     <span>&rdquo;</span>
                 </button>
             </div>
-        </>
     );
 }
