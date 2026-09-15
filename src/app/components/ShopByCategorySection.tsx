@@ -6,21 +6,30 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { CategoryTree } from "@/types/domains/category";
 import { r2src } from "@/lib/r2-image";
 
-/** Product imagery for the four category tiles — real catalog photos */
-const FRAME_CATEGORY_IMAGES = [
-  // Canvas panoramic — gold frame variant (elegant living room vibe)
-  "https://pub-c636ad631f4e47d4b7eed2b5fd4f35e6.r2.dev/img/products/kanvas-panoramik/cvs-pan-001/gold01.webp",
-  // Canvas panoramic — tropical hibiscus on fon (vibrant wall art)
-  "https://pub-c636ad631f4e47d4b7eed2b5fd4f35e6.r2.dev/img/products/kanvas-panoramik/cvs-pan-005/cercevesizfon01.webp",
-  // Area rug — room scene view
-  "https://pub-c636ad631f4e47d4b7eed2b5fd4f35e6.r2.dev/img/products/hali/hym05/hal2.webp",
-  // Area rug — vivid abstract
-  "https://pub-c636ad631f4e47d4b7eed2b5fd4f35e6.r2.dev/img/products/hali/hym103/hal1.webp",
-] as const;
+/** Product imagery for the category tiles — keyed by keyword in category name */
+const CATEGORY_IMAGE_MAP: Record<string, string> = {
+  canvas: "https://pub-c636ad631f4e47d4b7eed2b5fd4f35e6.r2.dev/img/products/kanvas-panoramik/cvs-pan-001/gold01.webp",
+  glass:  "https://pub-c636ad631f4e47d4b7eed2b5fd4f35e6.r2.dev/img/products/kanvas-panoramik/cvs-pan-005/cercevesizfon01.webp",
+  rug:    "https://pub-c636ad631f4e47d4b7eed2b5fd4f35e6.r2.dev/img/products/hali/hym05/hal2.webp",
+  default:"https://pub-c636ad631f4e47d4b7eed2b5fd4f35e6.r2.dev/img/products/hali/hym103/hal1.webp",
+};
+
+function getCategoryImage(name: string): string {
+  const upper = name.toUpperCase();
+  if (upper.includes("CANVAS")) return CATEGORY_IMAGE_MAP.canvas;
+  if (upper.includes("GLASS"))  return CATEGORY_IMAGE_MAP.glass;
+  if (upper.includes("RUG") || upper.includes("HALI")) return CATEGORY_IMAGE_MAP.rug;
+  return CATEGORY_IMAGE_MAP.default;
+}
+
+/** Sum productCount recursively across subcategories */
+function totalProducts(cat: CategoryTree): number {
+  const own = cat.productCount ?? 0;
+  if (!cat.subcategories?.length) return own;
+  return own + cat.subcategories.reduce((sum, s) => sum + totalProducts(s), 0);
+}
 
 const MAX_CATEGORIES = 4;
-
-const DEFAULT_SUBTITLE = "Curated selection";
 
 type ShopByCategorySectionProps = {
   categories: CategoryTree[] | undefined;
@@ -42,19 +51,7 @@ const ShopByCategorySection = ({
   isLoading,
   onSelectCategory,
 }: ShopByCategorySectionProps) => {
-  const displayCategories = (() => {
-    if (!categories || categories.length === 0) return [];
-    if (categories.length >= 4) return categories.slice(0, MAX_CATEGORIES);
-
-    const canvas = categories.find((c) => c.name.toUpperCase().includes("CANVAS")) || categories[0];
-    if (canvas?.subcategories && canvas.subcategories.length > 0) {
-      const pano = canvas.subcategories.find((s) => s.categoryId === 97);
-      const others = canvas.subcategories.filter((s) => s.categoryId !== 97);
-      const curated = pano ? [pano, ...others] : canvas.subcategories;
-      return curated.slice(0, MAX_CATEGORIES);
-    }
-    return categories.slice(0, MAX_CATEGORIES);
-  })();
+  const displayCategories = categories?.slice(0, MAX_CATEGORIES) ?? [];
 
   return (
     <section className="relative py-16 md:py-24 lg:py-28 overflow-hidden bg-gradient-to-b from-stone-100/80 via-stone-50 to-background">
@@ -93,10 +90,9 @@ const ShopByCategorySection = ({
             displayCategories &&
             displayCategories.length > 0 &&
             displayCategories.map((category, index) => {
-              const image = FRAME_CATEGORY_IMAGES[index % FRAME_CATEGORY_IMAGES.length];
-              const subtitle = category.subcategories?.length
-                ? `${category.subcategories.length} collections`
-                : DEFAULT_SUBTITLE;
+              const image = getCategoryImage(category.name);
+              const count = totalProducts(category);
+              const subtitle = count > 0 ? `${count} products` : "Coming soon";
               const indexLabel = String(index + 1).padStart(2, "0");
 
               return (
