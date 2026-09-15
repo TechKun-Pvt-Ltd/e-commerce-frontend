@@ -1,6 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
+import { useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { ArrowUpRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { CategoryTree } from "@/types/domains/category";
@@ -11,6 +13,7 @@ const CATEGORY_IMAGE_MAP: Record<string, string> = {
   canvas: "https://pub-c636ad631f4e47d4b7eed2b5fd4f35e6.r2.dev/img/products/kanvas-panoramik/cvs-pan-001/gold01.webp",
   glass:  "https://pub-c636ad631f4e47d4b7eed2b5fd4f35e6.r2.dev/img/products/kanvas-panoramik/cvs-pan-005/cercevesizfon01.webp",
   rug:    "https://pub-c636ad631f4e47d4b7eed2b5fd4f35e6.r2.dev/img/products/hali/hym05/hal2.webp",
+  wallpaper: "/images/categories/wallpaper.jpg",
   default:"https://pub-c636ad631f4e47d4b7eed2b5fd4f35e6.r2.dev/img/products/hali/hym103/hal1.webp",
 };
 
@@ -18,6 +21,7 @@ function getCategoryImage(name: string): string {
   const upper = name.toUpperCase();
   if (upper.includes("CANVAS")) return CATEGORY_IMAGE_MAP.canvas;
   if (upper.includes("GLASS"))  return CATEGORY_IMAGE_MAP.glass;
+  if (upper.includes("WALLPAPER") || upper.includes("DUVAR")) return CATEGORY_IMAGE_MAP.wallpaper;
   if (upper.includes("RUG") || upper.includes("HALI")) return CATEGORY_IMAGE_MAP.rug;
   return CATEGORY_IMAGE_MAP.default;
 }
@@ -51,7 +55,33 @@ const ShopByCategorySection = ({
   isLoading,
   onSelectCategory,
 }: ShopByCategorySectionProps) => {
-  const displayCategories = categories?.slice(0, MAX_CATEGORIES) ?? [];
+  const router = useRouter();
+
+  const displayCategories = useMemo(() => {
+    const list = [...(categories?.slice(0, MAX_CATEGORIES) ?? [])];
+    const hasWallpaper = list.some((c) => {
+      const u = c.name.toUpperCase();
+      return u.includes("WALLPAPER") || u.includes("DUVAR");
+    });
+    if (!hasWallpaper && list.length < MAX_CATEGORIES) {
+      list.push({
+        categoryId: -1,
+        name: "PEEL & STICK WALLPAPER",
+        path: "wallpaper",
+        productCount: 0,
+        subcategories: [],
+      });
+    }
+    return list;
+  }, [categories]);
+
+  const handleCategoryClick = (category: CategoryTree) => {
+    if (category.categoryId <= 0) {
+      router.push("/products?search=wallpaper");
+    } else {
+      onSelectCategory(category.categoryId);
+    }
+  };
 
   return (
     <section className="relative py-16 md:py-24 lg:py-28 overflow-hidden bg-gradient-to-b from-stone-100/80 via-stone-50 to-background">
@@ -99,7 +129,7 @@ const ShopByCategorySection = ({
                 <button
                   type="button"
                   key={category.categoryId}
-                  onClick={() => onSelectCategory(category.categoryId)}
+                  onClick={() => handleCategoryClick(category)}
                   aria-label={`Shop ${category.name} category`}
                   className="group relative h-[340px] sm:h-[400px] md:h-[480px] lg:h-[540px] overflow-hidden text-left rounded-2xl bg-stone-900 shadow-[0_20px_50px_-20px_rgba(28,25,23,0.35)] ring-1 ring-stone-900/10 transition-all duration-500 ease-out hover:-translate-y-1 hover:shadow-[0_28px_60px_-16px_rgba(28,25,23,0.45)] hover:ring-[#c9a84c]/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a84c] focus-visible:ring-offset-2 focus-visible:ring-offset-stone-100"
                 >
