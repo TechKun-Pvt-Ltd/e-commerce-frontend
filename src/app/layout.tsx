@@ -5,8 +5,8 @@ import ReduxProvider from './ReduxProvider';
 import { AppGateway } from './AppGateway';
 
 export const metadata: Metadata = {
-    title: "E-Commerce Store",
-    description: "Your one-stop shop for all your needs",
+    title: "KAVENGO — Canvas Prints, Glass Wall Art, Wallpaper & Area Rugs",
+    description: "Premium canvas prints, tempered glass wall art, removable wallpaper, and washable area rugs. Free shipping on all orders.",
 };
 
 const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-sans', weight: ['300', '400', '500', '600', '700'] });

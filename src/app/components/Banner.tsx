@@ -4,12 +4,15 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useEffect, useMemo, useState } from "react";
 import * as bannerImagesService from "@/services/bannerImages";
+import { r2src } from "@/lib/r2-image";
 
+// Panoramic canvas wall art — room scene background (product cvs-pan-008)
 const HERO_LEFT =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuC84UWnQ9TTXJj0iVO0xX63Kip-_UqcfyVRnailflVn50Zd-y8rNYm99ytqKWFLoNqmQsWl70fP-12Tb58JLkxmEguQS4JHHBQ6I-1R_5UQCRh7FOFNb2z7TwRl2XFMrVtQjZFZULWEgp4ZSnlPjk0Er64RJPFw5gFLUn8E34F9qxJpKAWXAIM-0gp1jXwaCgc_hATupWxBC6qnX-Pcf35zkeT2--Gk6a6UUR9VSO3RNefu093I1Wr8lXtPNahh0iNtAPf0DGNUglU";
+  "https://pub-c636ad631f4e47d4b7eed2b5fd4f35e6.r2.dev/img/products/kanvas-panoramik/cvs-pan-008/cercevesizfon01.webp";
 
+// Area rug — room scene view (product hym03)
 const HERO_RIGHT =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuDT2mxfqyKBne6ZkgeS8tnatrp73Uglh2_P3Q22SiAMd1pHaQ34bdpJIMVGp0snHbz3SZnhYWUG_kuWAhhnI_uroL_dUe4DQcp65pb9O2g24zTeFebZXZM_sEPL6eNxBXn0_b0gzl71W3VmQJZi2vfA9ei4HmIFaNUiZT3J6xc6_DhC4iA90560m4dj1j3sN1CcPQ9myT3GduRqMJ_BQUiur0kXiFMgGJ0vbLKNtO185spwfJRvpVl2eFgB5ONtAylvr_k90zfIkrU";
+  "https://pub-c636ad631f4e47d4b7eed2b5fd4f35e6.r2.dev/img/products/hali/hym03/hal2.webp";
 
 const Banner = () => {
   const [defaultUrl, setDefaultUrl] = useState<string | null>(null);
@@ -26,8 +29,8 @@ const Banner = () => {
     return () => { mounted = false; };
   }, []);
 
-  const leftUrl = HERO_LEFT;
-  const rightUrl = useMemo(() => defaultUrl ?? HERO_RIGHT, [defaultUrl]);
+  const leftUrl = r2src(HERO_LEFT);
+  const rightUrl = useMemo(() => r2src(defaultUrl ?? HERO_RIGHT), [defaultUrl]);
 
   return (
     <section className="relative flex items-start sm:items-center overflow-hidden bg-stone-100 min-h-[calc(100vh-5rem)] lg:min-h-[calc(100vh-9rem)]">
@@ -37,7 +40,7 @@ const Banner = () => {
         <div className="relative flex-1 sm:h-full sm:w-1/2 overflow-hidden shrink-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            alt="Minimalist decor and sculpture in soft light"
+            alt="Golden sparkling fluid abstract panoramic canvas wall art in a modern living room"
             src={leftUrl}
             className="w-full h-full object-cover"
           />
@@ -45,7 +48,7 @@ const Banner = () => {
         <div className="relative flex-1 sm:w-1/2 overflow-hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            alt="Luxury living space with neutral tones"
+            alt="Gilded mineral abstract gold and charcoal washable area rug in a modern room"
             src={rightUrl}
             className="w-full h-full object-cover"
           />
@@ -58,15 +61,15 @@ const Banner = () => {
         <div className="bg-white/45 backdrop-blur-md p-6 sm:p-8 md:p-10 lg:p-12 max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg shadow-[0_12px_40px_rgba(78,70,57,0.10)]">
 
           <span className="block mb-3 text-[11px] font-semibold tracking-[0.25em] uppercase text-[oklch(0.16_0.02_55)]">
-            New Arrivals / Autumn 24
+            Canvas Prints · Glass Wall Art · Wallpaper · Area Rugs
           </span>
 
           <h1 className="font-display text-[2rem] sm:text-4xl md:text-5xl lg:text-6xl tracking-tight text-stone-900 leading-[1.08] mb-4 sm:mb-5">
-            The KAVENGO<br />Signature
+            Transform Your<br />Walls & Floors
           </h1>
 
           <p className="text-sm sm:text-base text-stone-600 leading-relaxed mb-6 sm:mb-7">
-            Elevating contemporary living through a curated collection of artisanal wall art and luxury home decor.
+            Premium canvas prints, tempered glass wall art, removable wallpaper, and washable area rugs — curated for modern living.
           </p>
 
           <Button

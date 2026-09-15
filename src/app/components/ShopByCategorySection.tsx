@@ -4,13 +4,18 @@
 import { ArrowUpRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { CategoryTree } from "@/types/domains/category";
+import { r2src } from "@/lib/r2-image";
 
-/** Fixed frame / photo art imagery for the four category tiles */
+/** Product imagery for the four category tiles — real catalog photos */
 const FRAME_CATEGORY_IMAGES = [
-  "https://i.pinimg.com/1200x/42/15/50/4215508d64e60b2e268d8f38658753d9.jpg",
-  "https://i.pinimg.com/1200x/a6/6d/46/a66d46545c57675eff9d6d2472ff5407.jpg",
-  "https://i.pinimg.com/736x/c8/bd/7a/c8bd7accaa4325a8b0a35b712640e27c.jpg",
-  "https://i.pinimg.com/736x/b0/1b/09/b01b0990f1ac187bf29d742e53e02e33.jpg",
+  // Canvas panoramic — gold frame variant (elegant living room vibe)
+  "https://pub-c636ad631f4e47d4b7eed2b5fd4f35e6.r2.dev/img/products/kanvas-panoramik/cvs-pan-001/gold01.webp",
+  // Canvas panoramic — tropical hibiscus on fon (vibrant wall art)
+  "https://pub-c636ad631f4e47d4b7eed2b5fd4f35e6.r2.dev/img/products/kanvas-panoramik/cvs-pan-005/cercevesizfon01.webp",
+  // Area rug — room scene view
+  "https://pub-c636ad631f4e47d4b7eed2b5fd4f35e6.r2.dev/img/products/hali/hym05/hal2.webp",
+  // Area rug — vivid abstract
+  "https://pub-c636ad631f4e47d4b7eed2b5fd4f35e6.r2.dev/img/products/hali/hym103/hal1.webp",
 ] as const;
 
 const MAX_CATEGORIES = 4;
@@ -76,8 +81,7 @@ const ShopByCategorySection = ({
             <span className="h-px w-10 bg-stone-300 sm:w-12" aria-hidden />
           </div>
           <p className="mt-6 text-sm leading-relaxed text-stone-600 sm:text-base md:mt-7">
-            Pick a line—each tile opens frames, mounts, and decor curated for that space, with the same
-            editorial care as a gallery wall.
+            Browse canvas prints, glass wall art, removable wallpaper, and washable area rugs — each curated for modern living.
           </p>
         </div>
 
@@ -105,7 +109,7 @@ const ShopByCategorySection = ({
                 >
                   <img
                     alt={`${category.name} — frame & decor`}
-                    src={image}
+                    src={r2src(image)}
                     className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1100ms] ease-out group-hover:scale-[1.06]"
                   />
                   <div
