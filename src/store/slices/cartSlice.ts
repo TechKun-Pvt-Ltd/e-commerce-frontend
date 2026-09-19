@@ -24,6 +24,7 @@ interface CartState {
     pendingAdditions: Set<number>; // productVariantIds being added
     pendingUpdates: Map<number, Partial<CartItemPreview>>; // cartItemId -> updates
     pendingRemovals: Set<number>; // cartItemIds being removed
+    pendingRemovedItems: Map<number, CartItemPreview>; // cartItemId -> backup
 }
 
 const initialState: CartState = {
@@ -35,6 +36,7 @@ const initialState: CartState = {
     pendingAdditions: new Set(),
     pendingUpdates: new Map(),
     pendingRemovals: new Set(),
+    pendingRemovedItems: new Map(),
 };
 
 function getLocalGuestCart(): CartItemPreview[] {
@@ -274,7 +276,7 @@ const applyOptimisticUpdate = (state: CartState, cartItemId: number, payload: Ca
     }
 };
 
-const rollbackOptimisticUpdate = (state: CartState, cartItemId: number) => {
+export const _rollbackOptimisticUpdate = (state: CartState, cartItemId: number) => {
     state.pendingUpdates.delete(cartItemId);
     // Refetch would be needed for full rollback, but we keep local state
 };
@@ -285,6 +287,7 @@ const applyOptimisticRemoval = (state: CartState, cartItemId: number) => {
         const removedItem = state.items[itemIndex];
         state.items.splice(itemIndex, 1);
         state.pendingRemovals.add(cartItemId);
+        state.pendingRemovedItems.set(cartItemId, removedItem);
         calculateTotals(state);
         return removedItem;
     }
@@ -396,25 +399,25 @@ const cartSlice = createSlice({
             .addCase(removeFromCartAsync.pending, (state, action) => {
                 state.loading = true;
                 state.error = null;
-                // Store removed item for potential rollback
-                const removedItem = applyOptimisticRemoval(state, action.meta.arg);
-                (action as any).meta.removedItem = removedItem;
+                applyOptimisticRemoval(state, action.meta.arg);
             })
             .addCase(removeFromCartAsync.fulfilled, (state, action) => {
                 state.loading = false;
                 state.items = state.items.filter(item => item.cartItemId !== action.payload);
                 state.pendingRemovals.delete(action.payload);
+                state.pendingRemovedItems.delete(action.payload);
                 calculateTotals(state);
             })
             .addCase(removeFromCartAsync.rejected, (state, action) => {
                 state.loading = false;
                 if (action.payload) state.error = action.payload;
                 // Rollback
-                const removedItem = (action as any).meta?.removedItem;
+                const removedItem = state.pendingRemovedItems.get(action.meta.arg);
                 if (removedItem) {
                     rollbackOptimisticRemoval(state, removedItem);
                 }
                 state.pendingRemovals.delete(action.meta.arg);
+                state.pendingRemovedItems.delete(action.meta.arg);
             });
     },
 });

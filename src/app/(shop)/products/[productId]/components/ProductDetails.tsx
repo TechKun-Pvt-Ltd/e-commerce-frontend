@@ -27,7 +27,6 @@ interface ProductDetailsProps {
 }
 
 export function ProductDetails({
-  product,
   variationMap,
   categoryPath,
   attrsExpanded,

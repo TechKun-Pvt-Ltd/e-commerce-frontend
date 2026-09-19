@@ -72,21 +72,6 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 4. Guard all /checkout routes
-  if (pathname === '/checkout' || pathname.startsWith('/checkout/')) {
-    if (!isAuthenticated) {
-      const loginUrl = new URL('/auth/login', request.url);
-      loginUrl.searchParams.set('redirect', pathname);
-      const response = NextResponse.redirect(loginUrl);
-      if (token) {
-        response.cookies.delete('token');
-        response.cookies.delete('refresh_token');
-        response.cookies.delete('user_role');
-      }
-      return response;
-    }
-  }
-
   // 5. Add auth headers for API routes to enable server-side token refresh
   const response = NextResponse.next();
 
@@ -110,7 +95,5 @@ export const config = {
     '/admin/:path*',
     '/account',
     '/account/:path*',
-    '/checkout',
-    '/checkout/:path*',
   ],
 };

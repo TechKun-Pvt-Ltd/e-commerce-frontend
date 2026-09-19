@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/button';
 import useDataFetch from '@/hooks/use-data-fetch';
 import { register as registerService } from '@/services/auth';
 import type { RegistrationPayload } from '@/types/domains/auth';
+import PhoneInput from '@/components/ui/phone-input';
+import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
 
 const registerSchema = z.object({
     email: z.string().email('Invalid email address'),
@@ -77,7 +79,8 @@ export default function RegisterPage() {
                     <CardTitle>Create an Account</CardTitle>
                     <CardDescription>Sign up to start shopping</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
+                    <SocialLoginButtons mode="register" />
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                             <FormField
@@ -126,7 +129,12 @@ export default function RegisterPage() {
                                     <FormItem>
                                         <FormLabel>Phone Number</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="+1234567890" {...field} />
+                                            <PhoneInput
+                                                value={field.value}
+                                                onChange={field.onChange}
+                                                onBlur={field.onBlur}
+                                                placeholder="555 123 4567"
+                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

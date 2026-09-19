@@ -28,12 +28,17 @@ export interface PaymentInitiateRequest {
     taxAmount: number;
     discountAmount: number;
     totalAmount: number;
+    isGuest?: boolean;
+    guestFullName?: string;
+    guestEmail?: string;
+    guestPhoneNo?: string;
 }
 
 export interface PaymentInitiateResponse {
     htmlContent: string;
     conversationId: string;
     orderId: string;
+    trackingNumber?: string;
 }
 
 export const initiatePayment: ServiceFunction<PaymentInitiateRequest, PaymentInitiateResponse> = (payload) => {

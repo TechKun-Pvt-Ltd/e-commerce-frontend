@@ -18,13 +18,18 @@ import { Address } from "@/types/domains/address";
 import { toast } from "sonner";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { COUNTRY_OPTIONS } from "@/lib/countries";
-import { CreditCard, Truck, MapPin, Home, ShieldCheck } from "lucide-react";
+import { CreditCard, Truck, MapPin, Home, ShieldCheck, UserCheck, LogIn } from "lucide-react";
 import { PaymentInitiateRequest } from "@/services/iyzico";
+import PhoneInput from "@/components/ui/phone-input";
+import Link from "next/link";
 
 // ─── Validation schema ────────────────────────────────────────────────────────
 
 const checkoutSchema = z.object({
     addressType: z.enum(["current", "custom"]),
+    guestFullName: z.string().optional(),
+    guestEmail: z.string().optional(),
+    guestPhoneNo: z.string().optional(),
     shippingAddress: z.object({
         street: z.string(),
         city: z.string(),
@@ -72,6 +77,7 @@ interface CheckoutFormProps {
     subtotalAmount: number;
     onSubmit: (data: PaymentInitiateRequest) => void;
     currentAddress?: Address;
+    isAuthenticated?: boolean;
 }
 
 export default function CheckoutForm({
@@ -81,7 +87,10 @@ export default function CheckoutForm({
     onSubmit,
     subtotalAmount,
     currentAddress,
+    isAuthenticated = false,
 }: CheckoutFormProps) {
+    const isGuestUser = !isAuthenticated;
+
     function calculateShipping(): number {
         let total = 0;
         cartItems.forEach((item) => {
@@ -107,8 +116,11 @@ export default function CheckoutForm({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         resolver: zodResolver(checkoutSchema) as any,
         defaultValues: {
-            addressType: "current",
-            shippingAddress: { street: "", city: "", pincode: "", country: "" },
+            addressType: isAuthenticated && currentAddress ? "current" : "custom",
+            guestFullName: "",
+            guestEmail: "",
+            guestPhoneNo: "+1",
+            shippingAddress: { street: "", city: "", pincode: "", country: "United States" },
             cardHolderName: "",
             cardNumber: "",
             expireMonth: "",
@@ -130,15 +142,29 @@ export default function CheckoutForm({
 
     const handleSubmit = (data: FieldValues) => {
         console.log("=== PAY CLICKED — form data:", data);
-        console.log("=== cartItems:", cartItems);
-        console.log("=== shippingMethods map:", shippingMethods);
+        console.log("=== isGuestUser:", isGuestUser);
 
-        if (data.addressType === "custom") {
+        if (isGuestUser) {
+            if (!data.guestFullName || data.guestFullName.trim().length < 2) {
+                toast.error("Please enter your full name.");
+                return;
+            }
+            if (!data.guestEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.guestEmail.trim())) {
+                toast.error("Please enter a valid email address for order confirmation.");
+                return;
+            }
+            if (!data.guestPhoneNo || data.guestPhoneNo.trim().length < 7) {
+                toast.error("Please enter a valid phone number.");
+                return;
+            }
+        }
+
+        if (isGuestUser || data.addressType === "custom") {
             const s = data.shippingAddress;
             const missing: string[] = [];
-            if (!s?.street?.trim()) missing.push("Street");
+            if (!s?.street?.trim()) missing.push("Street Address");
             if (!s?.city?.trim()) missing.push("City");
-            if (!s?.pincode?.trim()) missing.push("Postal Code");
+            if (!s?.pincode?.trim()) missing.push("Postal Code / ZIP");
             if (!s?.country?.trim()) missing.push("Country");
             if (missing.length > 0) {
                 toast.error(`Please fill: ${missing.join(", ")}`);
@@ -149,7 +175,6 @@ export default function CheckoutForm({
         const missingShipping = cartItems.filter(
             (item) => !shippingMethods[item.cartItemId]?.shippingMethodId
         );
-        console.log("=== missingShipping:", missingShipping);
         if (missingShipping.length > 0) {
             toast.error("Shipping method not loaded yet. Please wait and try again.");
             return;
@@ -158,7 +183,7 @@ export default function CheckoutForm({
         let shippingAddressId: number | undefined;
         let shippingAddressObj: { street: string; city: string; pincode: string; country: string } | undefined;
 
-        if (data.addressType === "current" && currentAddress) {
+        if (!isGuestUser && data.addressType === "current" && currentAddress) {
             if (currentAddress.addressId) {
                 shippingAddressId = currentAddress.addressId;
             } else {
@@ -169,7 +194,7 @@ export default function CheckoutForm({
                     country: currentAddress.country ?? "",
                 };
             }
-        } else if (data.addressType === "custom" && data.shippingAddress) {
+        } else if (data.shippingAddress) {
             shippingAddressObj = {
                 street: data.shippingAddress.street,
                 city: data.shippingAddress.city,
@@ -200,6 +225,10 @@ export default function CheckoutForm({
             taxAmount,
             discountAmount,
             totalAmount: billTotal,
+            isGuest: isGuestUser,
+            guestFullName: data.guestFullName,
+            guestEmail: data.guestEmail,
+            guestPhoneNo: data.guestPhoneNo,
         };
 
         onSubmit(payload);
@@ -213,58 +242,137 @@ export default function CheckoutForm({
                     <div className="lg:col-span-2 space-y-6">
                         <h1 className="text-3xl font-bold text-gray-900">Checkout</h1>
 
+                        {/* Guest Checkout Banner */}
+                        {isGuestUser && (
+                            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+                                <div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="inline-flex items-center justify-center w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
+                                        <p className="font-semibold text-blue-950 text-sm">Express Guest Checkout</p>
+                                    </div>
+                                    <p className="text-xs text-blue-700 mt-0.5">
+                                        No account required. You will receive an order confirmation and tracking number via email.
+                                    </p>
+                                </div>
+                                <Link
+                                    href={`/auth/login?returnUrl=${encodeURIComponent("/checkout")}`}
+                                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-800 bg-white border border-blue-300 hover:bg-blue-50 px-3 py-1.5 rounded-lg whitespace-nowrap transition-colors shadow-xs"
+                                >
+                                    <LogIn className="h-3.5 w-3.5" />
+                                    Have an account? Log In
+                                </Link>
+                            </div>
+                        )}
+
+                        {/* Customer & Contact Info (for Guest) */}
+                        {isGuestUser && (
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-semibold text-gray-700">Contact Information</h3>
+                                <div className="p-5 border rounded-xl bg-white space-y-4 shadow-sm">
+                                    <FormField
+                                        control={form.control}
+                                        name="guestFullName"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Full Name <span className="text-red-500">*</span></FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="e.g. John Doe" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <FormField
+                                            control={form.control}
+                                            name="guestEmail"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Email Address <span className="text-red-500">*</span></FormLabel>
+                                                    <FormControl>
+                                                        <Input type="email" placeholder="john@example.com" {...field} />
+                                                    </FormControl>
+                                                    <p className="text-[11px] text-muted-foreground">Order confirmation will be sent here</p>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="guestPhoneNo"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Phone Number <span className="text-red-500">*</span></FormLabel>
+                                                    <FormControl>
+                                                        <PhoneInput
+                                                            value={field.value}
+                                                            onChange={field.onChange}
+                                                            placeholder="555 123 4567"
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Shipping Address */}
                         <div className="space-y-4">
                             <h3 className="text-lg font-semibold text-gray-700">Shipping Address</h3>
-                            <RadioGroup
-                                value={form.watch("addressType")}
-                                onValueChange={(v: "current" | "custom") => form.setValue("addressType", v)}
-                                className="flex space-x-4"
-                            >
-                                <Label
-                                    htmlFor="current"
-                                    className={`flex items-center justify-center space-x-3 p-4 border rounded-lg bg-white hover:bg-gray-50 cursor-pointer flex-1 transition-colors ${
-                                        form.watch("addressType") === "current" ? "border-black bg-gray-50" : "border-gray-200"
-                                    }`}
+                            {!isGuestUser && currentAddress && (
+                                <RadioGroup
+                                    value={form.watch("addressType")}
+                                    onValueChange={(v: "current" | "custom") => form.setValue("addressType", v)}
+                                    className="flex space-x-4"
                                 >
-                                    <RadioGroupItem value="current" id="current" />
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-2 font-medium">
-                                            <Home className="h-4 w-4" />
-                                            Current Address
+                                    <Label
+                                        htmlFor="current"
+                                        className={`flex items-center justify-center space-x-3 p-4 border rounded-lg bg-white hover:bg-gray-50 cursor-pointer flex-1 transition-colors ${
+                                            form.watch("addressType") === "current" ? "border-black bg-gray-50" : "border-gray-200"
+                                        }`}
+                                    >
+                                        <RadioGroupItem value="current" id="current" />
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 font-medium">
+                                                <Home className="h-4 w-4" />
+                                                Current Address
+                                            </div>
+                                            {currentAddress && (
+                                                <p className="text-sm text-gray-500 mt-1">
+                                                    {currentAddress.street}, {currentAddress.city}
+                                                </p>
+                                            )}
                                         </div>
-                                        {currentAddress && (
-                                            <p className="text-sm text-gray-500 mt-1">
-                                                {currentAddress.street}, {currentAddress.city}
-                                            </p>
-                                        )}
-                                    </div>
-                                </Label>
+                                    </Label>
 
-                                <Label
-                                    htmlFor="custom"
-                                    className={`flex items-center justify-center space-x-3 p-4 border rounded-lg bg-white hover:bg-gray-50 cursor-pointer flex-1 transition-colors ${
-                                        form.watch("addressType") === "custom" ? "border-black bg-gray-50" : "border-gray-200"
-                                    }`}
-                                >
-                                    <RadioGroupItem value="custom" id="custom" />
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-2 font-medium">
-                                            <MapPin className="h-4 w-4" />
-                                            Different Address
+                                    <Label
+                                        htmlFor="custom"
+                                        className={`flex items-center justify-center space-x-3 p-4 border rounded-lg bg-white hover:bg-gray-50 cursor-pointer flex-1 transition-colors ${
+                                            form.watch("addressType") === "custom" ? "border-black bg-gray-50" : "border-gray-200"
+                                        }`}
+                                    >
+                                        <RadioGroupItem value="custom" id="custom" />
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 font-medium">
+                                                <MapPin className="h-4 w-4" />
+                                                Different Address
+                                            </div>
                                         </div>
-                                    </div>
-                                </Label>
-                            </RadioGroup>
+                                    </Label>
+                                </RadioGroup>
+                            )}
 
-                            {form.watch("addressType") === "custom" && (
-                                <div className="p-4 border rounded-xl bg-white space-y-4">
+                            {(isGuestUser || form.watch("addressType") === "custom") && (
+                                <div className="p-4 border rounded-xl bg-white space-y-4 shadow-sm">
                                     <FormField
                                         control={form.control}
                                         name="shippingAddress.street"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Street Address</FormLabel>
+                                                <FormLabel>Street Address <span className="text-red-500">*</span></FormLabel>
                                                 <FormControl>
                                                     <Input placeholder="Enter your street address" {...field} />
                                                 </FormControl>
@@ -278,7 +386,7 @@ export default function CheckoutForm({
                                             name="shippingAddress.city"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>City</FormLabel>
+                                                    <FormLabel>City <span className="text-red-500">*</span></FormLabel>
                                                     <FormControl><Input placeholder="City" {...field} /></FormControl>
                                                     <FormMessage />
                                                 </FormItem>
@@ -289,8 +397,8 @@ export default function CheckoutForm({
                                             name="shippingAddress.pincode"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>Postal Code / ZIP</FormLabel>
-                                                    <FormControl><Input type="text" placeholder="e.g. 34000" {...field} /></FormControl>
+                                                    <FormLabel>Postal Code / ZIP <span className="text-red-500">*</span></FormLabel>
+                                                    <FormControl><Input type="text" placeholder="e.g. 10001" {...field} /></FormControl>
                                                     <FormMessage />
                                                 </FormItem>
                                             )}
@@ -301,15 +409,15 @@ export default function CheckoutForm({
                                         name="shippingAddress.country"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Country</FormLabel>
+                                                <FormLabel>Country <span className="text-red-500">*</span></FormLabel>
                                                 <FormControl>
                                                     <Select value={field.value || ""} onValueChange={field.onChange}>
                                                         <SelectTrigger>
                                                             <SelectValue placeholder="Select country" />
                                                         </SelectTrigger>
-                                                        <SelectContent>
+                                                        <SelectContent className="max-h-60">
                                                             {COUNTRY_OPTIONS.map(({ value, label }) => (
-                                                                <SelectItem key={value} value={value}>{label}</SelectItem>
+                                                                <SelectItem key={value} value={label}>{label}</SelectItem>
                                                             ))}
                                                         </SelectContent>
                                                     </Select>

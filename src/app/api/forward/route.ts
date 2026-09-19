@@ -68,7 +68,19 @@ async function forwardRequest(
   const token = (await cookies()).get('token')?.value;
 
   // Skip auth for public endpoints
-  const publicPaths = ['/auth/login', '/auth/register', '/auth/forgot-password', '/auth/reset-password'];
+  const publicPaths = [
+    '/auth/login',
+    '/auth/register',
+    '/auth/forgot-password',
+    '/auth/reset-password',
+    '/auth/social-login',
+    '/shipping-methods',
+    '/iyzico/initiate',
+    '/iyzico/confirm',
+    '/shop-orders/track',
+    '/products',
+    '/categories',
+  ];
   const isPublic = publicPaths.some(p => path.startsWith(p));
 
   if (!isPublic && !token) {

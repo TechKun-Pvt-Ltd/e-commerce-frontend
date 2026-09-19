@@ -24,10 +24,7 @@ interface MobileStickyBarProps {
 }
 
 export function MobileStickyBar({
-  product,
   selectedVariant,
-  enabledVariants,
-  activeImage,
   totalPrice,
   discountedPrice,
   isOutOfStock,

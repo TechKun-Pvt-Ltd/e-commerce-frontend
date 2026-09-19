@@ -25,3 +25,7 @@ export const createOrder: ServiceFunction<OrderCreatePayload, ShopOrder> = (payl
 export const updateOrder: ServiceFunction<[shopOrderId: number, payload: OrderUpdatePayload], ShopOrder> = (shopOrderId, payload) => {
     return servicesApiClient.put(`/shop-orders/${shopOrderId}`, { data: payload });
 };
+
+export const getOrderByTrackingNumber: ServiceFunction<[trackingNumber: string], OrderDetails> = (trackingNumber) => {
+    return servicesApiClient.get(`/shop-orders/track/${encodeURIComponent(trackingNumber)}`);
+};
