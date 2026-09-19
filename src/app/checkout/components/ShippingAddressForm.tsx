@@ -26,8 +26,8 @@ const ShippingAddressForm: React.FC<ShippingAddressFormProps> = ({ onSubmit }) =
         city: '',
         state: '',
         zipCode: '',
-        country: '',
-        phone: ''
+        country: 'United States',
+        phone: '+1'
     });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

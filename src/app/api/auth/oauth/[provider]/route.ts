@@ -10,6 +10,7 @@ export async function GET(req: NextRequest, context: RouteContext) {
     const { provider } = await context.params;
     const url = new URL(req.url);
     const returnUrl = url.searchParams.get('returnUrl') || '/';
+    const mode = url.searchParams.get('mode') || 'login';
     const origin = process.env.NEXT_PUBLIC_FRONTEND_URL || url.origin || 'http://localhost:3000';
     const callbackUrl = `${origin}/api/auth/callback/${provider}`;
 
@@ -22,12 +23,21 @@ export async function GET(req: NextRequest, context: RouteContext) {
     const statePayload = JSON.stringify({
         nonce: crypto.randomBytes(16).toString('hex'),
         returnUrl,
+        mode,
     });
     const state = Buffer.from(statePayload).toString('base64url');
 
     if (normalizedProvider === 'google') {
         clientId = process.env.GOOGLE_CLIENT_ID || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
         if (!clientId) {
+            if (mode === 'register') {
+                return NextResponse.redirect(
+                    new URL(
+                        `/auth/complete-profile?provider=google&mode=register&simulated=true&returnUrl=${encodeURIComponent(returnUrl)}`,
+                        origin
+                    )
+                );
+            }
             return NextResponse.redirect(
                 new URL(`/auth/login?error=oauth_not_configured&provider=Google`, origin)
             );
@@ -45,6 +55,14 @@ export async function GET(req: NextRequest, context: RouteContext) {
     } else if (normalizedProvider === 'facebook') {
         clientId = process.env.FACEBOOK_CLIENT_ID || '';
         if (!clientId) {
+            if (mode === 'register') {
+                return NextResponse.redirect(
+                    new URL(
+                        `/auth/complete-profile?provider=facebook&mode=register&simulated=true&returnUrl=${encodeURIComponent(returnUrl)}`,
+                        origin
+                    )
+                );
+            }
             return NextResponse.redirect(
                 new URL(`/auth/login?error=oauth_not_configured&provider=Facebook`, origin)
             );
@@ -60,6 +78,14 @@ export async function GET(req: NextRequest, context: RouteContext) {
     } else if (normalizedProvider === 'instagram') {
         clientId = process.env.INSTAGRAM_CLIENT_ID || '';
         if (!clientId) {
+            if (mode === 'register') {
+                return NextResponse.redirect(
+                    new URL(
+                        `/auth/complete-profile?provider=instagram&mode=register&simulated=true&returnUrl=${encodeURIComponent(returnUrl)}`,
+                        origin
+                    )
+                );
+            }
             return NextResponse.redirect(
                 new URL(`/auth/login?error=oauth_not_configured&provider=Instagram`, origin)
             );

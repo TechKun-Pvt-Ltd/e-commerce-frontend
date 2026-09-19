@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useMemo, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -20,7 +20,7 @@ const registerSchema = z.object({
     email: z.string().email('Invalid email address'),
     password: z.string().min(8, 'Password must be at least 8 characters'),
     fullName: z.string().min(2, 'Full name must be at least 2 characters'),
-    phoneNo: z.string().min(10, 'Phone number must be at least 10 characters'),
+    phoneNo: z.string().min(7, 'Phone number must be at least 7 characters'),
     address: z.object({
         street: z.string().min(1, 'Street is required'),
         city: z.string().min(1, 'City is required'),
@@ -30,8 +30,10 @@ const registerSchema = z.object({
     })
 });
 
-export default function RegisterPage() {
+function RegisterContent() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const returnUrl = useMemo(() => searchParams.get('returnUrl') || searchParams.get('redirect') || '/', [searchParams]);
     const [error, setError] = useState<string | null>(null);
 
     const { request, isLoading } = useDataFetch(registerService);
@@ -42,12 +44,12 @@ export default function RegisterPage() {
             email: '',
             password: '',
             fullName: '',
-            phoneNo: '',
+            phoneNo: '+1',
             address: {
                 street: '',
                 city: '',
                 state: '',
-                country: '',
+                country: 'United States',
                 zipCode: ''
             }
         }
@@ -80,7 +82,7 @@ export default function RegisterPage() {
                     <CardDescription>Sign up to start shopping</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <SocialLoginButtons mode="register" />
+                    <SocialLoginButtons mode="register" returnUrl={returnUrl} />
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                             <FormField
@@ -238,5 +240,23 @@ export default function RegisterPage() {
                 </CardContent>
             </Card>
         </div>
+    );
+}
+
+export default function RegisterPage() {
+    return (
+        <Suspense
+            fallback={
+                <div className="container mx-auto py-10 flex justify-center">
+                    <div className="flex items-center space-x-2">
+                        <div className="w-4 h-4 rounded-full animate-pulse bg-primary"></div>
+                        <div className="w-4 h-4 rounded-full animate-pulse bg-primary" style={{ animationDelay: "0.2s" }}></div>
+                        <div className="w-4 h-4 rounded-full animate-pulse bg-primary" style={{ animationDelay: "0.4s" }}></div>
+                    </div>
+                </div>
+            }
+        >
+            <RegisterContent />
+        </Suspense>
     );
 }

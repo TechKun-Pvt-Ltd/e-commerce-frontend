@@ -19,10 +19,12 @@ export async function GET(req: NextRequest, context: RouteContext) {
     const errorDescription = url.searchParams.get('error_description');
 
     let returnUrl = '/';
+    let mode = 'login';
     if (state) {
         try {
             const decoded = JSON.parse(Buffer.from(state, 'base64url').toString('utf-8'));
             if (decoded.returnUrl) returnUrl = decoded.returnUrl;
+            if (decoded.mode) mode = decoded.mode;
         } catch {
             // Keep default returnUrl
         }
@@ -30,8 +32,9 @@ export async function GET(req: NextRequest, context: RouteContext) {
 
     if (oauthError || !code) {
         const errorMsg = errorDescription || oauthError || 'Authentication was cancelled or failed';
+        const fallbackPath = mode === 'register' ? '/auth/register' : '/auth/login';
         return NextResponse.redirect(
-            new URL(`/auth/login?error=${encodeURIComponent(errorMsg)}`, origin)
+            new URL(`${fallbackPath}?error=${encodeURIComponent(errorMsg)}`, origin)
         );
     }
 
@@ -66,7 +69,7 @@ export async function GET(req: NextRequest, context: RouteContext) {
 
             const userInfo = userInfoRes.data;
             email = userInfo.email;
-            fullName = userInfo.name || userInfo.email.split('@')[0];
+            fullName = userInfo.name || userInfo.email?.split('@')[0] || '';
             providerId = userInfo.sub;
             avatarUrl = userInfo.picture;
         } else if (normalizedProvider === 'facebook') {
@@ -134,7 +137,87 @@ export async function GET(req: NextRequest, context: RouteContext) {
             );
         }
 
-        // Call backend social login endpoint
+        const cookieStore = await cookies();
+
+        // ─── Flow 1: Registration Mode ──────────────────────────────────────────
+        // Customer clicked Register with Google/FB/IG.
+        // Direct them to /auth/complete-profile to provide phone and delivery address.
+        if (mode === 'register') {
+            const onboardingPayload = {
+                provider: normalizedProvider,
+                providerId,
+                email,
+                fullName,
+                avatarUrl,
+                returnUrl,
+            };
+
+            cookieStore.set({
+                name: 'social_onboarding',
+                value: Buffer.from(JSON.stringify(onboardingPayload)).toString('base64url'),
+                httpOnly: false,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+                maxAge: 60 * 30, // 30 mins
+                path: '/',
+            });
+
+            const profileUrl = new URL('/auth/complete-profile', origin);
+            profileUrl.searchParams.set('provider', normalizedProvider);
+            profileUrl.searchParams.set('email', email);
+            profileUrl.searchParams.set('name', fullName);
+            profileUrl.searchParams.set('returnUrl', returnUrl);
+            if (avatarUrl) profileUrl.searchParams.set('avatar', avatarUrl);
+
+            return NextResponse.redirect(profileUrl);
+        }
+
+        // ─── Flow 2: Login Mode ─────────────────────────────────────────────────
+        // Check if account exists with this email
+        let accountExists = true;
+        try {
+            const checkRes = await axios.get(`${backendUrl}/auth/check-email`, {
+                params: { email },
+                timeout: 5000,
+            });
+            accountExists = Boolean(checkRes.data?.exists);
+        } catch (e) {
+            console.warn('Could not verify email existence before login, continuing to login:', e);
+        }
+
+        // If user does not exist in login mode, redirect to complete-profile with notice
+        if (!accountExists) {
+            const onboardingPayload = {
+                provider: normalizedProvider,
+                providerId,
+                email,
+                fullName,
+                avatarUrl,
+                returnUrl,
+            };
+
+            cookieStore.set({
+                name: 'social_onboarding',
+                value: Buffer.from(JSON.stringify(onboardingPayload)).toString('base64url'),
+                httpOnly: false,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+                maxAge: 60 * 30,
+                path: '/',
+            });
+
+            const profileUrl = new URL('/auth/complete-profile', origin);
+            profileUrl.searchParams.set('provider', normalizedProvider);
+            profileUrl.searchParams.set('email', email);
+            profileUrl.searchParams.set('name', fullName);
+            profileUrl.searchParams.set('returnUrl', returnUrl);
+            profileUrl.searchParams.set('notice', 'no_account');
+            if (avatarUrl) profileUrl.searchParams.set('avatar', avatarUrl);
+
+            return NextResponse.redirect(profileUrl);
+        }
+
+        // User exists: authenticate directly and securely
         const backendRes = await axios.post(
             `${backendUrl}/auth/social-login`,
             {
@@ -156,7 +239,6 @@ export async function GET(req: NextRequest, context: RouteContext) {
             : new URL(returnUrl, origin).toString();
 
         const response = NextResponse.redirect(targetRedirect);
-        const cookieStore = await cookies();
 
         const maxAge = authData.expiresAt
             ? Math.max(0, Math.floor((authData.expiresAt - Date.now()) / 1000))
@@ -197,6 +279,7 @@ export async function GET(req: NextRequest, context: RouteContext) {
         }
 
         cookieStore.delete('oauth_state');
+        cookieStore.delete('social_onboarding');
         return response;
     } catch (err: unknown) {
         console.error('Social login callback error:', err);
