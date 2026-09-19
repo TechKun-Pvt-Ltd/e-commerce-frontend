@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Instagram, Twitter, Facebook, Youtube } from "lucide-react";
+import { toast } from "sonner";
 
 const shopLinks = [
     { label: "All Products", href: "/products" },
@@ -32,6 +33,40 @@ const socialLinks = [
 
 export default function Footer() {
     const [email, setEmail] = useState("");
+    const [isSubscribing, setIsSubscribing] = useState(false);
+
+    const handleSubscribe = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!email || !email.includes("@")) {
+            toast.error("Please enter a valid email address.");
+            return;
+        }
+
+        setIsSubscribing(true);
+        try {
+            const res = await fetch("/api/forward", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    path: "/public/newsletter",
+                    method: "POST",
+                    body: { email },
+                }),
+            });
+
+            if (res.ok) {
+                toast.success("Thank you for subscribing to Kavengo updates!");
+                setEmail("");
+            } else {
+                const data = await res.json().catch(() => ({}));
+                toast.error(data.message || "Subscription failed. Please try again.");
+            }
+        } catch {
+            toast.error("An error occurred. Please try again.");
+        } finally {
+            setIsSubscribing(false);
+        }
+    };
 
     return (
         <footer className="bg-[oklch(0.42_0.02_55)] border-t-2 border-[#c9a84c]">
@@ -64,21 +99,23 @@ export default function Footer() {
                         <p className="text-white/45 text-sm leading-relaxed mb-5">
                             Get early access to new collections and exclusive offers.
                         </p>
-                        <div className="flex">
+                        <form onSubmit={handleSubscribe} className="flex">
                             <input
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="Your email address"
-                                className="flex-1 min-w-0 bg-white/5 border border-white/15 border-r-0 text-white text-sm placeholder:text-white/25 px-4 py-2.5 outline-none focus:border-[#c9a84c]/50 transition-colors"
+                                disabled={isSubscribing}
+                                className="flex-1 min-w-0 bg-white/5 border border-white/15 border-r-0 text-white text-sm placeholder:text-white/25 px-4 py-2.5 outline-none focus:border-[#c9a84c]/50 transition-colors disabled:opacity-50"
                             />
                             <button
-                                type="button"
-                                className="bg-[#c9a84c] hover:bg-[#b8960c] text-[oklch(0.16_0.02_55)] text-[11px] font-semibold tracking-widest uppercase px-5 py-2.5 transition-colors shrink-0"
+                                type="submit"
+                                disabled={isSubscribing}
+                                className="bg-[#c9a84c] hover:bg-[#b8960c] text-[oklch(0.16_0.02_55)] text-[11px] font-semibold tracking-widest uppercase px-5 py-2.5 transition-colors shrink-0 disabled:opacity-50"
                             >
-                                Subscribe
+                                {isSubscribing ? "Subscribing..." : "Subscribe"}
                             </button>
-                        </div>
+                        </form>
                     </div>
                 </div>
 
