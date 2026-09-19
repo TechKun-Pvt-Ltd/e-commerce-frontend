@@ -74,12 +74,17 @@ async function forwardRequest(
     '/auth/forgot-password',
     '/auth/reset-password',
     '/auth/social-login',
+    '/auth/check-email',
     '/shipping-methods',
     '/iyzico/initiate',
     '/iyzico/confirm',
     '/shop-orders/track',
     '/products',
     '/categories',
+    '/variations',
+    '/attributes',
+    '/promotions',
+    '/banner-images',
   ];
   const isPublic = publicPaths.some(p => path.startsWith(p));
 
