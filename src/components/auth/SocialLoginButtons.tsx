@@ -25,7 +25,7 @@ export default function SocialLoginButtons({
     const handleSocialLogin = (provider: "google" | "facebook" | "instagram") => {
         try {
             setLoadingProvider(provider);
-            const targetUrl = `/api/auth/oauth/${provider}?returnUrl=${encodeURIComponent(returnUrl)}`;
+            const targetUrl = `/api/auth/oauth/${provider}?mode=${mode}&returnUrl=${encodeURIComponent(returnUrl)}`;
             window.location.href = targetUrl;
         } catch (error) {
             setLoadingProvider(null);

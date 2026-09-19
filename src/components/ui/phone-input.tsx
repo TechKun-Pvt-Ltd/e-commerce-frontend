@@ -13,8 +13,9 @@ export interface CountryCode {
 }
 
 export const PRIORITY_COUNTRIES: CountryCode[] = [
-    { code: "TR", name: "Turkey", dialCode: "+90", flag: "🇹🇷" },
     { code: "US", name: "United States", dialCode: "+1", flag: "🇺🇸" },
+    { code: "TR", name: "Turkey", dialCode: "+90", flag: "🇹🇷" },
+    { code: "CA", name: "Canada", dialCode: "+1", flag: "🇨🇦" },
     { code: "GB", name: "United Kingdom", dialCode: "+44", flag: "🇬🇧" },
     { code: "DE", name: "Germany", dialCode: "+49", flag: "🇩🇪" },
     { code: "FR", name: "France", dialCode: "+33", flag: "🇫🇷" },
@@ -110,10 +111,10 @@ export function PhoneInput({
 }: PhoneInputProps) {
     // Parse initial dial code and national number from value
     const parseValue = (raw: string): { dialCode: string; nationalNumber: string } => {
-        if (!raw) return { dialCode: "+90", nationalNumber: "" };
+        if (!raw) return { dialCode: "+1", nationalNumber: "" };
         const cleaned = raw.trim();
         if (!cleaned.startsWith("+")) {
-            return { dialCode: "+90", nationalNumber: cleaned.replace(/\D/g, "") };
+            return { dialCode: "+1", nationalNumber: cleaned.replace(/\D/g, "") };
         }
         // Match against known dial codes (longest first to avoid +1 matching before +1246 etc.)
         const sortedCodes = [...ALL_COUNTRIES].sort((a, b) => b.dialCode.length - a.dialCode.length);
@@ -125,11 +126,11 @@ export function PhoneInput({
                 };
             }
         }
-        return { dialCode: "+90", nationalNumber: cleaned.replace(/\D/g, "") };
+        return { dialCode: "+1", nationalNumber: cleaned.replace(/\D/g, "") };
     };
 
     const parsed = useMemo(() => parseValue(value), [value]);
-    const [selectedDialCode, setSelectedDialCode] = useState<string>(parsed.dialCode || "+90");
+    const [selectedDialCode, setSelectedDialCode] = useState<string>(parsed.dialCode || "+1");
     const [nationalNumber, setNationalNumber] = useState<string>(parsed.nationalNumber || "");
 
     useEffect(() => {
