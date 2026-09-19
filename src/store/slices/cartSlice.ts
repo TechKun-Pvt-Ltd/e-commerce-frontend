@@ -20,11 +20,11 @@ interface CartState {
     totalAmount: number;
     loading: boolean;
     error: string | null;
-    // Optimistic updates tracking
-    pendingAdditions: Set<number>; // productVariantIds being added
-    pendingUpdates: Map<number, Partial<CartItemPreview>>; // cartItemId -> updates
-    pendingRemovals: Set<number>; // cartItemIds being removed
-    pendingRemovedItems: Map<number, CartItemPreview>; // cartItemId -> backup
+    // Optimistic updates tracking (serializable plain objects/arrays)
+    pendingAdditions: number[]; // productVariantIds being added
+    pendingUpdates: Record<number, Partial<CartItemPreview>>; // cartItemId -> updates
+    pendingRemovals: number[]; // cartItemIds being removed
+    pendingRemovedItems: Record<number, CartItemPreview>; // cartItemId -> backup
 }
 
 const initialState: CartState = {
@@ -33,10 +33,10 @@ const initialState: CartState = {
     totalAmount: 0,
     loading: false,
     error: null,
-    pendingAdditions: new Set(),
-    pendingUpdates: new Map(),
-    pendingRemovals: new Set(),
-    pendingRemovedItems: new Map(),
+    pendingAdditions: [],
+    pendingUpdates: {},
+    pendingRemovals: [],
+    pendingRemovedItems: {},
 };
 
 function getLocalGuestCart(): CartItemPreview[] {
@@ -227,9 +227,9 @@ const applyOptimisticAddition = (state: CartState, item: AddToCartPayload) => {
 
     if (existingIndex > -1) {
         state.items[existingIndex].quantity += item.quantity;
-        state.pendingUpdates.set(state.items[existingIndex].cartItemId, {
+        state.pendingUpdates[state.items[existingIndex].cartItemId] = {
             quantity: state.items[existingIndex].quantity
-        });
+        };
     } else {
         const newItem: CartItemPreview = {
             cartItemId: tempId,
@@ -244,7 +244,9 @@ const applyOptimisticAddition = (state: CartState, item: AddToCartPayload) => {
             personalization: item.personalization
         };
         state.items.push(newItem);
-        state.pendingAdditions.add(tempId);
+        if (!state.pendingAdditions.includes(tempId)) {
+            state.pendingAdditions.push(tempId);
+        }
     }
     calculateTotals(state);
 };
@@ -252,11 +254,11 @@ const applyOptimisticAddition = (state: CartState, item: AddToCartPayload) => {
 const rollbackOptimisticAddition = (state: CartState, productVariantId: number) => {
     const item = state.items.find(i => i.productVariantId === productVariantId);
     if (item) {
-        if (state.pendingAdditions.has(item.cartItemId)) {
+        if (state.pendingAdditions.includes(item.cartItemId)) {
             state.items = state.items.filter(i => i.cartItemId !== item.cartItemId);
-            state.pendingAdditions.delete(item.cartItemId);
-        } else if (state.pendingUpdates.has(item.cartItemId)) {
-            state.pendingUpdates.delete(item.cartItemId);
+            state.pendingAdditions = state.pendingAdditions.filter(id => id !== item.cartItemId);
+        } else if (state.pendingUpdates[item.cartItemId]) {
+            delete state.pendingUpdates[item.cartItemId];
         }
     }
     calculateTotals(state);
@@ -271,13 +273,13 @@ const applyOptimisticUpdate = (state: CartState, cartItemId: number, payload: Ca
         if (payload.personalization !== undefined) {
             item.personalization = payload.personalization;
         }
-        state.pendingUpdates.set(cartItemId, { ...item });
+        state.pendingUpdates[cartItemId] = { ...item };
         calculateTotals(state);
     }
 };
 
 export const _rollbackOptimisticUpdate = (state: CartState, cartItemId: number) => {
-    state.pendingUpdates.delete(cartItemId);
+    delete state.pendingUpdates[cartItemId];
     // Refetch would be needed for full rollback, but we keep local state
 };
 
@@ -286,8 +288,10 @@ const applyOptimisticRemoval = (state: CartState, cartItemId: number) => {
     if (itemIndex > -1) {
         const removedItem = state.items[itemIndex];
         state.items.splice(itemIndex, 1);
-        state.pendingRemovals.add(cartItemId);
-        state.pendingRemovedItems.set(cartItemId, removedItem);
+        if (!state.pendingRemovals.includes(cartItemId)) {
+            state.pendingRemovals.push(cartItemId);
+        }
+        state.pendingRemovedItems[cartItemId] = removedItem;
         calculateTotals(state);
         return removedItem;
     }
@@ -297,7 +301,7 @@ const applyOptimisticRemoval = (state: CartState, cartItemId: number) => {
 const rollbackOptimisticRemoval = (state: CartState, item: CartItemPreview) => {
     if (item) {
         state.items.push(item);
-        state.pendingRemovals.delete(item.cartItemId);
+        state.pendingRemovals = state.pendingRemovals.filter(id => id !== item.cartItemId);
         calculateTotals(state);
     }
 };
@@ -308,18 +312,20 @@ const cartSlice = createSlice({
     reducers: {
         updateCart: (state, action: PayloadAction<CartItemPreview[]>) => {
             state.items = action.payload;
-            state.pendingAdditions.clear();
-            state.pendingUpdates.clear();
-            state.pendingRemovals.clear();
+            state.pendingAdditions = [];
+            state.pendingUpdates = {};
+            state.pendingRemovals = [];
+            state.pendingRemovedItems = {};
             calculateTotals(state);
         },
         clearCart: (state) => {
             state.items = [];
             state.totalItems = 0;
             state.totalAmount = 0;
-            state.pendingAdditions.clear();
-            state.pendingUpdates.clear();
-            state.pendingRemovals.clear();
+            state.pendingAdditions = [];
+            state.pendingUpdates = {};
+            state.pendingRemovals = [];
+            state.pendingRemovedItems = {};
             if (typeof window !== 'undefined') {
                 localStorage.removeItem(GUEST_CART_STORAGE_KEY);
             }
@@ -346,9 +352,10 @@ const cartSlice = createSlice({
             .addCase(fetchCartItems.fulfilled, (state, action) => {
                 state.loading = false;
                 state.items = action.payload;
-                state.pendingAdditions.clear();
-                state.pendingUpdates.clear();
-                state.pendingRemovals.clear();
+                state.pendingAdditions = [];
+                state.pendingUpdates = {};
+                state.pendingRemovals = [];
+                state.pendingRemovedItems = {};
                 calculateTotals(state);
             })
             .addCase(fetchCartItems.rejected, (state, action) => {
@@ -364,8 +371,8 @@ const cartSlice = createSlice({
             .addCase(addToCart.fulfilled, (state, action) => {
                 state.loading = false;
                 state.items = action.payload;
-                state.pendingAdditions.clear();
-                state.pendingUpdates.clear();
+                state.pendingAdditions = [];
+                state.pendingUpdates = {};
                 calculateTotals(state);
             })
             .addCase(addToCart.rejected, (state, action) => {
@@ -388,13 +395,13 @@ const cartSlice = createSlice({
                     if (action.payload.personalization !== undefined) {
                         item.personalization = action.payload.personalization;
                     }
-                    state.pendingUpdates.delete(action.payload.cartItemId);
+                    delete state.pendingUpdates[action.payload.cartItemId];
                     calculateTotals(state);
                 }
             })
             .addCase(updateCartItemAsync.rejected, (state, action) => {
                 state.error = action.payload as string;
-                state.pendingUpdates.delete(action.meta.arg.cartItemId);
+                delete state.pendingUpdates[action.meta.arg.cartItemId];
             })
             .addCase(removeFromCartAsync.pending, (state, action) => {
                 state.loading = true;
@@ -404,20 +411,20 @@ const cartSlice = createSlice({
             .addCase(removeFromCartAsync.fulfilled, (state, action) => {
                 state.loading = false;
                 state.items = state.items.filter(item => item.cartItemId !== action.payload);
-                state.pendingRemovals.delete(action.payload);
-                state.pendingRemovedItems.delete(action.payload);
+                state.pendingRemovals = state.pendingRemovals.filter(id => id !== action.payload);
+                delete state.pendingRemovedItems[action.payload];
                 calculateTotals(state);
             })
             .addCase(removeFromCartAsync.rejected, (state, action) => {
                 state.loading = false;
                 if (action.payload) state.error = action.payload;
                 // Rollback
-                const removedItem = state.pendingRemovedItems.get(action.meta.arg);
+                const removedItem = state.pendingRemovedItems[action.meta.arg];
                 if (removedItem) {
                     rollbackOptimisticRemoval(state, removedItem);
                 }
-                state.pendingRemovals.delete(action.meta.arg);
-                state.pendingRemovedItems.delete(action.meta.arg);
+                state.pendingRemovals = state.pendingRemovals.filter(id => id !== action.meta.arg);
+                delete state.pendingRemovedItems[action.meta.arg];
             });
     },
 });

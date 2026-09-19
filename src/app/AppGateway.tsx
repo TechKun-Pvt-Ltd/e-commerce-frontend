@@ -10,7 +10,7 @@ import { fetchVariations } from "@/store/slices/variationSlice";
 import { fetchAttributes } from "@/store/slices/attributeSlice";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { clearCart, fetchCartItems } from "@/store/slices/cartSlice";
+import { fetchCartItems } from "@/store/slices/cartSlice";
 import { clearWishlist, fetchWishlistItems } from "@/store/slices/wishlistSlice";
 import { fetchPromotions } from "@/store/slices/promotionSlice";
 
@@ -27,11 +27,10 @@ export function AppGateway({ children }: { children: React.ReactNode }) {
       dispatch(fetchPromotions());
    }, []);
    useEffect(() => {
+      dispatch(fetchCartItems());
       if (authenticated) {
-         dispatch(fetchCartItems());
          dispatch(fetchWishlistItems());
       } else {
-         dispatch(clearCart());
          dispatch(clearWishlist());
       }
    }, [authenticated, user]);
