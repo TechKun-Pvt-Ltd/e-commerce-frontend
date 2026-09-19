@@ -26,7 +26,7 @@ const ShippingCalculator = () => {
                         value={zipCode}
                         onChange={(e) => setZipCode(e.target.value)}
                         className="w-full px-3 py-2.5 border border-border/70 bg-muted/30 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
-                        placeholder="e.g. 34000"
+                        placeholder="e.g. 78701 or 90210"
                     />
                 </div>
                 <button

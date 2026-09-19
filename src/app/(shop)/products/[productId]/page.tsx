@@ -440,11 +440,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ produ
             quantityInStock: variant.quantityInStock ?? 99,
             imageUrl: activeImage?.imageUrl ?? product?.productImages?.[0]?.imageUrl,
         }));
-        if (!authenticated) {
-            router.push(`/auth/login?returnUrl=${encodeURIComponent('/checkout?mode=buynow')}`);
-        } else {
-            router.push('/checkout?mode=buynow');
-        }
+        router.push('/checkout?mode=buynow');
         setIsBuyingNow(false);
     }, [authenticated, selectedVariant, dispatch, router, activeImage, product, quantity]);
 
