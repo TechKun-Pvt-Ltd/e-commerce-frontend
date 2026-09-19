@@ -19,14 +19,36 @@ export default function ContactPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsSubmitting(true);
+        if (!formData.email || !formData.message) {
+            toast.error("Please enter your email and message.");
+            return;
+        }
 
-        setTimeout(() => {
+        setIsSubmitting(true);
+        try {
+            const res = await fetch("/api/forward", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    path: "/public/contact",
+                    method: "POST",
+                    body: formData,
+                }),
+            });
+
+            if (res.ok) {
+                setSubmitted(true);
+                toast.success("Thank you! Your message has been sent to our art advisors.");
+                setFormData({ name: "", email: "", subject: "", message: "" });
+            } else {
+                const data = await res.json().catch(() => ({}));
+                toast.error(data.message || "Failed to send your message. Please try again.");
+            }
+        } catch {
+            toast.error("An error occurred while sending your message. Please try again.");
+        } finally {
             setIsSubmitting(false);
-            setSubmitted(true);
-            toast.success("Thank you! Your message has been sent. We will reply within 24 hours.");
-            setFormData({ name: "", email: "", subject: "", message: "" });
-        }, 600);
+        }
     };
 
     return (

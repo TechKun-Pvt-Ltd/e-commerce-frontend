@@ -85,6 +85,7 @@ async function forwardRequest(
     '/attributes',
     '/promotions',
     '/banner-images',
+    '/public',
   ];
   const isPublic = publicPaths.some(p => path.startsWith(p));
 
