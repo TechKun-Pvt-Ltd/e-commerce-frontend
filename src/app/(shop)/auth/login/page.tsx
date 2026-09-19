@@ -15,6 +15,7 @@ import { login } from '@/store/slices/authSlice';
 import { toast } from 'sonner';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { TokenPayload } from '@/types/domains/auth';
+import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
 
 const loginSchema = z.object({
     email: z.string().email('Invalid email address'),
@@ -27,6 +28,18 @@ function LoginContent() {
     const { loading, authenticated } = useAppSelector(state => state.auth);
     const dispatch = useAppDispatch();
     const returnUrl = useMemo(() => searchParams.get('returnUrl') || searchParams.get('redirect') || '/', [searchParams]);
+
+    useEffect(() => {
+        const error = searchParams.get('error');
+        if (error) {
+            if (error === 'oauth_not_configured') {
+                const provider = searchParams.get('provider') || 'Social';
+                toast.info(`${provider} login is not configured yet. Please sign in with email.`);
+            } else {
+                toast.error(error);
+            }
+        }
+    }, [searchParams]);
 
     useEffect(() => {
         if (!loading && authenticated) {
@@ -70,7 +83,8 @@ function LoginContent() {
                     <CardTitle>Welcome Back</CardTitle>
                     <CardDescription>Sign in to your account</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
+                    <SocialLoginButtons mode="login" returnUrl={returnUrl} />
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                             <FormField

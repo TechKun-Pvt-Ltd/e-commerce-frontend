@@ -16,12 +16,10 @@ interface PriceBlockProps {
 }
 
 export function PriceBlock({
-  product,
   selectedVariant,
   priceRange,
   productPromo,
   stockStatus,
-  isOutOfStock,
   calculateDiscountedPrice,
 }: PriceBlockProps) {
   const totalPrice = useMemo(() => {

@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import * as authServices from "@/services/auth";
 import * as userServices from "@/services/user";
-import { unifiedAuth, login as unifiedLogin, logout as unifiedLogout, me as unifiedMe } from "@/services/unified-auth";
 import { LoginPayload, TokenPayload, UserEssentials } from '@/types/domains/auth';
 import { UserUpdatePayload } from '@/types/domains/user';
 
@@ -22,7 +22,7 @@ export const login = createAsyncThunk<TokenPayload, LoginPayload, { rejectValue:
     'auth/login',
     async (credentials, { rejectWithValue }) => {
         try {
-            const response = await unifiedLogin(credentials);
+            const response = await authServices.login(credentials);
             if (response.success)
                 return response.data;
 
@@ -40,7 +40,7 @@ export const getMyInformation = createAsyncThunk(
             return rejectWithValue('Not logged in');
         }
         try {
-            const response = await unifiedMe();
+            const response = await authServices.me();
             if (response.success)
                 return response.data;
 
@@ -55,7 +55,7 @@ export const logout = createAsyncThunk(
     'auth/logout',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await unifiedLogout();
+            const response = await authServices.logout();
             if (response.success)
                 return response.data;
 

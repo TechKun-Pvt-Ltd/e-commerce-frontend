@@ -46,7 +46,8 @@ export async function POST(req: NextRequest) {
       const data = await res.json();
 
       if (data.status === 'success' && data.orderId) {
-        redirectUrl = `${FRONTEND_URL}/orders/${data.orderId}?payment=success`;
+        const trackingQuery = data.trackingNumber ? `&trackingNumber=${encodeURIComponent(data.trackingNumber)}` : '';
+        redirectUrl = `${FRONTEND_URL}/orders/${data.orderId}?payment=success${trackingQuery}`;
       } else {
         redirectUrl = `${FRONTEND_URL}/checkout?payment=failed&reason=${data.reason || 'confirmation_failed'}`;
       }
