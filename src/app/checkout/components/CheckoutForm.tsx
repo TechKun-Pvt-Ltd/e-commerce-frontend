@@ -23,7 +23,25 @@ import { PaymentInitiateRequest } from "@/services/iyzico";
 import PhoneInput from "@/components/ui/phone-input";
 import Link from "next/link";
 
-// ─── Validation schema ────────────────────────────────────────────────────────
+const US_STATES = [
+    { code: "AL", name: "Alabama" }, { code: "AK", name: "Alaska" }, { code: "AZ", name: "Arizona" },
+    { code: "AR", name: "Arkansas" }, { code: "CA", name: "California" }, { code: "CO", name: "Colorado" },
+    { code: "CT", name: "Connecticut" }, { code: "DE", name: "Delaware" }, { code: "FL", name: "Florida" },
+    { code: "GA", name: "Georgia" }, { code: "HI", name: "Hawaii" }, { code: "ID", name: "Idaho" },
+    { code: "IL", name: "Illinois" }, { code: "IN", name: "Indiana" }, { code: "IA", name: "Iowa" },
+    { code: "KS", name: "Kansas" }, { code: "KY", name: "Kentucky" }, { code: "LA", name: "Louisiana" },
+    { code: "ME", name: "Maine" }, { code: "MD", name: "Maryland" }, { code: "MA", name: "Massachusetts" },
+    { code: "MI", name: "Michigan" }, { code: "MN", name: "Minnesota" }, { code: "MS", name: "Mississippi" },
+    { code: "MO", name: "Missouri" }, { code: "MT", name: "Montana" }, { code: "NE", name: "Nebraska" },
+    { code: "NV", name: "Nevada" }, { code: "NH", name: "New Hampshire" }, { code: "NJ", name: "New Jersey" },
+    { code: "NM", name: "New Mexico" }, { code: "NY", name: "New York" }, { code: "NC", name: "North Carolina" },
+    { code: "ND", name: "North Dakota" }, { code: "OH", name: "Ohio" }, { code: "OK", name: "Oklahoma" },
+    { code: "OR", name: "Oregon" }, { code: "PA", name: "Pennsylvania" }, { code: "RI", name: "Rhode Island" },
+    { code: "SC", name: "South Carolina" }, { code: "SD", name: "South Dakota" }, { code: "TN", name: "Tennessee" },
+    { code: "TX", name: "Texas" }, { code: "UT", name: "Utah" }, { code: "VT", name: "Vermont" },
+    { code: "VA", name: "Virginia" }, { code: "WA", name: "Washington" }, { code: "WV", name: "West Virginia" },
+    { code: "WI", name: "Wisconsin" }, { code: "WY", name: "Wyoming" }, { code: "DC", name: "District of Columbia" }
+];
 
 const checkoutSchema = z.object({
     addressType: z.enum(["current", "custom"]),
@@ -33,6 +51,7 @@ const checkoutSchema = z.object({
     shippingAddress: z.object({
         street: z.string(),
         city: z.string(),
+        state: z.string().optional(),
         pincode: z.string(),
         country: z.string(),
     }).optional(),
@@ -120,7 +139,7 @@ export default function CheckoutForm({
             guestFullName: "",
             guestEmail: "",
             guestPhoneNo: "+1",
-            shippingAddress: { street: "", city: "", pincode: "", country: "United States" },
+            shippingAddress: { street: "", city: "", state: "", pincode: "", country: "United States" },
             cardHolderName: "",
             cardNumber: "",
             expireMonth: "",
@@ -164,6 +183,7 @@ export default function CheckoutForm({
             const missing: string[] = [];
             if (!s?.street?.trim()) missing.push("Street Address");
             if (!s?.city?.trim()) missing.push("City");
+            if (s?.country === "United States" && !s?.state?.trim()) missing.push("State");
             if (!s?.pincode?.trim()) missing.push("Postal Code / ZIP");
             if (!s?.country?.trim()) missing.push("Country");
             if (missing.length > 0) {
@@ -195,9 +215,12 @@ export default function CheckoutForm({
                 };
             }
         } else if (data.shippingAddress) {
+            const formattedCity = data.shippingAddress.state?.trim()
+                ? `${data.shippingAddress.city.trim()}, ${data.shippingAddress.state.trim()}`
+                : data.shippingAddress.city.trim();
             shippingAddressObj = {
                 street: data.shippingAddress.street,
-                city: data.shippingAddress.city,
+                city: formattedCity,
                 pincode: String(data.shippingAddress.pincode ?? "").trim(),
                 country: data.shippingAddress.country,
             };
@@ -380,7 +403,7 @@ export default function CheckoutForm({
                                             </FormItem>
                                         )}
                                     />
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                         <FormField
                                             control={form.control}
                                             name="shippingAddress.city"
@@ -394,11 +417,41 @@ export default function CheckoutForm({
                                         />
                                         <FormField
                                             control={form.control}
+                                            name="shippingAddress.state"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>
+                                                        State {form.watch("shippingAddress.country") === "United States" && <span className="text-red-500">*</span>}
+                                                    </FormLabel>
+                                                    <FormControl>
+                                                        {form.watch("shippingAddress.country") === "United States" ? (
+                                                            <Select value={field.value || ""} onValueChange={field.onChange}>
+                                                                <SelectTrigger>
+                                                                    <SelectValue placeholder="Select state" />
+                                                                </SelectTrigger>
+                                                                <SelectContent className="max-h-60">
+                                                                    {US_STATES.map((s) => (
+                                                                        <SelectItem key={s.code} value={s.code}>
+                                                                            {s.code} - {s.name}
+                                                                        </SelectItem>
+                                                                    ))}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        ) : (
+                                                            <Input placeholder="State / Province" {...field} />
+                                                        )}
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
                                             name="shippingAddress.pincode"
                                             render={({ field }) => (
                                                 <FormItem>
                                                     <FormLabel>Postal Code / ZIP <span className="text-red-500">*</span></FormLabel>
-                                                    <FormControl><Input type="text" placeholder="e.g. 10001" {...field} /></FormControl>
+                                                    <FormControl><Input type="text" placeholder="e.g. 78701" {...field} /></FormControl>
                                                     <FormMessage />
                                                 </FormItem>
                                             )}
@@ -524,34 +577,6 @@ export default function CheckoutForm({
                                     />
                                 </div>
 
-                                <FormField
-                                    control={form.control}
-                                    name="installment"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Installments</FormLabel>
-                                            <FormControl>
-                                                <Select
-                                                    value={String(field.value)}
-                                                    onValueChange={(v) => field.onChange(Number(v))}
-                                                >
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Single payment" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="1">Single payment</SelectItem>
-                                                        <SelectItem value="2">2 installments</SelectItem>
-                                                        <SelectItem value="3">3 installments</SelectItem>
-                                                        <SelectItem value="6">6 installments</SelectItem>
-                                                        <SelectItem value="9">9 installments</SelectItem>
-                                                        <SelectItem value="12">12 installments</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
 
                                 <div className="flex items-center gap-2 pt-2 text-xs text-gray-500 border-t">
                                     <ShieldCheck className="h-4 w-4 text-green-500 flex-shrink-0" />

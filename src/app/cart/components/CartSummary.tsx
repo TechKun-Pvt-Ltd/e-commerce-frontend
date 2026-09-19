@@ -18,8 +18,6 @@ const CartSummary: React.FC<CartSummaryProps> = ({ items }) => {
     }, 0);
 
     const subtotal = productTotal - discount;
-    const shipping = items.length > 0 ? 10 : 0;
-    const total = subtotal + shipping;
 
     const fmt = (n: number) => `$${n.toFixed(2)}`;
 
@@ -46,15 +44,15 @@ const CartSummary: React.FC<CartSummaryProps> = ({ items }) => {
                 {/* Shipping */}
                 <div className="flex justify-between text-muted-foreground">
                     <span>Shipping</span>
-                    <span className="text-foreground font-medium">
-                        {items.length === 0 ? "—" : fmt(shipping)}
+                    <span className="text-foreground font-medium text-xs sm:text-sm">
+                        {items.length === 0 ? "—" : "Calculated at checkout"}
                     </span>
                 </div>
 
                 {/* Subtotal = grand total */}
                 <div className="border-t border-border/50 pt-3 mt-1 flex justify-between">
-                    <span className="font-semibold text-foreground">Subtotal</span>
-                    <span className="font-semibold text-foreground text-base">{fmt(total)}</span>
+                    <span className="font-semibold text-foreground">Estimated Total</span>
+                    <span className="font-semibold text-foreground text-base">{fmt(subtotal)}</span>
                 </div>
             </div>
 

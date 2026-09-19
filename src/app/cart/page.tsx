@@ -45,8 +45,7 @@ const CartPage = () => {
         return sum + (item.originalPrice - item.price) * item.quantity;
     }, 0);
     const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const shipping = cartItems.length > 0 ? 10 : 0;
-    const grandTotal = subtotal + shipping;
+    const grandTotal = subtotal;
 
     if (isInitialLoading) {
         return (
@@ -125,8 +124,8 @@ const CartPage = () => {
             {cartItems.length > 0 && (
                 <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[oklch(0.42_0.02_55)] border-t-2 border-[#c9a84c]">
                     <div className="flex items-center justify-between px-5 pt-3 pb-1">
-                        <p className="text-[10px] tracking-[0.2em] uppercase text-[#c9a84c]/80">Subtotal</p>
-                        <p className="text-[10px] tracking-[0.2em] uppercase text-[#c9a84c]/80">incl. shipping</p>
+                        <p className="text-[10px] tracking-[0.2em] uppercase text-[#c9a84c]/80">Estimated Total</p>
+                        <p className="text-[10px] tracking-[0.2em] uppercase text-[#c9a84c]/80">shipping at checkout</p>
                     </div>
                     <div className="flex items-center justify-between px-5 pb-2">
                         <div>

@@ -63,7 +63,7 @@ function CartItemCard({ item, onQuantityChange, onRemoveItem }: {
                         src={item.imageUrl}
                         alt={item.title}
                         fill
-                        unoptimized
+                        sizes="(max-width: 640px) 96px, 128px"
                         className="object-cover group-hover:scale-[1.03] transition-transform duration-300"
                         onError={() => setImgError(true)}
                     />
