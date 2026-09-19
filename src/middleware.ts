@@ -19,9 +19,10 @@ function isTokenExpired(token: string): boolean {
   }
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get('token')?.value;
+  const refreshToken = request.cookies.get('refresh_token')?.value;
   const userRole = request.cookies.get('user_role')?.value;
 
   const isAuthenticated = Boolean(token && !isTokenExpired(token));
@@ -43,6 +44,7 @@ export function middleware(request: NextRequest) {
       const response = NextResponse.redirect(adminLoginUrl);
       if (token) {
         response.cookies.delete('token');
+        response.cookies.delete('refresh_token');
         response.cookies.delete('user_role');
       }
       return response;
@@ -55,7 +57,7 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // 2. Guard all /account routes
+  // 3. Guard all /account routes
   if (pathname === '/account' || pathname.startsWith('/account/')) {
     if (!isAuthenticated) {
       const loginUrl = new URL('/auth/login', request.url);
@@ -63,13 +65,14 @@ export function middleware(request: NextRequest) {
       const response = NextResponse.redirect(loginUrl);
       if (token) {
         response.cookies.delete('token');
+        response.cookies.delete('refresh_token');
         response.cookies.delete('user_role');
       }
       return response;
     }
   }
 
-  // 3. Guard all /checkout routes
+  // 4. Guard all /checkout routes
   if (pathname === '/checkout' || pathname.startsWith('/checkout/')) {
     if (!isAuthenticated) {
       const loginUrl = new URL('/auth/login', request.url);
@@ -77,13 +80,28 @@ export function middleware(request: NextRequest) {
       const response = NextResponse.redirect(loginUrl);
       if (token) {
         response.cookies.delete('token');
+        response.cookies.delete('refresh_token');
         response.cookies.delete('user_role');
       }
       return response;
     }
   }
 
-  return NextResponse.next();
+  // 5. Add auth headers for API routes to enable server-side token refresh
+  const response = NextResponse.next();
+
+  // Pass token info to downstream API routes via headers
+  if (token) {
+    response.headers.set('x-auth-token', token);
+    if (refreshToken) {
+      response.headers.set('x-refresh-token', refreshToken);
+    }
+    if (userRole) {
+      response.headers.set('x-user-role', userRole);
+    }
+  }
+
+  return response;
 }
 
 export const config = {

@@ -7,6 +7,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { UserRole } from "@/types/domains/user";
 import Spinner from "@/components/ui/spinner";
 import { toast } from "sonner";
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const { user, loading, authenticated } = useAppSelector((state) => state.auth);
@@ -37,6 +38,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         );
     }
 
-    return <AdminShell>{children}</AdminShell>;
+    return (
+      <ErrorBoundary>
+        <AdminShell>{children}</AdminShell>
+      </ErrorBoundary>
+    );
 }
 
