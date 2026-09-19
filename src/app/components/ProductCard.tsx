@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import CartToast from "./CartToast";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { Badge } from "@/components/ui/badge";
-import { addToCart } from "@/store/slices/cartSlice";
+import { addToCart, optimisticAddToCart } from "@/store/slices/cartSlice";
 import { addToWishlistAsync, removeFromWishlistAsync } from "@/store/slices/wishlistSlice";
 
 function NoImagePlaceholder() {
@@ -115,6 +115,9 @@ export default function ProductCard({
             duration: Infinity,
          });
       }
+
+      // Optimistic update for instant UI response
+      dispatch(optimisticAddToCart({ productVariantId: product.productVariantId, quantity: 1 }));
 
       // Sync with server in background
       dispatch(addToCart({ productVariantId: product.productVariantId, quantity: 1 }));

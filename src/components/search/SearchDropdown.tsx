@@ -13,6 +13,53 @@ interface SearchDropdownProps {
     onSelect: (productId: number) => void;
     onSearchAll: (query: string) => void;
     onClose: () => void;
+    debounceMs?: number;
+    maxCacheSize?: number;
+}
+
+interface LRUCache<K, V> {
+  get(key: K): V | undefined;
+  set(key: K, value: V): void;
+  delete(key: K): boolean;
+  clear(): void;
+  size: number;
+}
+
+function createLRUCache<K, V>(maxSize: number): LRUCache<K, V> {
+  const map = new Map<K, V>();
+
+  return {
+    get(key: K) {
+      const value = map.get(key);
+      if (value !== undefined) {
+        // Move to end (most recently used)
+        map.delete(key);
+        map.set(key, value);
+      }
+      return value;
+    },
+    set(key: K, value: V) {
+      if (map.has(key)) {
+        map.delete(key);
+      } else if (map.size >= maxSize) {
+        // Remove least recently used (first entry)
+        const firstKey = map.keys().next().value;
+        if (firstKey !== undefined) {
+          map.delete(firstKey);
+        }
+      }
+      map.set(key, value);
+    },
+    delete(key: K) {
+      return map.delete(key);
+    },
+    clear() {
+      map.clear();
+    },
+    get size() {
+      return map.size;
+    },
+  };
 }
 
 export default function SearchDropdown({
@@ -21,20 +68,22 @@ export default function SearchDropdown({
     onSelect,
     onSearchAll,
     onClose,
+    debounceMs = 300,
+    maxCacheSize = 50,
 }: SearchDropdownProps) {
     const [products, setProducts] = useState<ProductPreview[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
-    const cacheRef = useRef<Map<string, ProductPreview[]>>(new Map());
-    const queryDebounceTimer = useRef<NodeJS.Timeout | null>(null);
+    const cacheRef = useRef<LRUCache<string, ProductPreview[]>>(createLRUCache(maxCacheSize));
+    const queryDebounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const latestRequestId = useRef(0);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     const trimmedQuery = query.trim();
     const shouldShow = isOpen && trimmedQuery.length >= 2;
 
-    // Fetch products with 300ms debounce
+    // Fetch products with configurable debounce
     useEffect(() => {
         if (queryDebounceTimer.current) {
             clearTimeout(queryDebounceTimer.current);
@@ -47,9 +96,11 @@ export default function SearchDropdown({
             return;
         }
 
-        // Check in-memory cache first
-        if (cacheRef.current.has(trimmedQuery.toLowerCase())) {
-            setProducts(cacheRef.current.get(trimmedQuery.toLowerCase()) || []);
+        // Check in-memory LRU cache first
+        const cacheKey = trimmedQuery.toLowerCase();
+        const cached = cacheRef.current.get(cacheKey);
+        if (cached) {
+            setProducts(cached);
             setIsLoading(false);
             setHighlightedIndex(-1);
             return;
@@ -69,7 +120,7 @@ export default function SearchDropdown({
                 if (currentReqId === latestRequestId.current) {
                     if (response.success && response.data) {
                         const items = response.data;
-                        cacheRef.current.set(trimmedQuery.toLowerCase(), items);
+                        cacheRef.current.set(cacheKey, items);
                         setProducts(items);
                     } else {
                         setProducts([]);
@@ -85,14 +136,14 @@ export default function SearchDropdown({
                     setHighlightedIndex(-1);
                 }
             }
-        }, 300);
+        }, debounceMs);
 
         return () => {
             if (queryDebounceTimer.current) {
                 clearTimeout(queryDebounceTimer.current);
             }
         };
-    }, [trimmedQuery]);
+    }, [trimmedQuery, debounceMs]);
 
     // Handle Keyboard navigation
     const handleKeyDown = useCallback(
