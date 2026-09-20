@@ -11,7 +11,7 @@ import { r2src } from "@/lib/r2-image";
 /** Product imagery for the category tiles — keyed by keyword in category name */
 const CATEGORY_IMAGE_MAP: Record<string, string> = {
   canvas: "https://pub-c636ad631f4e47d4b7eed2b5fd4f35e6.r2.dev/img/products/kanvas-panoramik/cvs-pan-001/gold01.webp",
-  glass:  "https://pub-c636ad631f4e47d4b7eed2b5fd4f35e6.r2.dev/img/products/kanvas-panoramik/cvs-pan-005/cercevesizfon01.webp",
+  glass:  "/images/categories/glass-wall-art.webp",
   rug:    "https://pub-c636ad631f4e47d4b7eed2b5fd4f35e6.r2.dev/img/products/hali/hym05/hal2.webp",
   wallpaper: "/images/categories/wallpaper.jpg",
   default:"https://pub-c636ad631f4e47d4b7eed2b5fd4f35e6.r2.dev/img/products/hali/hym103/hal1.webp",
